@@ -29,8 +29,19 @@ import { Label } from "@/components/ui/label";
 import { Battery } from "@shared/schema";
 import { format } from "date-fns";
 import { Link } from "wouter";
-import { Filter, RefreshCcw, Eye, AlertTriangle, X } from "lucide-react";
+import { Filter, RefreshCcw, Eye, Trash2, X } from "lucide-react";
 import { getBatteryStatusColor } from "@/lib/utils/battery";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 
 interface BatteryHealthTableProps {
   batteries: Battery[];
@@ -45,6 +56,10 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
   const [showHealthBelow, setShowHealthBelow] = useState(false);
   const [healthThreshold, setHealthThreshold] = useState("80");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [batteryToDelete, setBatteryToDelete] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { toast } = useToast();
   const itemsPerPage = 4;
   
   // Get unique battery names and statuses for filters
@@ -78,6 +93,51 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
     setShowHealthBelow(false);
     setHealthThreshold("80");
     setCurrentPage(1);
+  };
+  
+  // Function to handle opening the delete confirmation dialog
+  const handleDeleteBattery = (batteryId: number) => {
+    setBatteryToDelete(batteryId);
+    setIsDeleteDialogOpen(true);
+  };
+  
+  // Function to confirm and execute battery deletion
+  const confirmDeleteBattery = async () => {
+    if (!batteryToDelete) return;
+    
+    setIsDeleting(true);
+    
+    try {
+      const response = await fetch(`/api/batteries/${batteryToDelete}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.ok) {
+        toast({
+          title: "Battery deleted",
+          description: "Battery has been successfully removed from your inventory.",
+        });
+        
+        // Refresh the data after deletion
+        if (refetch) {
+          await refetch();
+        }
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete battery');
+      }
+    } catch (error) {
+      console.error('Error deleting battery:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the battery. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+      setBatteryToDelete(null);
+    }
   };
   
   const totalPages = Math.ceil(filteredBatteries.length / itemsPerPage);
@@ -327,9 +387,10 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground bg-warning/10 rounded-lg hover:text-warning hover:bg-warning/20"
+                          className="h-8 w-8 text-muted-foreground bg-danger/10 rounded-lg hover:text-danger hover:bg-danger/20"
+                          onClick={() => handleDeleteBattery(battery.id)}
                         >
-                          <AlertTriangle className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
@@ -425,6 +486,43 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
           </div>
         </div>
       </div>
+      
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent className="bg-gradient-dark border border-border/50 backdrop-blur-md shadow-xl shadow-primary/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Battery Deletion</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this battery? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              className="bg-muted/50 border-border/50 hover:bg-muted"
+              disabled={isDeleting}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-danger hover:bg-danger/90 text-white"
+              onClick={(e) => {
+                e.preventDefault(); // Prevent dialog from closing automatically
+                confirmDeleteBattery();
+              }}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-background border-t-transparent"></div>
+                  Deleting...
+                </>
+              ) : (
+                "Delete Battery"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
