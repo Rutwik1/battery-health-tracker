@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import Sidebar from "./sidebar";
+import { AddBatteryDialog } from "@/components/dashboard/add-battery-dialog";
 import { Menu } from "lucide-react";
 
 export default function Topbar() {
