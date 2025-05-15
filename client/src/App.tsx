@@ -14,6 +14,10 @@ function Router() {
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/battery/:id" component={BatteryDetail} />
+      <Route path="/batteries" component={Dashboard} />
+      <Route path="/history" component={Dashboard} />
+      <Route path="/settings" component={Dashboard} />
+      <Route path="/notifications" component={Dashboard} />
       <Route component={NotFound} />
     </Switch>
   );

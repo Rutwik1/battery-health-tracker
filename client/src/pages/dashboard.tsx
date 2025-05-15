@@ -19,13 +19,13 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { Download, LineChart, BarChartBig, Calendar, Zap, Battery, Sparkles } from "lucide-react";
-import type { Battery as BatteryType } from "@shared/schema";
+import { Download, LineChart, BarChartBig, Calendar, Zap, BatteryIcon, Sparkles } from "lucide-react";
+import { type Battery } from "@shared/schema";
 
 export default function Dashboard() {
   const [timeRange, setTimeRange] = useState("30");
 
-  const { data: batteries, isLoading, error } = useQuery<typeof BatteryType[]>({
+  const { data: batteries, isLoading, error } = useQuery<Battery[]>({
     queryKey: ["/api/batteries"],
   });
 
@@ -101,7 +101,7 @@ export default function Dashboard() {
             
             {/* Battery Status Overview */}
             <div className="mb-3 flex items-center">
-              <Battery className="h-5 w-5 mr-2 text-primary" />
+              <BatteryIcon className="h-5 w-5 mr-2 text-primary" />
               <h2 className="text-xl font-heading font-medium">Battery Status Overview</h2>
             </div>
             

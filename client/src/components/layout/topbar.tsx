@@ -1,26 +1,33 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import Sidebar from "./sidebar";
+import { Menu } from "lucide-react";
 
 export default function Topbar() {
   const [search, setSearch] = useState("");
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const handleNavItemClick = () => {
+    // Close the mobile menu when a nav item is clicked
+    setIsMenuOpen(false);
+  };
 
   return (
     <div className="relative z-10 flex-shrink-0 flex h-16 bg-gradient-dark border-b border-border/50 backdrop-blur-sm">
-      <Sheet>
+      <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
         <SheetTrigger asChild>
           <Button variant="ghost" className="md:hidden px-4 text-primary">
-            <i className="ri-menu-line text-2xl"></i>
+            <Menu className="h-6 w-6" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="p-0 bg-gradient-dark border-r border-border/50">
-          <Sidebar />
+        <SheetContent side="left" className="p-0 bg-gradient-dark border-r border-border/50" onCloseAutoFocus={(e) => e.preventDefault()}>
+          <Sidebar isMobile={true} onNavItemClick={handleNavItemClick} />
         </SheetContent>
       </Sheet>
 
-      <div className="flex-1 px-6 flex justify-between">
+      <div className="flex-1 px-4 md:px-6 flex justify-between">
         <div className="flex-1 flex">
           <div className="w-full max-w-md flex md:ml-0 mt-3 md:mt-0">
             <div className="relative w-full text-muted-foreground">
@@ -52,12 +59,12 @@ export default function Topbar() {
             <i className="ri-question-line text-xl"></i>
           </Button>
           
-          <div className="h-8 w-px mx-2 bg-border/50"></div>
+          <div className="h-8 w-px mx-2 bg-border/50 hidden sm:block"></div>
           
           <Button 
             variant="outline" 
             size="sm" 
-            className="ml-2 rounded-lg bg-muted/50 border-border/50 text-foreground hover:bg-muted hover:text-primary"
+            className="ml-2 rounded-lg bg-muted/50 border-border/50 text-foreground hover:bg-muted hover:text-primary hidden sm:flex"
           >
             <i className="ri-add-line mr-1"></i>
             Add Battery
