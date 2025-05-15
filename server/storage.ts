@@ -5,6 +5,8 @@ import {
   usagePatterns, type UsagePattern, type InsertUsagePattern,
   recommendations, type Recommendation, type InsertRecommendation
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, and, between } from "drizzle-orm";
 
 // Interface with CRUD methods
 export interface IStorage {
@@ -389,4 +391,143 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  // Battery methods
+  async getBatteries(): Promise<Battery[]> {
+    return await db.select().from(batteries);
+  }
+
+  async getBattery(id: number): Promise<Battery | undefined> {
+    const [battery] = await db.select().from(batteries).where(eq(batteries.id, id));
+    return battery || undefined;
+  }
+
+  async createBattery(insertBattery: InsertBattery): Promise<Battery> {
+    console.log("Creating battery in database:", insertBattery);
+    const [battery] = await db
+      .insert(batteries)
+      .values(insertBattery)
+      .returning();
+    return battery;
+  }
+
+  async updateBattery(id: number, batteryUpdate: Partial<InsertBattery>): Promise<Battery | undefined> {
+    const [updatedBattery] = await db
+      .update(batteries)
+      .set(batteryUpdate)
+      .where(eq(batteries.id, id))
+      .returning();
+    return updatedBattery || undefined;
+  }
+
+  async deleteBattery(id: number): Promise<boolean> {
+    const result = await db
+      .delete(batteries)
+      .where(eq(batteries.id, id))
+      .returning({ id: batteries.id });
+    return result.length > 0;
+  }
+
+  // Battery history methods
+  async getBatteryHistory(batteryId: number): Promise<BatteryHistory[]> {
+    return await db
+      .select()
+      .from(batteryHistory)
+      .where(eq(batteryHistory.batteryId, batteryId))
+      .orderBy(batteryHistory.date);
+  }
+
+  async getBatteryHistoryFiltered(batteryId: number, startDate: Date, endDate: Date): Promise<BatteryHistory[]> {
+    return await db
+      .select()
+      .from(batteryHistory)
+      .where(
+        and(
+          eq(batteryHistory.batteryId, batteryId),
+          between(batteryHistory.date, startDate, endDate)
+        )
+      )
+      .orderBy(batteryHistory.date);
+  }
+
+  async createBatteryHistory(insertHistory: InsertBatteryHistory): Promise<BatteryHistory> {
+    const [history] = await db
+      .insert(batteryHistory)
+      .values(insertHistory)
+      .returning();
+    return history;
+  }
+
+  // Usage pattern methods
+  async getUsagePattern(batteryId: number): Promise<UsagePattern | undefined> {
+    const [pattern] = await db
+      .select()
+      .from(usagePatterns)
+      .where(eq(usagePatterns.batteryId, batteryId));
+    return pattern || undefined;
+  }
+
+  async createUsagePattern(insertPattern: InsertUsagePattern): Promise<UsagePattern> {
+    const [pattern] = await db
+      .insert(usagePatterns)
+      .values(insertPattern)
+      .returning();
+    return pattern;
+  }
+
+  async updateUsagePattern(id: number, patternUpdate: Partial<InsertUsagePattern>): Promise<UsagePattern | undefined> {
+    const [updatedPattern] = await db
+      .update(usagePatterns)
+      .set(patternUpdate)
+      .where(eq(usagePatterns.id, id))
+      .returning();
+    return updatedPattern || undefined;
+  }
+
+  // Recommendation methods
+  async getRecommendations(batteryId: number): Promise<Recommendation[]> {
+    return await db
+      .select()
+      .from(recommendations)
+      .where(eq(recommendations.batteryId, batteryId));
+  }
+
+  async createRecommendation(insertRecommendation: InsertRecommendation): Promise<Recommendation> {
+    const [recommendation] = await db
+      .insert(recommendations)
+      .values(insertRecommendation)
+      .returning();
+    return recommendation;
+  }
+
+  async updateRecommendation(id: number, resolved: boolean): Promise<Recommendation | undefined> {
+    const [updatedRecommendation] = await db
+      .update(recommendations)
+      .set({ resolved })
+      .where(eq(recommendations.id, id))
+      .returning();
+    return updatedRecommendation || undefined;
+  }
+}
+
+// Use database storage
+export const storage = new DatabaseStorage();

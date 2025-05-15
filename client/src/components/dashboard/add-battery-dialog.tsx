@@ -99,15 +99,25 @@ export function AddBatteryDialog() {
 
   const mutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch("/api/batteries", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        throw new Error("Failed to add battery");
+      try {
+        console.log("API request data:", JSON.stringify(data));
+        const response = await fetch("/api/batteries", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("API error response:", errorText);
+          throw new Error(`Failed to add battery: ${errorText}`);
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error("API request failed:", error);
+        throw error;
       }
-      return response.json();
     },
     onSuccess: () => {
       // Invalidate and refetch the batteries list
@@ -154,10 +164,15 @@ export function AddBatteryDialog() {
       degradationRate: 0.5, // Default degradation rate (% per month)
     };
     
+    // Debug log for troubleshooting
     console.log('Submitting battery data:', batteryData);
     
     // Submit the data
-    mutation.mutate(batteryData);
+    try {
+      mutation.mutate(batteryData);
+    } catch (error) {
+      console.error("Mutation error details:", error);
+    }
   }
 
   return (
