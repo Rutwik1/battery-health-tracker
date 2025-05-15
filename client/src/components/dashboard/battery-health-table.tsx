@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { 
   Table, 
   TableBody, 
@@ -8,10 +8,28 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Battery } from "@shared/schema";
 import { format } from "date-fns";
 import { Link } from "wouter";
-import { Filter, RefreshCcw, Eye, AlertTriangle } from "lucide-react";
+import { Filter, RefreshCcw, Eye, AlertTriangle, X } from "lucide-react";
 import { getBatteryStatusColor } from "@/lib/utils/battery";
 
 interface BatteryHealthTableProps {
@@ -21,13 +39,56 @@ interface BatteryHealthTableProps {
 
 export default function BatteryHealthTable({ batteries, isLoading }: BatteryHealthTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filterBattery, setFilterBattery] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<string | null>(null);
+  const [showHealthBelow, setShowHealthBelow] = useState(false);
+  const [healthThreshold, setHealthThreshold] = useState("80");
   const itemsPerPage = 4;
   
-  const totalPages = Math.ceil(batteries.length / itemsPerPage);
-  const displayedBatteries = batteries.slice(
+  // Get unique battery names and statuses for filters
+  const batteryNames = Array.from(new Set(batteries.map(b => b.name)));
+  const statusTypes = Array.from(new Set(batteries.map(b => b.status)));
+  
+  // Apply filters
+  const filteredBatteries = batteries.filter(battery => {
+    // Filter by battery name
+    if (filterBattery && battery.name !== filterBattery) {
+      return false;
+    }
+    
+    // Filter by status
+    if (filterStatus && battery.status !== filterStatus) {
+      return false;
+    }
+    
+    // Filter by health threshold
+    if (showHealthBelow && battery.healthPercentage > parseInt(healthThreshold)) {
+      return false;
+    }
+    
+    return true;
+  });
+  
+  // Reset to first page when filters change
+  const resetFilters = () => {
+    setFilterBattery(null);
+    setFilterStatus(null);
+    setShowHealthBelow(false);
+    setHealthThreshold("80");
+    setCurrentPage(1);
+  };
+  
+  const totalPages = Math.ceil(filteredBatteries.length / itemsPerPage);
+  const displayedBatteries = filteredBatteries.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+  
+  // Close popover when clicking outside
+  const handlePopoverOpenChange = (open: boolean) => {
+    setIsFilterOpen(open);
+  };
   
   return (
     <div>
@@ -37,18 +98,116 @@ export default function BatteryHealthTable({ batteries, isLoading }: BatteryHeal
           Battery Health Details
         </h2>
         <div className="flex items-center space-x-3">
+          <Popover open={isFilterOpen} onOpenChange={handlePopoverOpenChange}>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className={`bg-muted/50 border-border/50 rounded-lg hover:bg-muted hover:text-primary ${isFilterOpen || (filterBattery || filterStatus || showHealthBelow) ? 'bg-primary/20 text-primary border-primary/30' : 'text-foreground'}`}
+              >
+                <Filter className="h-4 w-4 mr-1" />
+                Filter
+                {(filterBattery || filterStatus || showHealthBelow) && (
+                  <span className="ml-1 bg-primary text-background text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {(filterBattery ? 1 : 0) + (filterStatus ? 1 : 0) + (showHealthBelow ? 1 : 0)}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent 
+              className="w-80 p-0 bg-gradient-dark border border-border/50 shadow-lg shadow-primary/10 backdrop-blur-md"
+              align="end"
+            >
+              <div className="p-4 border-b border-border/50 flex items-center justify-between">
+                <div className="text-sm font-medium">Filter Batteries</div>
+                {(filterBattery || filterStatus || showHealthBelow) && (
+                  <Button variant="ghost" size="sm" onClick={resetFilters} className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground">
+                    <X className="h-3 w-3 mr-1" />
+                    Clear All
+                  </Button>
+                )}
+              </div>
+              
+              <div className="p-4 space-y-4">
+                {/* Battery filter */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium text-muted-foreground uppercase">Battery Model</Label>
+                  <Select value={filterBattery || "all"} onValueChange={value => setFilterBattery(value === "all" ? null : value)}>
+                    <SelectTrigger className="w-full bg-muted/30 border-border/50">
+                      <SelectValue placeholder="All batteries" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gradient-card border border-border/50 backdrop-blur-md">
+                      <SelectItem value="all">All batteries</SelectItem>
+                      {batteryNames.map(name => (
+                        <SelectItem key={name} value={name}>{name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Status filter */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-medium text-muted-foreground uppercase">Status</Label>
+                  <Select value={filterStatus || "all"} onValueChange={value => setFilterStatus(value === "all" ? null : value)}>
+                    <SelectTrigger className="w-full bg-muted/30 border-border/50">
+                      <SelectValue placeholder="All statuses" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gradient-card border border-border/50 backdrop-blur-md">
+                      <SelectItem value="all">All statuses</SelectItem>
+                      {statusTypes.map(status => (
+                        <SelectItem key={status} value={status}>{status}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Health threshold */}
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="health-threshold" 
+                      checked={showHealthBelow} 
+                      onCheckedChange={checked => setShowHealthBelow(!!checked)}
+                      className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                    />
+                    <Label htmlFor="health-threshold" className="text-sm cursor-pointer">
+                      Show batteries with health below
+                    </Label>
+                  </div>
+                  
+                  <Select 
+                    value={healthThreshold} 
+                    onValueChange={setHealthThreshold}
+                    disabled={!showHealthBelow}
+                  >
+                    <SelectTrigger className="w-full bg-muted/30 border-border/50">
+                      <SelectValue placeholder="Select threshold" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gradient-card border border-border/50 backdrop-blur-md">
+                      <SelectItem value="90">90%</SelectItem>
+                      <SelectItem value="80">80%</SelectItem>
+                      <SelectItem value="70">70%</SelectItem>
+                      <SelectItem value="60">60%</SelectItem>
+                      <SelectItem value="50">50%</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Apply filters button */}
+                <Button 
+                  className="w-full mt-6 bg-gradient-primary hover:opacity-90 text-background"
+                  onClick={() => setIsFilterOpen(false)}
+                >
+                  Apply Filters
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+          
           <Button 
             variant="outline" 
             size="sm"
             className="bg-muted/50 border-border/50 text-foreground rounded-lg hover:bg-muted hover:text-primary"
-          >
-            <Filter className="h-4 w-4 mr-1" />
-            Filter
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="bg-muted/50 border-border/50 text-foreground rounded-lg hover:bg-muted hover:text-primary"
+            onClick={() => setCurrentPage(1)} // Refresh by resetting to page 1
           >
             <RefreshCcw className="h-4 w-4 mr-1" />
             Refresh
@@ -155,14 +314,63 @@ export default function BatteryHealthTable({ batteries, isLoading }: BatteryHeal
           </Table>
         </div>
         
-        <div className="bg-muted/30 px-6 py-4 flex items-center justify-between border-t border-border/50">
-          <p className="text-sm text-muted-foreground">
-            Showing <span className="font-medium text-foreground">{(currentPage - 1) * itemsPerPage + 1}</span> to{" "}
-            <span className="font-medium text-foreground">
-              {Math.min(currentPage * itemsPerPage, batteries.length)}
-            </span>{" "}
-            of <span className="font-medium text-foreground">{batteries.length}</span> batteries
-          </p>
+        <div className="bg-muted/30 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-t border-border/50">
+          <div className="flex flex-col md:flex-row md:items-center gap-2">
+            <p className="text-sm text-muted-foreground">
+              Showing <span className="font-medium text-foreground">{filteredBatteries.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> to{" "}
+              <span className="font-medium text-foreground">
+                {Math.min(currentPage * itemsPerPage, filteredBatteries.length)}
+              </span>{" "}
+              of <span className="font-medium text-foreground">{filteredBatteries.length}</span> batteries
+            </p>
+            
+            {/* Active filters indicators */}
+            {(filterBattery || filterStatus || showHealthBelow) && (
+              <div className="flex flex-wrap gap-2 mt-2 md:mt-0 md:ml-3">
+                {filterBattery && (
+                  <div className="flex items-center text-xs px-2 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+                    <span>Battery: {filterBattery}</span>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-4 w-4 ml-1 hover:bg-transparent hover:text-primary/80"
+                      onClick={() => setFilterBattery(null)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+                
+                {filterStatus && (
+                  <div className="flex items-center text-xs px-2 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+                    <span>Status: {filterStatus}</span>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-4 w-4 ml-1 hover:bg-transparent hover:text-primary/80"
+                      onClick={() => setFilterStatus(null)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+                
+                {showHealthBelow && (
+                  <div className="flex items-center text-xs px-2 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
+                    <span>Health below {healthThreshold}%</span>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-4 w-4 ml-1 hover:bg-transparent hover:text-primary/80"
+                      onClick={() => setShowHealthBelow(false)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           
           <div>
             <div className="flex rounded-lg overflow-hidden border border-border/50 divide-x divide-border/50">
@@ -171,12 +379,12 @@ export default function BatteryHealthTable({ batteries, isLoading }: BatteryHeal
                 size="icon"
                 className="h-8 w-8 rounded-none text-foreground bg-muted/50 hover:bg-muted hover:text-primary"
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
+                disabled={currentPage === 1 || filteredBatteries.length === 0}
               >
                 <i className="ri-arrow-left-s-line text-lg"></i>
               </Button>
               <div className="h-8 px-3 flex items-center justify-center bg-muted/70 text-sm font-medium">
-                {currentPage}
+                {currentPage} / {totalPages || 1}
               </div>
               <Button
                 variant="ghost"
