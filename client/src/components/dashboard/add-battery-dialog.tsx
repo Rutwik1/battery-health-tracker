@@ -74,6 +74,9 @@ export function AddBatteryDialog() {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
 
+  // Get today's date in ISO format
+  const today = new Date().toISOString().split("T")[0];
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -85,7 +88,7 @@ export function AddBatteryDialog() {
       cycleCount: 0,
       expectedCycles: 500,
       status: "Good",
-      initialDate: new Date().toISOString().split("T")[0], // Today's date in YYYY-MM-DD format
+      initialDate: today,
       manufacturer: "",
       model: "",
       chemistry: "Lithium-ion",
@@ -379,23 +382,9 @@ export function AddBatteryDialog() {
                 />
               </div>
               
-              {/* Dates & Manufacturing Section */}
+              {/* Dates Section */}
               <div className="space-y-4">
-                <div className="text-sm font-medium text-primary mb-2">Dates & Manufacturing</div>
-                
-                <FormField
-                  control={form.control}
-                  name="manufactureDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Manufacture Date</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} className="bg-muted/30 border-border/50" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="text-sm font-medium text-primary mb-2">Installation Date</div>
                 
                 <FormField
                   control={form.control}

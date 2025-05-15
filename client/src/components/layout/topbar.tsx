@@ -62,14 +62,7 @@ export default function Topbar() {
           
           <div className="h-8 w-px mx-2 bg-border/50 hidden sm:block"></div>
           
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="ml-2 rounded-lg bg-muted/50 border-border/50 text-foreground hover:bg-muted hover:text-primary hidden sm:flex"
-          >
-            <i className="ri-add-line mr-1"></i>
-            Add Battery
-          </Button>
+          <AddBatteryDialog />
         </div>
       </div>
     </div>
