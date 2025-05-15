@@ -25,7 +25,7 @@ import { type Battery } from "@shared/schema";
 export default function Dashboard() {
   const [timeRange, setTimeRange] = useState("30");
 
-  const { data: batteries, isLoading, error } = useQuery<Battery[]>({
+  const { data: batteries, isLoading, error, refetch } = useQuery<Battery[]>({
     queryKey: ["/api/batteries"],
   });
 
@@ -166,7 +166,11 @@ export default function Dashboard() {
               <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-primary/5 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-40"></div>
                 <div className="relative z-10">
-                  <BatteryHealthTable batteries={batteries || []} isLoading={isLoading} />
+                  <BatteryHealthTable 
+                    batteries={batteries || []} 
+                    isLoading={isLoading} 
+                    refetch={refetch}
+                  />
                 </div>
               </Card>
             </div>

@@ -35,9 +35,10 @@ import { getBatteryStatusColor } from "@/lib/utils/battery";
 interface BatteryHealthTableProps {
   batteries: Battery[];
   isLoading: boolean;
+  refetch?: () => Promise<any>;
 }
 
-export default function BatteryHealthTable({ batteries, isLoading }: BatteryHealthTableProps) {
+export default function BatteryHealthTable({ batteries, isLoading, refetch }: BatteryHealthTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filterBattery, setFilterBattery] = useState<string | null>(null);
@@ -206,10 +207,35 @@ export default function BatteryHealthTable({ batteries, isLoading }: BatteryHeal
           <Button 
             variant="outline" 
             size="sm"
-            className="bg-muted/50 border-border/50 text-foreground rounded-lg hover:bg-muted hover:text-primary"
-            onClick={() => setCurrentPage(1)} // Refresh by resetting to page 1
+            className="bg-muted/50 border-border/50 text-foreground rounded-lg hover:bg-muted hover:text-primary relative overflow-hidden"
+            onClick={async () => {
+              // Add a visual spinning effect for refresh
+              const button = document.getElementById('refresh-button');
+              if (button) {
+                button.classList.add('animate-spin');
+              }
+              
+              try {
+                // If refetch is available, call it to get fresh data
+                if (refetch) {
+                  await refetch();
+                }
+                
+                // Reset filters and page
+                resetFilters();
+              } catch (error) {
+                console.error("Error refreshing data:", error);
+              } finally {
+                // Stop the spinning effect
+                if (button) {
+                  setTimeout(() => {
+                    button.classList.remove('animate-spin');
+                  }, 1000);
+                }
+              }
+            }}
           >
-            <RefreshCcw className="h-4 w-4 mr-1" />
+            <RefreshCcw id="refresh-button" className="h-4 w-4 mr-1 transition-all duration-500" />
             Refresh
           </Button>
         </div>
