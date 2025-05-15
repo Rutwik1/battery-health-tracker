@@ -7,6 +7,7 @@ import Dashboard from "@/pages/dashboard";
 import BatteryDetail from "@/pages/battery-detail";
 import NotFound from "@/pages/not-found";
 import { ThemeProvider } from "next-themes";
+import { useEffect } from "react";
 
 function Router() {
   return (
@@ -19,12 +20,19 @@ function Router() {
 }
 
 function App() {
+  // Ensure the dark theme is applied immediately to avoid flicker
+  useEffect(() => {
+    document.documentElement.classList.add('dark');
+  }, []);
+
   return (
-    <ThemeProvider attribute="class" defaultTheme="light">
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <Toaster />
-          <Router />
+          <div className="bg-background text-foreground">
+            <Toaster />
+            <Router />
+          </div>
         </TooltipProvider>
       </QueryClientProvider>
     </ThemeProvider>

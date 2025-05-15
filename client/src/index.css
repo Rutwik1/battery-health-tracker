@@ -3,49 +3,80 @@
 @tailwind utilities;
 
 :root {
-      --background: 0 0% 100%;
---foreground: 20 14.3% 4.1%;
---muted: 60 4.8% 95.9%;
---muted-foreground: 25 5.3% 44.7%;
---popover: 0 0% 100%;
---popover-foreground: 20 14.3% 4.1%;
---card: 0 0% 100%;
---card-foreground: 20 14.3% 4.1%;
---border: 20 5.9% 90%;
---input: 20 5.9% 90%;
---primary: 207 90% 54%;
---primary-foreground: 211 100% 99%;
---secondary: 60 4.8% 95.9%;
---secondary-foreground: 24 9.8% 10%;
---accent: 60 4.8% 95.9%;
---accent-foreground: 24 9.8% 10%;
---destructive: 0 84.2% 60.2%;
---destructive-foreground: 60 9.1% 97.8%;
---ring: 20 14.3% 4.1%;
---radius: 0.5rem;
-  }
-  .dark {
-      --background: 240 10% 3.9%;
---foreground: 0 0% 98%;
---muted: 240 3.7% 15.9%;
---muted-foreground: 240 5% 64.9%;
---popover: 240 10% 3.9%;
---popover-foreground: 0 0% 98%;
---card: 240 10% 3.9%;
---card-foreground: 0 0% 98%;
---border: 240 3.7% 15.9%;
---input: 240 3.7% 15.9%;
---primary: 207 90% 54%;
---primary-foreground: 211 100% 99%;
---secondary: 240 3.7% 15.9%;
---secondary-foreground: 0 0% 98%;
---accent: 240 3.7% 15.9%;
---accent-foreground: 0 0% 98%;
---destructive: 0 62.8% 30.6%;
---destructive-foreground: 0 0% 98%;
---ring: 240 4.9% 83.9%;
---radius: 0.5rem;
-  }
+  /* Modern Battery Analytics Color Scheme */
+  --background: 222 47% 11%;
+  --foreground: 210 40% 98%;
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 20% 65%;
+  --popover: 222 47% 11%;
+  --popover-foreground: 210 40% 98%;
+  --card: 222 47% 11%;
+  --card-foreground: 210 40% 98%;
+  --border: 217 33% 17%;
+  --input: 217 33% 17%;
+  
+  /* Vibrant Primary Colors */
+  --primary: 196 100% 50%;
+  --primary-foreground: 222 47% 11%;
+  
+  /* Secondary Colors */
+  --secondary: 217 33% 17%;
+  --secondary-foreground: 210 40% 98%;
+  
+  /* Accent Color */
+  --accent: 286 100% 64%;
+  --accent-foreground: 210 40% 98%;
+  
+  /* Status Colors */
+  --success: 141 86% 60%;
+  --warning: 41 100% 67%;
+  --danger: 356 100% 65%;
+  --info: 196 100% 50%;
+  
+  /* Other UI Elements */
+  --destructive: 0 100% 63%;
+  --destructive-foreground: 210 40% 98%;
+  --ring: 212 100% 47%;
+  --radius: 0.75rem;
+}
+
+.light {
+  /* Light Mode Colors */
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215 16% 47%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  
+  /* Primary Colors in Light Mode */
+  --primary: 196 100% 50%;
+  --primary-foreground: 222 47% 11%;
+  
+  /* Secondary Colors in Light Mode */
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222 47% 11%;
+  
+  /* Accent Color in Light Mode */
+  --accent: 286 100% 64%;
+  --accent-foreground: 210 40% 98%;
+  
+  /* Status Colors in Light Mode */
+  --success: 141 86% 60%;
+  --warning: 41 100% 67%;
+  --danger: 356 100% 65%;
+  --info: 196 100% 50%;
+  
+  /* Other UI Elements in Light Mode */
+  --destructive: 0 100% 63%;
+  --destructive-foreground: 210 40% 98%;
+  --ring: 212 100% 47%;
+  --radius: 0.75rem;
+}
 
 @layer base {
   * {
@@ -54,5 +85,75 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading tracking-tight;
+  }
+}
+
+@layer utilities {
+  /* Modern Gradients */
+  .bg-gradient-primary {
+    @apply bg-gradient-to-r from-primary to-accent;
+  }
+  
+  .bg-gradient-dark {
+    @apply bg-gradient-to-br from-background to-muted;
+  }
+
+  .bg-gradient-card {
+    @apply bg-gradient-to-br from-card/80 to-card;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+  }
+
+  /* Custom Card Styles */
+  .card-glass {
+    @apply bg-card/60 backdrop-blur-md border border-border/50;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1;
+  }
+
+  /* Status Colors */
+  .text-success, .bg-success {
+    color: hsl(var(--success));
+  }
+  
+  .text-warning, .bg-warning {
+    color: hsl(var(--warning));
+  }
+  
+  .text-danger, .bg-danger {
+    color: hsl(var(--danger));
+  }
+  
+  .text-info, .bg-info {
+    color: hsl(var(--info));
+  }
+
+  .bg-success-light {
+    @apply bg-success bg-opacity-15;
+  }
+  
+  .bg-warning-light {
+    @apply bg-warning bg-opacity-15;
+  }
+  
+  .bg-danger-light {
+    @apply bg-danger bg-opacity-15;
+  }
+  
+  .bg-info-light {
+    @apply bg-info bg-opacity-15;
+  }
+
+  /* Battery Chart Container */
+  .chart-container {
+    @apply h-[300px] w-full;
   }
 }

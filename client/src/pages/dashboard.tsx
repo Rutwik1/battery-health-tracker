@@ -18,7 +18,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { Download } from "lucide-react";
+import { Download, LineChart, BarChartBig, Calendar } from "lucide-react";
 import type { Battery } from "@shared/schema";
 
 export default function Dashboard() {
@@ -35,37 +35,47 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar />
       
       <div className="flex flex-col flex-1 overflow-hidden">
         <Topbar />
         
-        <main className="flex-1 relative overflow-y-auto focus:outline-none bg-gray-50">
-          <div className="py-6 px-4 sm:px-6 lg:px-8">
+        <main className="flex-1 relative overflow-y-auto focus:outline-none">
+          <div className="py-8 px-6 md:px-8 lg:px-10">
             {/* Page Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10">
               <div>
-                <h1 className="text-2xl font-heading font-bold text-neutral">Battery Health Dashboard</h1>
-                <p className="mt-1 text-sm text-neutral-lighter">Monitor and track your battery performance and health.</p>
+                <h1 className="text-3xl font-heading font-bold mb-2">
+                  <span className="text-gradient">Battery Analytics</span> Dashboard
+                </h1>
+                <p className="text-muted-foreground">Real-time monitoring and insights for your battery fleet</p>
               </div>
-              <div className="mt-4 md:mt-0 flex flex-wrap items-center gap-3">
+              
+              <div className="mt-6 md:mt-0 flex flex-wrap items-center gap-3">
                 {/* Time Range Filter */}
-                <Select defaultValue={timeRange} onValueChange={setTimeRange}>
-                  <SelectTrigger className="w-[180px] bg-white">
-                    <SelectValue placeholder="Select time range" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="7">Last 7 Days</SelectItem>
-                    <SelectItem value="30">Last 30 Days</SelectItem>
-                    <SelectItem value="90">Last 90 Days</SelectItem>
-                    <SelectItem value="180">Last 6 Months</SelectItem>
-                    <SelectItem value="365">Last Year</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center space-x-2 bg-muted/50 p-1 rounded-lg border border-border/50">
+                  <Calendar className="h-4 w-4 text-muted-foreground ml-2" />
+                  <Select defaultValue={timeRange} onValueChange={setTimeRange}>
+                    <SelectTrigger className="w-[160px] border-0 bg-transparent focus:ring-0">
+                      <SelectValue placeholder="Select time range" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gradient-card">
+                      <SelectItem value="7">Last 7 Days</SelectItem>
+                      <SelectItem value="30">Last 30 Days</SelectItem>
+                      <SelectItem value="90">Last 90 Days</SelectItem>
+                      <SelectItem value="180">Last 6 Months</SelectItem>
+                      <SelectItem value="365">Last Year</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 
                 {/* Export Button */}
-                <Button onClick={handleExport} disabled={isLoading || !batteries}>
+                <Button 
+                  onClick={handleExport} 
+                  disabled={isLoading || !batteries}
+                  className="bg-gradient-primary hover:opacity-90 text-background shadow-md shadow-primary/20"
+                >
                   <Download className="h-4 w-4 mr-2" />
                   Export Data
                 </Button>
@@ -76,12 +86,12 @@ export default function Dashboard() {
             {isLoading ? (
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-[120px] bg-white animate-pulse rounded-lg"></div>
+                  <div key={i} className="h-[140px] bg-muted/50 animate-pulse rounded-xl"></div>
                 ))}
               </div>
             ) : error ? (
-              <div className="bg-red-50 p-4 rounded-md mb-8">
-                <p className="text-red-800">Failed to load battery data</p>
+              <div className="bg-danger/10 p-6 rounded-xl mb-8 border border-danger/20">
+                <p className="text-danger font-medium">Failed to load battery data</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
@@ -93,20 +103,49 @@ export default function Dashboard() {
             
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-              <CapacityChart batteries={batteries || []} timeRange={parseInt(timeRange)} isLoading={isLoading} />
-              <CycleChart batteries={batteries || []} isLoading={isLoading} />
+              <div className="bg-gradient-card rounded-xl p-1 shadow-lg shadow-primary/5">
+                <div className="flex items-center justify-between mb-4 px-5 pt-5">
+                  <h2 className="text-lg font-heading font-semibold flex items-center">
+                    <LineChart className="h-5 w-5 mr-2 text-primary" />
+                    <span>Capacity Over Time</span>
+                  </h2>
+                </div>
+                <div className="p-4">
+                  <CapacityChart batteries={batteries || []} timeRange={parseInt(timeRange)} isLoading={isLoading} />
+                </div>
+              </div>
+              
+              <div className="bg-gradient-card rounded-xl p-1 shadow-lg shadow-primary/5">
+                <div className="flex items-center justify-between mb-4 px-5 pt-5">
+                  <h2 className="text-lg font-heading font-semibold flex items-center">
+                    <BarChartBig className="h-5 w-5 mr-2 text-accent" />
+                    <span>Charge Cycles by Battery</span>
+                  </h2>
+                </div>
+                <div className="p-4">
+                  <CycleChart batteries={batteries || []} isLoading={isLoading} />
+                </div>
+              </div>
             </div>
             
             {/* Battery Health Table */}
             <div className="grid grid-cols-1 gap-8 mb-8">
-              <BatteryHealthTable batteries={batteries || []} isLoading={isLoading} />
+              <div className="bg-gradient-card rounded-xl p-1 shadow-lg shadow-primary/5 overflow-hidden">
+                <BatteryHealthTable batteries={batteries || []} isLoading={isLoading} />
+              </div>
             </div>
             
             {/* Additional Cards */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-              <DegradationCard batteries={batteries || []} isLoading={isLoading} />
-              <UsagePatternCard batteries={batteries || []} isLoading={isLoading} />
-              <RecommendationsCard batteries={batteries || []} isLoading={isLoading} />
+              <div className="bg-gradient-card rounded-xl p-1 shadow-lg shadow-primary/5 overflow-hidden">
+                <DegradationCard batteries={batteries || []} isLoading={isLoading} />
+              </div>
+              <div className="bg-gradient-card rounded-xl p-1 shadow-lg shadow-primary/5 overflow-hidden">
+                <UsagePatternCard batteries={batteries || []} isLoading={isLoading} />
+              </div>
+              <div className="bg-gradient-card rounded-xl p-1 shadow-lg shadow-primary/5 overflow-hidden">
+                <RecommendationsCard batteries={batteries || []} isLoading={isLoading} />
+              </div>
             </div>
           </div>
         </main>

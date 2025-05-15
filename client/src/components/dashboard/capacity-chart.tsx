@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useQuery } from "@tanstack/react-query";
 import { Battery, BatteryHistory } from "@shared/schema";
@@ -80,60 +79,98 @@ export default function CapacityChart({ batteries, timeRange, isLoading, detaile
 
   const chartData = prepareChartData();
 
+  // Convert status colors to CSS variables
+  const getLineColors = (battery: Battery) => {
+    const statusColor = getBatteryStatusColor(battery.status);
+    switch(statusColor) {
+      case 'text-success': return 'hsl(var(--success))';
+      case 'text-warning': return 'hsl(var(--warning))';
+      case 'text-danger': return 'hsl(var(--danger))';
+      default: return 'hsl(var(--primary))';
+    }
+  }
+
+  // Custom Tooltip component
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-muted/90 p-3 rounded-lg border border-border/50 backdrop-blur-md shadow-lg">
+          <p className="text-xs font-medium text-foreground mb-2">{label}</p>
+          {payload.map((entry: any, index: number) => (
+            <div key={`item-${index}`} className="flex items-center gap-2 mb-1">
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: entry.stroke }}
+              />
+              <p className="text-xs">
+                <span className="font-medium">{entry.name}:</span>{' '}
+                <span className="text-foreground">{entry.value}%</span>
+              </p>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
-    <Card className="h-full">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-heading font-semibold text-neutral">
-            Battery Capacity Over Time
-          </h2>
-          <div>
-            <button className="text-sm text-neutral-lighter hover:text-primary">
-              <i className="ri-more-2-fill text-xl"></i>
-            </button>
-          </div>
+    <div className={`chart-container ${detailed ? 'h-[350px]' : ''}`}>
+      {isLoading || isHistoryLoading ? (
+        <div className="h-full w-full bg-muted/20 animate-pulse rounded-lg flex items-center justify-center">
+          <span className="text-muted-foreground">Loading chart data...</span>
         </div>
-        
-        <div className={`chart-container ${detailed ? 'h-[350px]' : ''}`}>
-          {isLoading || isHistoryLoading ? (
-            <div className="h-full w-full bg-gray-100 animate-pulse rounded-md flex items-center justify-center">
-              <span className="text-neutral-lighter">Loading chart data...</span>
-            </div>
-          ) : hasHistoryError ? (
-            <div className="h-full w-full bg-red-50 rounded-md flex items-center justify-center">
-              <span className="text-red-500">Failed to load chart data</span>
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={chartData}
-                margin={{
-                  top: 5,
-                  right: 30,
-                  left: 20,
-                  bottom: 5,
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis domain={[50, 100]} />
-                <Tooltip />
-                <Legend />
-                {batteries.map((battery) => (
-                  <Line
-                    key={battery.id}
-                    type="monotone"
-                    dataKey={battery.name}
-                    stroke={getBatteryStatusColor(battery.status).replace('text-', '#')}
-                    activeDot={{ r: 8 }}
-                    strokeWidth={2}
-                  />
-                ))}
-              </LineChart>
-            </ResponsiveContainer>
-          )}
+      ) : hasHistoryError ? (
+        <div className="h-full w-full bg-danger/10 rounded-lg flex items-center justify-center border border-danger/20">
+          <span className="text-danger">Failed to load chart data</span>
         </div>
-      </CardContent>
-    </Card>
+      ) : (
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={chartData}
+            margin={{
+              top: 5,
+              right: 30,
+              left: 0,
+              bottom: 5,
+            }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+            <XAxis 
+              dataKey="date" 
+              stroke="hsl(var(--muted-foreground))" 
+              fontSize={12}
+              tickLine={false}
+            />
+            <YAxis 
+              domain={[50, 100]} 
+              stroke="hsl(var(--muted-foreground))" 
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value) => `${value}%`}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend 
+              wrapperStyle={{ 
+                fontSize: "12px", 
+                color: "hsl(var(--muted-foreground))" 
+              }}
+            />
+            {batteries.map((battery) => (
+              <Line
+                key={battery.id}
+                type="monotone"
+                dataKey={battery.name}
+                stroke={getLineColors(battery)}
+                activeDot={{ r: 6, fill: getLineColors(battery), strokeWidth: 1 }}
+                strokeWidth={2.5}
+                dot={{ r: 4, fill: "hsl(var(--background))", strokeWidth: 2 }}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      )}
+    </div>
   );
 }
