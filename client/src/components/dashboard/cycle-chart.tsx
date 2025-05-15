@@ -104,8 +104,8 @@ export default function CycleChart({ batteries, isLoading }: CycleChartProps) {
             <Bar 
               dataKey="cycles" 
               name="Charge Cycles" 
-              radius={[6, 6, 0, 0]}
-              background={{ fill: 'hsl(var(--muted))', radius: [6, 6, 0, 0] }}
+              radius={6}
+              background={{ fill: 'hsl(var(--muted))', radius: 6 }}
             >
               {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />

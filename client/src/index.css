@@ -3,78 +3,78 @@
 @tailwind utilities;
 
 :root {
-  /* Modern Battery Analytics Color Scheme */
-  --background: 222 47% 11%;
-  --foreground: 210 40% 98%;
-  --muted: 217 33% 17%;
-  --muted-foreground: 215 20% 65%;
-  --popover: 222 47% 11%;
-  --popover-foreground: 210 40% 98%;
-  --card: 222 47% 11%;
-  --card-foreground: 210 40% 98%;
-  --border: 217 33% 17%;
-  --input: 217 33% 17%;
+  /* Coulomb.ai Color Scheme */
+  --background: 260 54% 7%;
+  --foreground: 213 31% 91%;
+  --muted: 260 30% 14%;
+  --muted-foreground: 214 20% 69%;
+  --popover: 260 54% 7%;
+  --popover-foreground: 213 31% 91%;
+  --card: 260 40% 10%;
+  --card-foreground: 213 31% 91%;
+  --border: 260 25% 20%;
+  --input: 260 25% 20%;
   
   /* Vibrant Primary Colors */
-  --primary: 196 100% 50%;
-  --primary-foreground: 222 47% 11%;
+  --primary: 217 100% 50%;
+  --primary-foreground: 213 31% 91%;
   
   /* Secondary Colors */
-  --secondary: 217 33% 17%;
-  --secondary-foreground: 210 40% 98%;
+  --secondary: 260 30% 14%;
+  --secondary-foreground: 213 31% 91%;
   
   /* Accent Color */
-  --accent: 286 100% 64%;
-  --accent-foreground: 210 40% 98%;
+  --accent: 291 95% 58%;
+  --accent-foreground: 213 31% 91%;
   
   /* Status Colors */
-  --success: 141 86% 60%;
-  --warning: 41 100% 67%;
-  --danger: 356 100% 65%;
-  --info: 196 100% 50%;
+  --success: 154 95% 45%;
+  --warning: 45 100% 60%;
+  --danger: 356 95% 64%;
+  --info: 196 95% 50%;
   
   /* Other UI Elements */
   --destructive: 0 100% 63%;
-  --destructive-foreground: 210 40% 98%;
-  --ring: 212 100% 47%;
+  --destructive-foreground: 213 31% 91%;
+  --ring: 217 100% 50%;
   --radius: 0.75rem;
 }
 
 .light {
-  /* Light Mode Colors */
-  --background: 0 0% 100%;
-  --foreground: 222 47% 11%;
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215 16% 47%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
+  /* Light Mode Colors - Keeping dark theme as default */
+  --background: 260 54% 7%;
+  --foreground: 213 31% 91%;
+  --muted: 260 30% 14%;
+  --muted-foreground: 214 20% 69%;
+  --popover: 260 54% 7%;
+  --popover-foreground: 213 31% 91%;
+  --card: 260 40% 10%;
+  --card-foreground: 213 31% 91%;
+  --border: 260 25% 20%;
+  --input: 260 25% 20%;
   
-  /* Primary Colors in Light Mode */
-  --primary: 196 100% 50%;
-  --primary-foreground: 222 47% 11%;
+  /* Primary Colors */
+  --primary: 217 100% 50%;
+  --primary-foreground: 213 31% 91%;
   
-  /* Secondary Colors in Light Mode */
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222 47% 11%;
+  /* Secondary Colors */
+  --secondary: 260 30% 14%;
+  --secondary-foreground: 213 31% 91%;
   
-  /* Accent Color in Light Mode */
-  --accent: 286 100% 64%;
-  --accent-foreground: 210 40% 98%;
+  /* Accent Color */
+  --accent: 291 95% 58%;
+  --accent-foreground: 213 31% 91%;
   
-  /* Status Colors in Light Mode */
-  --success: 141 86% 60%;
-  --warning: 41 100% 67%;
-  --danger: 356 100% 65%;
-  --info: 196 100% 50%;
+  /* Status Colors */
+  --success: 154 95% 45%;
+  --warning: 45 100% 60%;
+  --danger: 356 95% 64%;
+  --info: 196 95% 50%;
   
-  /* Other UI Elements in Light Mode */
+  /* Other UI Elements */
   --destructive: 0 100% 63%;
-  --destructive-foreground: 210 40% 98%;
-  --ring: 212 100% 47%;
+  --destructive-foreground: 213 31% 91%;
+  --ring: 217 100% 50%;
   --radius: 0.75rem;
 }
 
@@ -150,6 +150,52 @@
   
   .bg-info-light {
     @apply bg-info bg-opacity-15;
+  }
+
+  /* Coulomb.ai specific styles */
+  .battery-glow {
+    @apply relative;
+  }
+  
+  .battery-glow::before {
+    content: "";
+    @apply absolute -inset-0.5 bg-gradient-to-r from-primary/20 to-accent/20 rounded-xl blur-md opacity-0 -z-10 transition-opacity duration-500;
+  }
+  
+  .battery-glow:hover::before {
+    @apply opacity-100;
+  }
+  
+  .battery-glow-success::before {
+    @apply from-success/20 to-success/10;
+  }
+  
+  .battery-glow-warning::before {
+    @apply from-warning/20 to-warning/10;
+  }
+  
+  .battery-glow-danger::before {
+    @apply from-danger/20 to-danger/10;
+  }
+  
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+  
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  
+  @keyframes float {
+    0% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+    100% {
+      transform: translateY(0px);
+    }
   }
 
   /* Battery Chart Container */
