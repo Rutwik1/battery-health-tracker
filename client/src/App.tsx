@@ -9,12 +9,53 @@ import NotFound from "@/pages/not-found";
 import { ThemeProvider } from "next-themes";
 import { useEffect } from "react";
 
+import Sidebar from "@/components/layout/sidebar";
+import Topbar from "@/components/layout/topbar";
+
+function Layout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex h-screen bg-gradient-dark overflow-hidden">
+      {/* Desktop Sidebar - Hidden on Mobile */}
+      <div className="hidden md:flex md:flex-shrink-0">
+        <Sidebar />
+      </div>
+      {/* Main Content */}
+      <div className="flex flex-col w-0 flex-1 overflow-hidden">
+        <Topbar />
+        <main className="flex-1 relative z-0 overflow-y-auto focus:outline-none">
+          <div className="py-6 px-4 sm:px-6 md:px-8">
+            {children}
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
+
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Dashboard} />
-      <Route path="/battery/:id" component={BatteryDetail} />
-      <Route component={NotFound} />
+      <Route path="/">
+        {() => (
+          <Layout>
+            <Dashboard />
+          </Layout>
+        )}
+      </Route>
+      <Route path="/battery/:id">
+        {(params) => (
+          <Layout>
+            <BatteryDetail />
+          </Layout>
+        )}
+      </Route>
+      <Route>
+        {() => (
+          <Layout>
+            <NotFound />
+          </Layout>
+        )}
+      </Route>
     </Switch>
   );
 }
