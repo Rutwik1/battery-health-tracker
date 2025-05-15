@@ -1,6 +1,6 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Battery, Recommendation } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
+import { LightbulbIcon, ArrowRightIcon, CheckCircle2, AlertCircle, AlertTriangle, Info } from "lucide-react";
 
 interface RecommendationsCardProps {
   batteries: Battery[];
@@ -22,57 +22,82 @@ export default function RecommendationsCard({ batteries, isLoading }: Recommenda
   const getRecommendationStyle = (type: string) => {
     switch (type) {
       case 'success':
-        return { icon: 'ri-check-line', bgColor: 'bg-green-100', textColor: 'text-success' };
+        return { 
+          icon: <CheckCircle2 className="h-4 w-4" />, 
+          bgColor: 'bg-success/10', 
+          textColor: 'text-success',
+          borderColor: 'border-success/20' 
+        };
       case 'error':
-        return { icon: 'ri-alert-line', bgColor: 'bg-red-100', textColor: 'text-danger' };
+        return { 
+          icon: <AlertCircle className="h-4 w-4" />, 
+          bgColor: 'bg-danger/10', 
+          textColor: 'text-danger',
+          borderColor: 'border-danger/20'  
+        };
       case 'warning':
-        return { icon: 'ri-error-warning-line', bgColor: 'bg-yellow-100', textColor: 'text-warning' };
+        return { 
+          icon: <AlertTriangle className="h-4 w-4" />, 
+          bgColor: 'bg-warning/10', 
+          textColor: 'text-warning',
+          borderColor: 'border-warning/20'  
+        };
       case 'info':
       default:
-        return { icon: 'ri-information-line', bgColor: 'bg-blue-100', textColor: 'text-primary' };
+        return { 
+          icon: <Info className="h-4 w-4" />, 
+          bgColor: 'bg-primary/10', 
+          textColor: 'text-primary',
+          borderColor: 'border-primary/20'  
+        };
     }
   };
 
   return (
-    <Card>
-      <CardContent className="p-6">
-        <h2 className="text-lg font-heading font-semibold text-neutral mb-4">
-          Recommendations
+    <div className="p-6">
+      <div className="mb-5 flex items-center">
+        <LightbulbIcon className="h-5 w-5 mr-2 text-accent" />
+        <h2 className="text-lg font-heading font-semibold">
+          Smart Recommendations
         </h2>
-        
-        {loading ? (
-          <ul className="space-y-4">
-            {[...Array(4)].map((_, i) => (
-              <li key={i} className="h-12 bg-gray-100 animate-pulse rounded-md"></li>
-            ))}
-          </ul>
-        ) : (
-          <ul className="space-y-4">
-            {recommendations.map((recommendation) => {
-              const { icon, bgColor, textColor } = getRecommendationStyle(recommendation.type);
-              
-              return (
-                <li key={recommendation.id} className="flex">
-                  <div className="flex-shrink-0">
-                    <div className={`flex items-center justify-center h-8 w-8 rounded-full ${bgColor} ${textColor}`}>
-                      <i className={icon}></i>
-                    </div>
+      </div>
+      
+      {loading ? (
+        <ul className="space-y-4">
+          {[...Array(4)].map((_, i) => (
+            <li key={i} className="h-12 bg-muted/20 animate-pulse rounded-lg"></li>
+          ))}
+        </ul>
+      ) : (
+        <ul className="space-y-3">
+          {recommendations.map((recommendation) => {
+            const { icon, bgColor, textColor, borderColor } = getRecommendationStyle(recommendation.type);
+            
+            return (
+              <li 
+                key={recommendation.id} 
+                className={`flex p-3 rounded-lg ${bgColor} border ${borderColor} backdrop-blur-sm transition-transform duration-200 hover:scale-[1.02] cursor-pointer`}
+              >
+                <div className="flex-shrink-0">
+                  <div className={`flex items-center justify-center h-7 w-7 rounded-full bg-card/50 ${textColor}`}>
+                    {icon}
                   </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-neutral">{recommendation.message}</p>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-        
-        <div className="mt-6 pt-4 border-t">
-          <a href="#" className="text-sm font-medium text-primary hover:text-blue-700">
-            View all recommendations <i className="ri-arrow-right-line ml-1"></i>
-          </a>
-        </div>
-      </CardContent>
-    </Card>
+                </div>
+                <div className="ml-3 flex-1">
+                  <p className="text-sm">{recommendation.message}</p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      
+      <div className="mt-6 pt-4 border-t border-border/30">
+        <a href="#" className="inline-flex items-center text-sm font-medium text-primary hover:text-primary/90 transition-colors">
+          View all recommendations 
+          <ArrowRightIcon className="h-4 w-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
+        </a>
+      </div>
+    </div>
   );
 }
