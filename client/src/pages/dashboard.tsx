@@ -24,14 +24,23 @@ import { type Battery } from "@shared/schema";
 
 export default function Dashboard() {
   const [timeRange, setTimeRange] = useState("30");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedBattery, setSelectedBattery] = useState<string>("all");
 
   const { data: batteries, isLoading, error } = useQuery<Battery[]>({
     queryKey: ["/api/batteries"],
   });
+  
+  // Filter batteries based on selected filters
+  const filteredBatteries = batteries?.filter(battery => {
+    const statusMatch = selectedStatus === "all" || battery.status === selectedStatus;
+    const batteryMatch = selectedBattery === "all" || battery.id.toString() === selectedBattery;
+    return statusMatch && batteryMatch;
+  }) || [];
 
   const handleExport = () => {
-    if (batteries) {
-      exportBatteryData(batteries, timeRange);
+    if (filteredBatteries.length > 0) {
+      exportBatteryData(filteredBatteries, timeRange);
     }
   };
 
@@ -66,10 +75,46 @@ export default function Dashboard() {
               </div>
               
               <div className="mt-8 md:mt-0 flex flex-wrap items-center gap-4">
+                {/* Battery Filter */}
+                <div className="flex items-center space-x-2 bg-muted/30 p-1.5 pl-3 rounded-lg border border-border/50 backdrop-blur-md">
+                  <BatteryIcon className="h-4 w-4 text-primary" />
+                  <Select value={selectedBattery} onValueChange={setSelectedBattery}>
+                    <SelectTrigger className="w-[160px] border-0 bg-transparent focus:ring-0">
+                      <SelectValue placeholder="All Batteries" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gradient-card border border-border/50 backdrop-blur-md">
+                      <SelectItem value="all">All Batteries</SelectItem>
+                      {batteries?.map(battery => (
+                        <SelectItem key={battery.id} value={battery.id.toString()}>
+                          {battery.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Status Filter */}
+                <div className="flex items-center space-x-2 bg-muted/30 p-1.5 pl-3 rounded-lg border border-border/50 backdrop-blur-md">
+                  <span className="h-2 w-2 rounded-full bg-primary"></span>
+                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                    <SelectTrigger className="w-[160px] border-0 bg-transparent focus:ring-0">
+                      <SelectValue placeholder="Filter by Status" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gradient-card border border-border/50 backdrop-blur-md">
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="Optimal">Optimal</SelectItem>
+                      <SelectItem value="Good">Good</SelectItem>
+                      <SelectItem value="Fair">Fair</SelectItem>
+                      <SelectItem value="Poor">Poor</SelectItem>
+                      <SelectItem value="Critical">Critical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
                 {/* Time Range Filter */}
                 <div className="flex items-center space-x-2 bg-muted/30 p-1.5 pl-3 rounded-lg border border-border/50 backdrop-blur-md">
                   <Calendar className="h-4 w-4 text-primary" />
-                  <Select defaultValue={timeRange} onValueChange={setTimeRange}>
+                  <Select value={timeRange} onValueChange={setTimeRange}>
                     <SelectTrigger className="w-[160px] border-0 bg-transparent focus:ring-0">
                       <SelectValue placeholder="Select time range" />
                     </SelectTrigger>
@@ -117,7 +162,7 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-12">
-                {batteries?.map((battery) => (
+                {filteredBatteries.map((battery) => (
                   <BatteryStatusCard key={battery.id} battery={battery} />
                 ))}
               </div>
@@ -140,7 +185,7 @@ export default function Dashboard() {
                     </h2>
                   </div>
                   <div className="p-5">
-                    <CapacityChart batteries={batteries || []} timeRange={parseInt(timeRange)} isLoading={isLoading} />
+                    <CapacityChart batteries={filteredBatteries} timeRange={parseInt(timeRange)} isLoading={isLoading} />
                   </div>
                 </div>
               </Card>
@@ -155,7 +200,7 @@ export default function Dashboard() {
                     </h2>
                   </div>
                   <div className="p-5">
-                    <CycleChart batteries={batteries || []} isLoading={isLoading} />
+                    <CycleChart batteries={filteredBatteries} isLoading={isLoading} />
                   </div>
                 </div>
               </Card>
@@ -166,7 +211,7 @@ export default function Dashboard() {
               <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-primary/5 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-40"></div>
                 <div className="relative z-10">
-                  <BatteryHealthTable batteries={batteries || []} isLoading={isLoading} />
+                  <BatteryHealthTable batteries={filteredBatteries} isLoading={isLoading} />
                 </div>
               </Card>
             </div>
@@ -181,14 +226,14 @@ export default function Dashboard() {
               <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-danger/5 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-danger/10 via-transparent to-transparent opacity-40"></div>
                 <div className="relative z-10">
-                  <DegradationCard batteries={batteries || []} isLoading={isLoading} />
+                  <DegradationCard batteries={filteredBatteries} isLoading={isLoading} />
                 </div>
               </Card>
               
               <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-success/5 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-success/10 via-transparent to-transparent opacity-40"></div>
                 <div className="relative z-10">
-                  <UsagePatternCard batteries={batteries || []} isLoading={isLoading} />
+                  <UsagePatternCard batteries={filteredBatteries} isLoading={isLoading} />
                 </div>
               </Card>
               
