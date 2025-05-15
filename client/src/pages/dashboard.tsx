@@ -95,18 +95,45 @@ export default function Dashboard() {
                 
                 {/* Status Filter */}
                 <div className="flex items-center space-x-2 bg-muted/30 p-1.5 pl-3 rounded-lg border border-border/50 backdrop-blur-md">
-                  <span className="h-2 w-2 rounded-full bg-primary"></span>
+                  {selectedStatus === "all" ? (
+                    <span className="h-2 w-2 rounded-full bg-primary"></span>
+                  ) : selectedStatus === "Optimal" ? (
+                    <span className="h-2 w-2 rounded-full bg-success"></span>
+                  ) : selectedStatus === "Good" ? (
+                    <span className="h-2 w-2 rounded-full bg-success/80"></span>
+                  ) : selectedStatus === "Fair" ? (
+                    <span className="h-2 w-2 rounded-full bg-warning"></span>
+                  ) : selectedStatus === "Poor" ? (
+                    <span className="h-2 w-2 rounded-full bg-warning/80"></span>
+                  ) : (
+                    <span className="h-2 w-2 rounded-full bg-danger"></span>
+                  )}
                   <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                     <SelectTrigger className="w-[160px] border-0 bg-transparent focus:ring-0">
                       <SelectValue placeholder="Filter by Status" />
                     </SelectTrigger>
                     <SelectContent className="bg-gradient-card border border-border/50 backdrop-blur-md">
                       <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="Optimal">Optimal</SelectItem>
-                      <SelectItem value="Good">Good</SelectItem>
-                      <SelectItem value="Fair">Fair</SelectItem>
-                      <SelectItem value="Poor">Poor</SelectItem>
-                      <SelectItem value="Critical">Critical</SelectItem>
+                      <SelectItem value="Optimal" className="flex items-center">
+                        <span className="h-2 w-2 rounded-full bg-success mr-2 inline-block"></span>
+                        Optimal
+                      </SelectItem>
+                      <SelectItem value="Good" className="flex items-center">
+                        <span className="h-2 w-2 rounded-full bg-success/80 mr-2 inline-block"></span>
+                        Good
+                      </SelectItem>
+                      <SelectItem value="Fair" className="flex items-center">
+                        <span className="h-2 w-2 rounded-full bg-warning mr-2 inline-block"></span>
+                        Fair
+                      </SelectItem>
+                      <SelectItem value="Poor" className="flex items-center">
+                        <span className="h-2 w-2 rounded-full bg-warning/80 mr-2 inline-block"></span>
+                        Poor
+                      </SelectItem>
+                      <SelectItem value="Critical" className="flex items-center">
+                        <span className="h-2 w-2 rounded-full bg-danger mr-2 inline-block"></span>
+                        Critical
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -131,12 +158,12 @@ export default function Dashboard() {
                 {/* Export Button */}
                 <Button 
                   onClick={handleExport} 
-                  disabled={isLoading || !batteries}
+                  disabled={isLoading || filteredBatteries.length === 0}
                   className="relative overflow-hidden bg-gradient-to-r from-primary to-accent hover:opacity-90 text-background shadow-md shadow-primary/20 group"
                 >
                   <span className="absolute inset-0 bg-white/10 group-hover:opacity-0 transition-opacity"></span>
                   <Download className="h-4 w-4 mr-2" />
-                  Export Battery Data
+                  Export {filteredBatteries.length > 0 ? `(${filteredBatteries.length})` : ''} Battery Data
                 </Button>
               </div>
             </div>
@@ -160,6 +187,14 @@ export default function Dashboard() {
               <div className="bg-danger/10 p-6 rounded-xl mb-12 border border-danger/20 backdrop-blur-md">
                 <p className="text-danger font-medium">Failed to load battery data</p>
               </div>
+            ) : filteredBatteries.length === 0 ? (
+              <div className="bg-muted/10 p-6 rounded-xl mb-12 border border-border/20 backdrop-blur-md text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted/20 mb-4">
+                  <BatteryIcon className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-medium mb-2">No batteries match the filter criteria</h3>
+                <p className="text-muted-foreground">Try adjusting your filters to see more results</p>
+              </div>
             ) : (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-12">
                 {filteredBatteries.map((battery) => (
@@ -169,81 +204,89 @@ export default function Dashboard() {
             )}
             
             {/* Charts */}
-            <div className="mb-3 flex items-center">
-              <Sparkles className="h-5 w-5 mr-2 text-accent" />
-              <h2 className="text-xl font-heading font-medium">Performance Metrics</h2>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-              <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-primary/5 relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-60"></div>
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between p-5 border-b border-border/30">
-                    <h2 className="text-lg font-heading font-semibold flex items-center">
-                      <LineChart className="h-5 w-5 mr-2 text-primary" />
-                      <span>Capacity Trends</span>
-                    </h2>
-                  </div>
-                  <div className="p-5">
-                    <CapacityChart batteries={filteredBatteries} timeRange={parseInt(timeRange)} isLoading={isLoading} />
-                  </div>
+            {filteredBatteries.length > 0 && (
+              <>
+                <div className="mb-3 flex items-center">
+                  <Sparkles className="h-5 w-5 mr-2 text-accent" />
+                  <h2 className="text-xl font-heading font-medium">Performance Metrics</h2>
                 </div>
-              </Card>
-              
-              <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-accent/5 relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-transparent opacity-60"></div>
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between p-5 border-b border-border/30">
-                    <h2 className="text-lg font-heading font-semibold flex items-center">
-                      <BarChartBig className="h-5 w-5 mr-2 text-accent" />
-                      <span>Charge Cycle Analysis</span>
-                    </h2>
-                  </div>
-                  <div className="p-5">
-                    <CycleChart batteries={filteredBatteries} isLoading={isLoading} />
-                  </div>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                  <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-primary/5 relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-60"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between p-5 border-b border-border/30">
+                        <h2 className="text-lg font-heading font-semibold flex items-center">
+                          <LineChart className="h-5 w-5 mr-2 text-primary" />
+                          <span>Capacity Trends</span>
+                        </h2>
+                      </div>
+                      <div className="p-5">
+                        <CapacityChart batteries={filteredBatteries} timeRange={parseInt(timeRange)} isLoading={isLoading} />
+                      </div>
+                    </div>
+                  </Card>
+                  
+                  <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-accent/5 relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-transparent opacity-60"></div>
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between p-5 border-b border-border/30">
+                        <h2 className="text-lg font-heading font-semibold flex items-center">
+                          <BarChartBig className="h-5 w-5 mr-2 text-accent" />
+                          <span>Charge Cycle Analysis</span>
+                        </h2>
+                      </div>
+                      <div className="p-5">
+                        <CycleChart batteries={filteredBatteries} isLoading={isLoading} />
+                      </div>
+                    </div>
+                  </Card>
                 </div>
-              </Card>
-            </div>
+              </>
+            )}
             
             {/* Battery Health Table */}
-            <div className="grid grid-cols-1 gap-8 mb-12">
-              <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-primary/5 relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-40"></div>
-                <div className="relative z-10">
-                  <BatteryHealthTable batteries={filteredBatteries} isLoading={isLoading} />
+            {filteredBatteries.length > 0 && (
+              <>
+                <div className="grid grid-cols-1 gap-8 mb-12">
+                  <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-primary/5 relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-40"></div>
+                    <div className="relative z-10">
+                      <BatteryHealthTable batteries={filteredBatteries} isLoading={isLoading} />
+                    </div>
+                  </Card>
                 </div>
-              </Card>
-            </div>
-            
-            {/* Additional Cards */}
-            <div className="mb-3 flex items-center">
-              <Sparkles className="h-5 w-5 mr-2 text-success" />
-              <h2 className="text-xl font-heading font-medium">Insights & Recommendations</h2>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-              <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-danger/5 relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-danger/10 via-transparent to-transparent opacity-40"></div>
-                <div className="relative z-10">
-                  <DegradationCard batteries={filteredBatteries} isLoading={isLoading} />
+                
+                {/* Additional Cards */}
+                <div className="mb-3 flex items-center">
+                  <Sparkles className="h-5 w-5 mr-2 text-success" />
+                  <h2 className="text-xl font-heading font-medium">Insights & Recommendations</h2>
                 </div>
-              </Card>
-              
-              <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-success/5 relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-success/10 via-transparent to-transparent opacity-40"></div>
-                <div className="relative z-10">
-                  <UsagePatternCard batteries={filteredBatteries} isLoading={isLoading} />
+                
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+                  <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-danger/5 relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-danger/10 via-transparent to-transparent opacity-40"></div>
+                    <div className="relative z-10">
+                      <DegradationCard batteries={filteredBatteries} isLoading={isLoading} />
+                    </div>
+                  </Card>
+                  
+                  <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-success/5 relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-success/10 via-transparent to-transparent opacity-40"></div>
+                    <div className="relative z-10">
+                      <UsagePatternCard batteries={filteredBatteries} isLoading={isLoading} />
+                    </div>
+                  </Card>
+                  
+                  <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-accent/5 relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-transparent opacity-40"></div>
+                    <div className="relative z-10">
+                      <RecommendationsCard batteries={filteredBatteries} isLoading={isLoading} />
+                    </div>
+                  </Card>
                 </div>
-              </Card>
-              
-              <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-accent/5 relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-transparent opacity-40"></div>
-                <div className="relative z-10">
-                  <RecommendationsCard batteries={batteries || []} isLoading={isLoading} />
-                </div>
-              </Card>
-            </div>
+              </>
+            )}
           </div>
         </main>
       </div>
