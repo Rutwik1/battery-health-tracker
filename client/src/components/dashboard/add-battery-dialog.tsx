@@ -62,8 +62,7 @@ const formSchema = z.object({
   status: z.string().min(1, {
     message: "Status is required",
   }),
-  initialDate: z.string(), 
-  // Additional fields for UI only (not in the schema)
+  initialDate: z.string(),
   manufacturer: z.string().min(2).optional(),
   model: z.string().min(2).optional(),
   chemistry: z.string().optional(),
@@ -105,22 +104,10 @@ export function AddBatteryDialog() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      
-      const responseData = await response.json();
-      
       if (!response.ok) {
-        console.error("API Error response:", responseData);
-        if (responseData.errors) {
-          // Format validation errors for better debugging
-          const errorMessage = responseData.errors.map((err: any) => 
-            `${err.path.join('.')}: ${err.message}`
-          ).join(', ');
-          throw new Error(`Validation errors: ${errorMessage}`);
-        }
-        throw new Error(responseData.message || "Failed to add battery");
+        throw new Error("Failed to add battery");
       }
-      
-      return responseData;
+      return response.json();
     },
     onSuccess: () => {
       // Invalidate and refetch the batteries list
@@ -136,50 +123,41 @@ export function AddBatteryDialog() {
       form.reset();
       setOpen(false);
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error("Error adding battery:", error);
       toast({
         title: "Failed to add battery",
-        description: error.message || "There was an error adding the battery. Please try again.",
+        description: "There was an error adding the battery. Please try again.",
         variant: "destructive",
       });
     },
   });
 
   function onSubmit(data: z.infer<typeof formSchema>) {
-    try {
-      // Calculate current capacity based on health percentage if it wasn't already set
-      if (data.currentCapacity === data.initialCapacity && data.healthPercentage < 100) {
-        data.currentCapacity = Math.round((data.initialCapacity * data.healthPercentage) / 100);
-      }
-      
-      // Ensure all required fields from the insertBatterySchema are included
-      const batteryData = {
-        name: data.name,
-        serialNumber: data.serialNumber,
-        initialCapacity: Number(data.initialCapacity),
-        currentCapacity: Number(data.currentCapacity),
-        healthPercentage: Number(data.healthPercentage),
-        cycleCount: Number(data.cycleCount),
-        expectedCycles: Number(data.expectedCycles),
-        status: data.status,
-        initialDate: new Date(data.initialDate),
-        lastUpdated: new Date(),
-        degradationRate: 0.5, // Default degradation rate (% per month)
-      };
-      
-      console.log('Submitting battery data:', batteryData);
-      
-      // Submit the data
-      mutation.mutate(batteryData);
-    } catch (error) {
-      console.error("Form submission error:", error);
-      toast({
-        title: "Form Error",
-        description: "There was an error submitting the form. Check console for details.",
-        variant: "destructive",
-      });
+    // Calculate current capacity based on health percentage if it wasn't already set
+    if (data.currentCapacity === data.initialCapacity && data.healthPercentage < 100) {
+      data.currentCapacity = Math.round((data.initialCapacity * data.healthPercentage) / 100);
     }
+    
+    // Add required fields that aren't in the form
+    const batteryData = {
+      name: data.name,
+      serialNumber: data.serialNumber,
+      initialCapacity: data.initialCapacity,
+      currentCapacity: data.currentCapacity,
+      healthPercentage: data.healthPercentage,
+      cycleCount: data.cycleCount,
+      expectedCycles: data.expectedCycles,
+      status: data.status,
+      initialDate: new Date(data.initialDate),
+      lastUpdated: new Date(),
+      degradationRate: 0.5, // Default degradation rate (% per month)
+    };
+    
+    console.log('Submitting battery data:', batteryData);
+    
+    // Submit the data
+    mutation.mutate(batteryData);
   }
 
   return (
