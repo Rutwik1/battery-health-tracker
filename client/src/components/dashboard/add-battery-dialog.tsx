@@ -63,6 +63,8 @@ const formSchema = z.object({
     message: "Status is required",
   }),
   initialDate: z.string(),
+  lastUpdated: z.string().optional(),
+  degradationRate: z.coerce.number().min(0).max(10).optional(),
   manufacturer: z.string().min(2).optional(),
   model: z.string().min(2).optional(),
   chemistry: z.string().optional(),
