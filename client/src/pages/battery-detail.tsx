@@ -1,7 +1,6 @@
 import { useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
 import Sidebar from "@/components/layout/sidebar";
 import Topbar from "@/components/layout/topbar";
 import { Button } from "@/components/ui/button";
@@ -9,14 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { ArrowLeft, Download, AlertCircle, Calendar } from "lucide-react";
+import { ArrowLeft, Download, AlertCircle } from "lucide-react";
 import { Link } from "wouter";
 import { format } from "date-fns";
 import { Battery } from "@shared/schema";
@@ -27,7 +19,6 @@ import { getBatteryStatusColor } from "@/lib/utils/battery";
 export default function BatteryDetail() {
   const [, params] = useRoute<{ id: string }>("/battery/:id");
   const { toast } = useToast();
-  const [timeRange, setTimeRange] = useState<string>("365");
   
   const batteryId = params?.id ? parseInt(params.id) : null;
   
@@ -60,7 +51,7 @@ export default function BatteryDetail() {
 
   const handleExport = () => {
     if (battery) {
-      exportBatteryData([battery], timeRange);
+      exportBatteryData([battery], "365");
       toast({
         title: "Data Exported",
         description: `Battery data for ${battery.name} has been exported.`
@@ -77,14 +68,8 @@ export default function BatteryDetail() {
       <div className="flex flex-col flex-1 overflow-hidden">
         <Topbar />
         
-        <main className="flex-1 relative overflow-y-auto focus:outline-none bg-background">
-          {/* Background effects */}
-          <div className="absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-primary/5 via-accent/3 to-transparent -z-10"></div>
-          <div className="absolute top-40 left-20 w-[800px] h-[800px] rounded-full bg-primary/5 blur-[120px] -z-10"></div>
-          <div className="absolute top-80 right-20 w-[600px] h-[600px] rounded-full bg-accent/5 blur-[100px] -z-10"></div>
-          <div className="absolute bottom-40 left-1/2 w-[400px] h-[400px] rounded-full bg-success/5 blur-[80px] -z-10"></div>
-          
-          <div className="py-6 px-4 sm:px-6 lg:px-8 relative z-0">
+        <main className="flex-1 relative overflow-y-auto focus:outline-none bg-gray-50">
+          <div className="py-6 px-4 sm:px-6 lg:px-8">
             {/* Back button and actions */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
               <Link href="/">
@@ -219,29 +204,14 @@ export default function BatteryDetail() {
                   
                   <TabsContent value="history">
                     <Card>
-                      <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                      <CardHeader>
                         <CardTitle>Capacity Over Time</CardTitle>
-                        <div className="flex items-center space-x-2 bg-muted/30 p-1.5 pl-3 rounded-lg border border-border/50 backdrop-blur-md min-w-[180px]">
-                          <Calendar className="h-4 w-4 text-primary" />
-                          <Select value={timeRange} onValueChange={setTimeRange}>
-                            <SelectTrigger className="w-[160px] border-0 bg-transparent focus:ring-0">
-                              <SelectValue placeholder="Select time range" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-gradient-card border border-border/50 backdrop-blur-md">
-                              <SelectItem value="7">Last 7 Days</SelectItem>
-                              <SelectItem value="30">Last 30 Days</SelectItem>
-                              <SelectItem value="90">Last 90 Days</SelectItem>
-                              <SelectItem value="180">Last 6 Months</SelectItem>
-                              <SelectItem value="365">Last Year</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
                       </CardHeader>
                       <CardContent>
                         <div className="h-[400px]">
                           <CapacityChart 
                             batteries={[battery]} 
-                            timeRange={parseInt(timeRange)} 
+                            timeRange={365} 
                             isLoading={false} 
                             detailed={true} 
                           />
