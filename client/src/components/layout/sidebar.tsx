@@ -11,9 +11,9 @@ interface NavItemProps {
 const NavItem = ({ href, icon, children, active }: NavItemProps) => {
   return (
     <Link href={href}>
-      <div
+      <a
         className={cn(
-          "group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 cursor-pointer",
+          "group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200",
           active
             ? "bg-gradient-to-r from-primary/20 to-accent/10 text-foreground"
             : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
@@ -26,17 +26,17 @@ const NavItem = ({ href, icon, children, active }: NavItemProps) => {
           )}
         ></i>
         {children}
-      </div>
+      </a>
     </Link>
   );
 };
 
-export default function Sidebar({ className }: { className?: string }) {
+export default function Sidebar() {
   const [location] = useLocation();
 
   return (
-    <div className={cn("w-full md:w-64 flex flex-col", className)}>
-      <div className="flex flex-col flex-grow h-full overflow-y-auto bg-gradient-dark border-r border-border/50">
+    <div className="hidden md:flex md:w-64 md:flex-col">
+      <div className="flex flex-col flex-grow overflow-y-auto bg-gradient-dark border-r border-border/50">
         <div className="px-5 py-6 border-b border-border/50">
           <h1 className="text-xl font-heading font-bold flex items-center">
             <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center mr-3 shadow-lg shadow-primary/20">
@@ -54,16 +54,10 @@ export default function Sidebar({ className }: { className?: string }) {
               Dashboard
             </NavItem>
             <NavItem 
-              href="/battery/1" 
-              icon="ri-battery-line" 
-              active={location.startsWith("/battery/")}>
-              Battery Details
-            </NavItem>
-            <NavItem 
               href="/batteries" 
-              icon="ri-battery-2-line" 
+              icon="ri-battery-line" 
               active={location === "/batteries"}>
-              All Batteries
+              Batteries
             </NavItem>
             <NavItem 
               href="/history" 
