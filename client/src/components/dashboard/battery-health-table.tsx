@@ -40,25 +40,14 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Battery } from "@shared/schema";
+import type { Battery as BatteryType } from "@shared/schema";
 import { format } from "date-fns";
-import { Link } from "wouter";
-import { Filter, RefreshCcw, Eye, Trash2, X } from "lucide-react";
+import { Filter, RefreshCw, Eye, Trash2, X, Battery as BatteryIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { getBatteryStatusColor } from "@/lib/utils/battery";
 import { useToast } from "@/hooks/use-toast";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from "@/components/ui/alert-dialog";
 
 interface BatteryHealthTableProps {
-  batteries: Battery[];
+  batteries: BatteryType[];
   isLoading: boolean;
   refetch?: () => Promise<any>;
 }
@@ -309,7 +298,7 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
               }
             }}
           >
-            <RefreshCcw id="refresh-button" className="h-4 w-4 mr-1 transition-all duration-500" />
+            <RefreshCw id="refresh-button" className="h-4 w-4 mr-1 transition-all duration-500" />
             Refresh
           </Button>
         </div>
@@ -388,7 +377,7 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
                       {format(new Date(battery.initialDate), 'MMM dd, yyyy')}
                     </TableCell>
                     <TableCell className="text-sm font-medium">
-                      <div className="flex items-center space-x-3">
+                      <div className="flex space-x-2 items-center">
                         <Link href={`/battery/${battery.id}`}>
                           <Button
                             variant="ghost"
@@ -413,91 +402,59 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
               })}
             </TableBody>
           </Table>
-        </div>
-        
-        <div className="bg-muted/30 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-t border-border/50">
-          <div className="flex flex-col md:flex-row md:items-center gap-2">
-            <p className="text-sm text-muted-foreground">
-              Showing <span className="font-medium text-foreground">{filteredBatteries.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> to{" "}
-              <span className="font-medium text-foreground">
-                {Math.min(currentPage * itemsPerPage, filteredBatteries.length)}
-              </span>{" "}
-              of <span className="font-medium text-foreground">{filteredBatteries.length}</span> batteries
-            </p>
-            
-            {/* Active filters indicators */}
-            {(filterBattery || filterStatus || showHealthBelow) && (
-              <div className="flex flex-wrap gap-2 mt-2 md:mt-0 md:ml-3">
-                {filterBattery && (
-                  <div className="flex items-center text-xs px-2 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
-                    <span>Battery: {filterBattery}</span>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-4 w-4 ml-1 hover:bg-transparent hover:text-primary/80"
-                      onClick={() => setFilterBattery(null)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                )}
-                
-                {filterStatus && (
-                  <div className="flex items-center text-xs px-2 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
-                    <span>Status: {filterStatus}</span>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-4 w-4 ml-1 hover:bg-transparent hover:text-primary/80"
-                      onClick={() => setFilterStatus(null)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                )}
-                
-                {showHealthBelow && (
-                  <div className="flex items-center text-xs px-2 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
-                    <span>Health below {healthThreshold}%</span>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-4 w-4 ml-1 hover:bg-transparent hover:text-primary/80"
-                      onClick={() => setShowHealthBelow(false)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
           
-          <div>
-            <div className="flex rounded-lg overflow-hidden border border-border/50 divide-x divide-border/50">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 rounded-none text-foreground bg-muted/50 hover:bg-muted hover:text-primary"
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1 || filteredBatteries.length === 0}
-              >
-                <i className="ri-arrow-left-s-line text-lg"></i>
-              </Button>
-              <div className="h-8 px-3 flex items-center justify-center bg-muted/70 text-sm font-medium">
-                {currentPage} / {totalPages || 1}
+          {displayedBatteries.length === 0 && !isLoading && (
+            <div className="text-center py-12">
+              <div className="inline-flex h-20 w-20 items-center justify-center rounded-full bg-muted/30 mb-4">
+                <BatteryIcon className="h-10 w-10 text-muted-foreground" />
               </div>
+              <h3 className="text-lg font-semibold mt-4">No batteries found</h3>
+              <p className="text-muted-foreground mt-2 max-w-md mx-auto">
+                There are no batteries matching your criteria. Try adjusting your filters or add a new battery.
+              </p>
+            </div>
+          )}
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center space-x-2 py-4">
               <Button
-                variant="ghost"
+                variant="outline"
                 size="icon"
-                className="h-8 w-8 rounded-none text-foreground bg-muted/50 hover:bg-muted hover:text-primary"
-                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage === totalPages || totalPages === 0}
+                className="h-8 w-8 bg-muted/30 border-border/50 rounded-lg"
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
               >
-                <i className="ri-arrow-right-s-line text-lg"></i>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <Button
+                  key={i}
+                  variant={currentPage === i + 1 ? "default" : "outline"}
+                  size="icon"
+                  className={`h-8 w-8 rounded-lg ${
+                    currentPage === i + 1
+                      ? "bg-primary text-white"
+                      : "bg-muted/30 border-border/50 hover:bg-muted"
+                  }`}
+                  onClick={() => setCurrentPage(i + 1)}
+                >
+                  {i + 1}
+                </Button>
+              ))}
+              
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 bg-muted/30 border-border/50 rounded-lg"
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-          </div>
+          )}
         </div>
       </div>
       

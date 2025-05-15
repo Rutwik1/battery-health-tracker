@@ -62,7 +62,8 @@ const formSchema = z.object({
   status: z.string().min(1, {
     message: "Status is required",
   }),
-  initialDate: z.string(),
+  initialDate: z.string(), 
+  // Additional fields for UI only (not in the schema)
   manufacturer: z.string().min(2).optional(),
   model: z.string().min(2).optional(),
   chemistry: z.string().optional(),
@@ -152,15 +153,15 @@ export function AddBatteryDialog() {
         data.currentCapacity = Math.round((data.initialCapacity * data.healthPercentage) / 100);
       }
       
-      // Construct the battery data object with all required fields from schema
+      // Ensure all required fields from the insertBatterySchema are included
       const batteryData = {
         name: data.name,
         serialNumber: data.serialNumber,
-        initialCapacity: data.initialCapacity,
-        currentCapacity: data.currentCapacity,
-        healthPercentage: data.healthPercentage,
-        cycleCount: data.cycleCount,
-        expectedCycles: data.expectedCycles,
+        initialCapacity: Number(data.initialCapacity),
+        currentCapacity: Number(data.currentCapacity),
+        healthPercentage: Number(data.healthPercentage),
+        cycleCount: Number(data.cycleCount),
+        expectedCycles: Number(data.expectedCycles),
         status: data.status,
         initialDate: new Date(data.initialDate),
         lastUpdated: new Date(),
