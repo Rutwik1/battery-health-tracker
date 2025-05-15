@@ -141,11 +141,20 @@ export function AddBatteryDialog() {
     
     // Add required fields that aren't in the form
     const batteryData = {
-      ...data,
+      name: data.name,
+      serialNumber: data.serialNumber,
+      initialCapacity: data.initialCapacity,
+      currentCapacity: data.currentCapacity,
+      healthPercentage: data.healthPercentage,
+      cycleCount: data.cycleCount,
+      expectedCycles: data.expectedCycles,
+      status: data.status,
       initialDate: new Date(data.initialDate),
       lastUpdated: new Date(),
       degradationRate: 0.5, // Default degradation rate (% per month)
     };
+    
+    console.log('Submitting battery data:', batteryData);
     
     // Submit the data
     mutation.mutate(batteryData);
