@@ -100,13 +100,7 @@ export default function BatteryIcon({ percentage, status, className }: BatteryIc
         </div>
       )}
       
-      {/* Add keyframes for shimmer animation */}
-      <style jsx>{`
-        @keyframes shimmer {
-          0% { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-      `}</style>
+      {/* Shimmer animation is defined in index.css */}
     </div>
   );
 }
