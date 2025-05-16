@@ -1,21 +1,9 @@
 'use client'
 
 import React from 'react'
-import { format } from 'date-fns'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts'
 import { Battery } from '@/lib/store/batteryStore'
 import { getBatteryStatusColor, formatNumber } from '@/lib/utils'
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  Cell,
-  ReferenceLine
-} from 'recharts'
 
 interface CycleChartProps {
   batteries: Battery[];
@@ -23,153 +11,129 @@ interface CycleChartProps {
 }
 
 export default function CycleChart({ batteries, isLoading }: CycleChartProps) {
-  const chartData = batteries.map(battery => ({
-    name: battery.name,
-    cycles: battery.cycleCount,
-    expected: battery.expectedCycles,
-    status: battery.status,
-    used: Math.round((battery.cycleCount / battery.expectedCycles) * 100),
-  }))
+  // Generate chart data for cycle comparison
+  const data = batteries.map(battery => {
+    const cyclePercentage = Math.round((battery.cycleCount / battery.expectedCycles) * 100)
+    
+    return {
+      name: battery.name,
+      cycleCount: battery.cycleCount,
+      expectedCycles: battery.expectedCycles,
+      cyclePercentage,
+      status: battery.status,
+      id: battery.id
+    }
+  })
   
+  // Get color for bars based on battery status
   const getBarColors = (battery: Battery) => {
-    const statusColor = getBatteryStatusColor(battery.status)
-    const colorKey = statusColor.replace('text-', '')
-    return `rgb(var(--${colorKey}))`
+    const baseColor = getBatteryStatusColor(battery.status)
+    
+    switch (baseColor) {
+      case 'text-success':
+        return ['#10b981', '#065f46']
+      case 'text-primary':
+        return ['#3b82f6', '#1d4ed8']
+      case 'text-warning':
+        return ['#f59e0b', '#b45309']
+      case 'text-destructive':
+        return ['#ef4444', '#b91c1c']
+      default:
+        return ['#6b7280', '#374151']
+    }
   }
   
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full w-full bg-muted/10 rounded-md">
-        <div className="animate-pulse space-y-4 w-full px-8">
-          <div className="h-4 bg-muted/30 rounded w-1/4 mx-auto"></div>
-          <div className="h-[200px] bg-muted/20 rounded"></div>
-          <div className="flex justify-center space-x-2">
-            <div className="h-3 w-16 bg-muted/30 rounded"></div>
-            <div className="h-3 w-16 bg-muted/30 rounded"></div>
-            <div className="h-3 w-16 bg-muted/30 rounded"></div>
-          </div>
-        </div>
-      </div>
-    )
+    return <div className="w-full h-full flex items-center justify-center">Loading...</div>
   }
   
   if (batteries.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full w-full bg-muted/10 rounded-md p-8">
-        <p className="text-muted-foreground mb-2">No battery data to display</p>
-        <button className="px-3 py-1 text-sm border border-border rounded-md hover:bg-muted transition-colors">
-          Add Battery
-        </button>
+      <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+        No battery data available
       </div>
     )
   }
   
   return (
-    <div className="h-full w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={chartData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
-          barSize={40}
-          barGap={8}
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart
+        data={data}
+        layout="vertical"
+        margin={{
+          top: 20,
+          right: 30,
+          left: 20,
+          bottom: 5,
+        }}
+        barGap={8}
+        barSize={20}
+      >
+        <CartesianGrid strokeDasharray="3 3" stroke="#2d2d2d" opacity={0.2} horizontal={false} />
+        <XAxis 
+          type="number" 
+          tick={{ fontSize: 12 }} 
+          stroke="#888888"
+          tickMargin={5}
+          axisLine={{ stroke: '#888888', strokeWidth: 1, opacity: 0.3 }}
+          domain={[0, (dataMax: number) => Math.max(dataMax, Math.max(...batteries.map(b => b.expectedCycles)))]}
+        />
+        <YAxis 
+          dataKey="name" 
+          type="category" 
+          scale="band" 
+          tick={{ fontSize: 12 }} 
+          stroke="#888888"
+          tickMargin={5}
+          width={100}
+          axisLine={{ stroke: '#888888', strokeWidth: 1, opacity: 0.3 }}
+        />
+        <Tooltip 
+          formatter={(value: number, name: string) => {
+            if (name === 'cycleCount') return [`${formatNumber(value)} cycles`, 'Current Cycles']
+            return [`${formatNumber(value)} cycles`, 'Expected Cycles']
+          }}
+          contentStyle={{
+            backgroundColor: 'rgba(30, 30, 30, 0.8)',
+            borderColor: 'rgba(100, 100, 100, 0.2)',
+            borderRadius: '6px',
+            fontSize: '12px'
+          }}
+          labelStyle={{ fontWeight: 'bold', marginBottom: '5px' }}
+        />
+        <Legend 
+          formatter={(value) => {
+            if (value === 'cycleCount') return <span style={{ fontSize: '12px', color: '#d1d5db' }}>Current Cycles</span>
+            return <span style={{ fontSize: '12px', color: '#d1d5db' }}>Expected Cycles</span>
+          }}
+          iconSize={10}
+          iconType="circle"
+          wrapperStyle={{ paddingTop: '10px' }}
+        />
+        
+        <Bar 
+          dataKey="expectedCycles" 
+          radius={[0, 4, 4, 0]}
+          stackId="expected"
+          opacity={0.3}
         >
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} vertical={false} />
-          <XAxis 
-            dataKey="name" 
-            stroke="var(--muted-foreground)" 
-            fontSize={12}
-            tickMargin={10} 
-          />
-          <YAxis
-            stroke="var(--muted-foreground)"
-            fontSize={12}
-            tickFormatter={(value) => formatNumber(value)}
-            label={{ 
-              value: 'Charge Cycles', 
-              angle: -90, 
-              position: 'insideLeft',
-              style: { 
-                textAnchor: 'middle',
-                fill: 'var(--muted-foreground)',
-                fontSize: 12
-              }
-            }}
-          />
-          <Tooltip
-            contentStyle={{ 
-              backgroundColor: 'var(--background)',
-              borderColor: 'var(--border)',
-              borderRadius: '0.375rem',
-              boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)'
-            }}
-            itemStyle={{ padding: '2px 0' }}
-            formatter={(value: number, name: string) => {
-              if (name === 'cycles') return [`${formatNumber(value)} cycles`, 'Current']
-              if (name === 'expected') return [`${formatNumber(value)} cycles`, 'Expected Lifespan']
-              if (name === 'used') return [`${value}%`, 'Used Lifespan']
-              return [value, name]
-            }}
-            labelStyle={{ 
-              color: 'var(--muted-foreground)',
-              marginBottom: '4px',
-              fontSize: '14px'
-            }}
-          />
-          <Legend 
-            formatter={(value, entry) => {
-              const displayName = {
-                cycles: 'Current Cycles',
-                expected: 'Expected Lifespan'
-              }[value as string] || value
-              
-              return <span style={{ color: 'var(--foreground)', fontSize: '14px' }}>{displayName}</span>
-            }}
-          />
-          <Bar 
-            dataKey="cycles" 
-            radius={[4, 4, 0, 0]}
-          >
-            {chartData.map((entry, index) => {
-              const battery = batteries[index]
-              return (
-                <Cell 
-                  key={`cycles-${index}`}
-                  fill={getBarColors(battery)} 
-                  fillOpacity={0.8}
-                />
-              )
-            })}
-          </Bar>
-          <Bar 
-            dataKey="expected" 
-            radius={[4, 4, 0, 0]}
-            fillOpacity={0.15}
-          >
-            {chartData.map((entry, index) => {
-              const battery = batteries[index]
-              return (
-                <Cell 
-                  key={`expected-${index}`}
-                  fill={getBarColors(battery)}
-                />
-              )
-            })}
-          </Bar>
-          
-          {/* Critical Threshold Line at 80% of expected cycles */}
-          <ReferenceLine 
-            y={Math.max(...batteries.map(b => b.expectedCycles)) * 0.8} 
-            stroke="var(--warning)" 
-            strokeDasharray="3 3"
-            label={{
-              value: "80% Critical Threshold",
-              position: "insideBottomLeft",
-              fill: "var(--warning)",
-              fontSize: 12
-            }}
-          />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
+          {batteries.map((battery, index) => {
+            const colors = getBarColors(battery)
+            return <Cell key={`expected-${index}`} fill={colors[1]} />
+          })}
+        </Bar>
+        
+        <Bar 
+          dataKey="cycleCount" 
+          radius={[0, 4, 4, 0]}
+          stackId="current"
+        >
+          {batteries.map((battery, index) => {
+            const colors = getBarColors(battery)
+            return <Cell key={`current-${index}`} fill={colors[0]} />
+          })}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
   )
 }
