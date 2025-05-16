@@ -8,44 +8,61 @@ interface BatteryIconProps {
 }
 
 export default function BatteryIcon({ percentage, status, className }: BatteryIconProps) {
-  // Determine color based on status or percentage
-  const getColor = () => {
-    if (status === 'Critical') return 'text-danger';
-    if (status === 'Warning') return 'text-warning';
-    
-    // If no specific status, base it on percentage
-    if (percentage < 20) return 'text-danger';
-    if (percentage < 50) return 'text-warning';
-    return 'text-success';
-  };
-
-  // Calculate fill level
-  const fillLevel = Math.max(0, Math.min(100, percentage));
-  const fillHeight = `${fillLevel}%`;
+  // Ensure percentage is between 0 and 100
+  const safePercentage = Math.max(0, Math.min(100, percentage));
+  
+  // Calculate fill level for the battery
+  const fillWidth = `${safePercentage}%`;
+  
+  // Determine color based on battery health and status
+  let fillColor = 'bg-success';
+  if (safePercentage < 30) {
+    fillColor = 'bg-destructive';
+  } else if (safePercentage < 70) {
+    fillColor = 'bg-warning';
+  } else if (safePercentage < 90) {
+    fillColor = 'bg-primary';
+  }
+  
+  // Add animation if battery is charging
+  const isCharging = status.toLowerCase().includes('charging');
+  const fillAnimation = isCharging ? 'animate-pulse' : '';
   
   return (
-    <div className={cn("relative w-8 h-12 flex items-end", getColor(), className)}>
-      {/* Battery Body */}
-      <div className="w-full h-11 border-2 rounded-md overflow-hidden flex flex-col justify-end">
-        {/* Fill level */}
+    <div className={cn('relative w-12 h-20', className)}>
+      {/* Battery outline */}
+      <div className="absolute inset-0 border-2 border-muted-foreground/50 rounded-md">
+        {/* Battery terminal */}
+        <div className="absolute w-4 h-2 bg-muted-foreground/50 -top-2 left-1/2 transform -translate-x-1/2 rounded-t-sm" />
+        
+        {/* Battery fill */}
         <div 
           className={cn(
-            "w-full transition-all duration-500 ease-out",
-            status === 'Critical' ? 'bg-danger/80' : 
-            status === 'Warning' ? 'bg-warning/80' : 
-            'bg-success/80'
-          )} 
-          style={{ height: fillHeight }}
+            'absolute bottom-0 left-0 right-0 transition-all duration-500 ease-in-out',
+            fillColor,
+            fillAnimation
+          )}
+          style={{ 
+            height: fillWidth,
+            borderTopLeftRadius: safePercentage < 95 ? '0.25rem' : '0',
+            borderTopRightRadius: safePercentage < 95 ? '0.25rem' : '0',
+          }}
         />
+        
+        {/* Battery percentage display */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-sm font-semibold text-foreground/90">
+            {Math.round(safePercentage)}%
+          </span>
+        </div>
+        
+        {/* Charging indicator */}
+        {isCharging && (
+          <div className="absolute top-1 right-1">
+            <div className="text-warning text-xs">⚡</div>
+          </div>
+        )}
       </div>
-      
-      {/* Battery tip */}
-      <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-3 h-1 rounded-t-sm border-2 border-b-0" />
-      
-      {/* Glowing effect for active batteries */}
-      {status === 'Active' && (
-        <div className="absolute inset-0 opacity-50 blur-sm bg-success rounded-md -z-10" />
-      )}
     </div>
   );
 }

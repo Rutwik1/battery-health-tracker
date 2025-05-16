@@ -1,49 +1,69 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+/**
+ * Combines Tailwind CSS classes
+ */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Formats a number with commas and specified precision
+ */
 export function formatNumber(num: number, precision = 0) {
-  return num.toFixed(precision);
+  return num.toLocaleString(undefined, {
+    minimumFractionDigits: precision,
+    maximumFractionDigits: precision,
+  });
 }
 
+/**
+ * Returns tailwind class for battery health status color
+ */
 export function getHealthStatusColor(health: number) {
-  if (health >= 85) return "text-success";
-  if (health >= 70) return "text-warning";
-  return "text-danger";
+  if (health >= 90) return "text-success";
+  if (health >= 70) return "text-primary";
+  if (health >= 50) return "text-warning";
+  return "text-destructive";
 }
 
+/**
+ * Returns descriptive text for battery health
+ */
 export function getHealthStatusText(health: number) {
-  if (health >= 85) return "Good";
-  if (health >= 70) return "Fair";
-  return "Poor";
+  if (health >= 90) return "Excellent";
+  if (health >= 70) return "Good";
+  if (health >= 50) return "Fair";
+  if (health >= 30) return "Poor";
+  return "Critical";
 }
 
+/**
+ * Calculates degradation percentage between initial and current health
+ */
 export function calculateDegradation(initialHealth: number, currentHealth: number) {
-  return Math.max(0, initialHealth - currentHealth).toFixed(1);
+  return initialHealth > 0 ? ((initialHealth - currentHealth) / initialHealth) * 100 : 0;
 }
 
+/**
+ * Formats a date as 'Month Day' (e.g., Jan 15)
+ */
 export function formatDateToMonthDay(date: Date | string) {
-  if (typeof date === 'string') {
-    date = new Date(date);
-  }
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric'
-  }).format(date);
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+  return dateObj.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+/**
+ * Formats a date with time (e.g., Jan 15, 2025 14:30)
+ */
 export function formatDateTime(date: Date | string) {
-  if (typeof date === 'string') {
-    date = new Date(date);
-  }
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric'
-  }).format(date);
+  const dateObj = typeof date === "string" ? new Date(date) : date;
+  return dateObj.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
