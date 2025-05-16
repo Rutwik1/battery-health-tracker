@@ -1,50 +1,33 @@
-import React from 'react';
-import { Battery as BatteryIcon } from 'lucide-react';
-import { 
-  Card, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription, 
-  CardContent 
-} from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import BatteryIconComponent from '@/components/ui/battery-icon';
-import { Battery } from '@/types';
-import { 
-  formatNumber, 
-  getHealthStatusColor, 
-  getHealthStatusText 
-} from '@/lib/utils';
+'use client';
+
+import * as React from "react";
+import { Battery } from "@/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import BatteryIcon from "@/components/ui/battery-icon";
+import { formatDateTime, formatNumber, getHealthStatusColor, getHealthStatusText } from "@/lib/utils";
 
 interface BatteryStatusCardProps {
   battery: Battery | null;
   isLoading?: boolean;
 }
 
-export default function BatteryStatusCard({ 
-  battery, 
-  isLoading = false 
-}: BatteryStatusCardProps) {
+export default function BatteryStatusCard({ battery, isLoading = false }: BatteryStatusCardProps) {
   if (isLoading) {
     return (
-      <Card className="bg-gradient-card border-border/40">
-        <CardHeader className="space-y-1">
-          <CardTitle className="flex items-center space-x-2">
-            <Skeleton className="h-8 w-32" />
+      <Card className="overflow-hidden border border-border/40 bg-gradient-to-br from-card/50 to-card shadow-xl">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl font-bold">
+            <Skeleton className="h-7 w-32" />
           </CardTitle>
-          <CardDescription>
-            <Skeleton className="h-4 w-24" />
-          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Skeleton className="h-10 w-10 rounded-full" />
-              <Skeleton className="h-4 w-16" />
-            </div>
-            <div className="space-y-2">
-              <Skeleton className="h-8 w-full" />
-              <Skeleton className="h-8 w-full" />
+          <div className="flex items-center space-x-4">
+            <Skeleton className="h-16 w-10" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-32" />
             </div>
           </div>
         </CardContent>
@@ -54,68 +37,58 @@ export default function BatteryStatusCard({
 
   if (!battery) {
     return (
-      <Card className="bg-gradient-card border-border/40">
-        <CardHeader>
-          <CardTitle>No Battery Selected</CardTitle>
-          <CardDescription>Select a battery to view details</CardDescription>
+      <Card className="overflow-hidden border border-border/40 bg-gradient-to-br from-card/50 to-card shadow-xl">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl font-bold">Battery Status</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center py-4">
-            <BatteryIcon className="h-12 w-12 text-muted-foreground/50" />
-          </div>
+          <p className="text-muted-foreground">No battery selected</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="bg-gradient-card glow-soft relative overflow-hidden h-full">
-      <CardHeader className="space-y-1">
-        <CardTitle className="flex items-center space-x-2">
-          <span>{battery.name}</span>
+    <Card className="overflow-hidden border border-border/40 bg-gradient-to-br from-card/50 to-card shadow-xl">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xl font-bold group">
+          <span className="bg-gradient-to-br from-foreground/90 to-foreground/60 bg-clip-text text-transparent">
+            {battery.name}
+          </span>
         </CardTitle>
-        <CardDescription>
-          SN: {battery.serialNumber}
-        </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col items-center">
-            <BatteryIconComponent 
-              percentage={battery.health} 
-              status={battery.status} 
-              className="mb-2"
-            />
-            <span className={`text-sm font-medium ${getHealthStatusColor(battery.health)}`}>
-              {getHealthStatusText(battery.health)}
-            </span>
-          </div>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Health:</span>
-              <span className={`text-sm font-semibold ${getHealthStatusColor(battery.health)}`}>
-                {formatNumber(battery.health, 1)}%
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Cycles:</span>
-              <span className="text-sm font-semibold">
-                {battery.cycleCount}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Voltage:</span>
-              <span className="text-sm font-semibold">
-                {formatNumber(battery.voltage, 1)}V
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Capacity:</span>
-              <span className="text-sm font-semibold">
-                {formatNumber(battery.capacity, 0)}mAh
-              </span>
+        <div className="flex items-center space-x-4">
+          <BatteryIcon percentage={battery.health} status={battery.status} />
+          <div className="flex-1">
+            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-sm">
+              <div className="font-medium text-muted-foreground">Status:</div>
+              <div className="font-semibold">{battery.status}</div>
+              
+              <div className="font-medium text-muted-foreground">Health:</div>
+              <div className={`font-semibold ${getHealthStatusColor(battery.health)}`}>
+                {battery.health}% ({getHealthStatusText(battery.health)})
+              </div>
+              
+              <div className="font-medium text-muted-foreground">Capacity:</div>
+              <div className="font-semibold">{formatNumber(battery.capacity)} mAh</div>
+              
+              <div className="font-medium text-muted-foreground">Voltage:</div>
+              <div className="font-semibold">{battery.voltage}V</div>
+              
+              <div className="font-medium text-muted-foreground">Cycles:</div>
+              <div className="font-semibold">{battery.cycleCount}</div>
+              
+              <div className="font-medium text-muted-foreground">Last checked:</div>
+              <div className="font-semibold">{formatDateTime(battery.lastChecked)}</div>
             </div>
           </div>
+        </div>
+        
+        <div className="mt-4 text-xs text-muted-foreground">
+          <div><span className="font-medium">Serial:</span> {battery.serialNumber}</div>
+          <div><span className="font-medium">Model:</span> {battery.model}</div>
+          <div><span className="font-medium">Manufacturer:</span> {battery.manufacturer}</div>
         </div>
       </CardContent>
     </Card>

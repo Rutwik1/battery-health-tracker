@@ -9,28 +9,20 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
-  const toggleSidebar = () => {
-    setSidebarOpen(prev => !prev);
-  };
-  
+  const openSidebar = () => setSidebarOpen(true);
+  const closeSidebar = () => setSidebarOpen(false);
+
   return (
-    <div className="flex h-screen overflow-hidden">
-      {/* Sidebar */}
-      <Sidebar 
-        open={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
-      />
+    <div className="relative min-h-screen bg-background">
+      <Sidebar open={sidebarOpen} onClose={closeSidebar} />
       
-      {/* Main Content */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Topbar onMenuClick={toggleSidebar} />
+      <div className="flex flex-col md:pl-72">
+        <Topbar onMenuClick={openSidebar} />
         
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gradient-dark">
-          <div className="container mx-auto">
-            {children}
-          </div>
+        <main className="flex-1 p-4 sm:p-6">
+          {children}
         </main>
       </div>
     </div>
