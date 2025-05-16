@@ -1,0 +1,75 @@
+import { pgTable, serial, text, integer, real, timestamp, boolean, primaryKey } from 'drizzle-orm/pg-core';
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
+import { z } from 'zod';
+
+// Users schema for authentication
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  name: text('name'),
+  email: text('email').notNull().unique(),
+  hashedPassword: text('hashed_password'),
+  image: text('image'),
+  role: text('role').default('user'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// Battery schema
+export const batteries = pgTable('batteries', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  serialNumber: text('serial_number').notNull().unique(),
+  initialCapacity: integer('initial_capacity').notNull(), // mAh
+  currentCapacity: integer('current_capacity').notNull(), // mAh
+  healthPercentage: real('health_percentage').notNull(), // %
+  cycleCount: integer('cycle_count').notNull(),
+  expectedCycles: integer('expected_cycles').notNull(),
+  status: text('status').notNull(), // "Good", "Fair", "Poor", "Critical"
+  initialDate: timestamp('initial_date').notNull(),
+  lastUpdated: timestamp('last_updated').notNull(),
+  degradationRate: real('degradation_rate').notNull(), // % per month
+  userId: integer('user_id').references(() => users.id),
+});
+
+// Battery historical data schema
+export const batteryHistory = pgTable('battery_history', {
+  id: serial('id').primaryKey(),
+  batteryId: integer('battery_id').notNull().references(() => batteries.id, { onDelete: 'cascade' }),
+  date: timestamp('date').notNull(),
+  capacity: integer('capacity').notNull(), // mAh
+  healthPercentage: real('health_percentage').notNull(), // %
+  cycleCount: integer('cycle_count').notNull(),
+});
+
+// Usage pattern schema
+export const usagePatterns = pgTable('usage_patterns', {
+  id: serial('id').primaryKey(),
+  batteryId: integer('battery_id').notNull().references(() => batteries.id, { onDelete: 'cascade' }),
+  chargingFrequency: text('charging_frequency').notNull(), // "Daily", "Every few days", etc.
+  dischargeRate: real('discharge_rate').notNull(), // % per hour
+  temperatureExposure: text('temperature_exposure').notNull(), // "Normal", "High", "Low"
+  typicalUsage: text('typical_usage').notNull(), // "Heavy", "Medium", "Light"
+});
+
+// Recommendations schema
+export const recommendations = pgTable('recommendations', {
+  id: serial('id').primaryKey(),
+  batteryId: integer('battery_id').notNull().references(() => batteries.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(), // "Maintenance", "Replacement", "Usage"
+  message: text('message').notNull(),
+  createdAt: timestamp('created_at').notNull(),
+  resolved: boolean('resolved').notNull().default(false),
+});
+
+// Zod schemas for validation
+export const insertUserSchema = createInsertSchema(users);
+export const insertBatterySchema = createInsertSchema(batteries);
+export const insertBatteryHistorySchema = createInsertSchema(batteryHistory);
+export const insertUsagePatternSchema = createInsertSchema(usagePatterns);
+export const insertRecommendationSchema = createInsertSchema(recommendations);
+
+// Types
+export type User = z.infer<typeof createSelectSchema(users)>;
+export type Battery = z.infer<typeof createSelectSchema(batteries)>;
+export type BatteryHistory = z.infer<typeof createSelectSchema(batteryHistory)>;
+export type UsagePattern = z.infer<typeof createSelectSchema(usagePatterns)>;
+export type Recommendation = z.infer<typeof createSelectSchema(recommendations)>;
