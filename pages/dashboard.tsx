@@ -1,27 +1,23 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { useBatteryStore } from '../store/batteryStore';
 import { Battery } from '../store/batteryStore';
+import AddBatteryModal from '../components/nextjs/AddBatteryModal';
+import Link from 'next/link';
 
-// We'll re-implement UI components incrementally
-// For now, let's create placeholder components 
-
-const DashboardHeader = () => (
+// Dashboard UI components
+const DashboardHeader: React.FC = () => (
   <div className="flex justify-between items-center mb-6">
     <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-600">
       Battery Health Dashboard
     </h1>
     <div className="flex items-center space-x-2">
-      <button 
-        className="px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-600 text-white rounded-lg hover:opacity-90 shadow-md"
-      >
-        Add Battery
-      </button>
+      <AddBatteryModal />
     </div>
   </div>
 );
 
-const BatteryOverview = ({ batteries }: { batteries: Battery[] }) => {
+const BatteryOverview: React.FC<{ batteries: Battery[] }> = ({ batteries }) => {
   // Calculate summary statistics
   const averageHealth = batteries.length 
     ? batteries.reduce((sum, b) => sum + b.healthPercentage, 0) / batteries.length 
@@ -31,17 +27,17 @@ const BatteryOverview = ({ batteries }: { batteries: Battery[] }) => {
   
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-6 shadow-xl border border-purple-900/30">
+      <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-6 shadow-xl border border-purple-900/30 animate-glow">
         <h3 className="text-lg font-medium text-gray-300 mb-2">Total Batteries</h3>
         <p className="text-4xl font-bold text-white">{batteries.length}</p>
       </div>
       
-      <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-6 shadow-xl border border-purple-900/30">
+      <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-6 shadow-xl border border-purple-900/30 animate-glow">
         <h3 className="text-lg font-medium text-gray-300 mb-2">Average Health</h3>
         <p className="text-4xl font-bold text-white">{averageHealth.toFixed(1)}%</p>
       </div>
       
-      <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-6 shadow-xl border border-purple-900/30">
+      <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-6 shadow-xl border border-purple-900/30 animate-glow">
         <h3 className="text-lg font-medium text-gray-300 mb-2">Critical Status</h3>
         <p className="text-4xl font-bold text-white">{criticalBatteries}</p>
       </div>
@@ -49,9 +45,27 @@ const BatteryOverview = ({ batteries }: { batteries: Battery[] }) => {
   );
 };
 
-const BatteryTable = ({ batteries }: { batteries: Battery[] }) => {
+const BatteryTable: React.FC<{ 
+  batteries: Battery[],
+  onDelete: (id: number) => Promise<void>
+}> = ({ batteries, onDelete }) => {
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  
+  const handleDelete = async (id: number) => {
+    if (confirm('Are you sure you want to delete this battery?')) {
+      setDeletingId(id);
+      try {
+        await onDelete(id);
+      } catch (error) {
+        console.error('Error deleting battery:', error);
+      } finally {
+        setDeletingId(null);
+      }
+    }
+  };
+  
   return (
-    <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-6 shadow-xl border border-purple-900/30 overflow-hidden">
+    <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-6 shadow-xl border border-purple-900/30 overflow-hidden animate-glow">
       <h2 className="text-xl font-semibold text-white mb-4">Battery Health Details</h2>
       
       <div className="overflow-x-auto">
@@ -106,11 +120,19 @@ const BatteryTable = ({ batteries }: { batteries: Battery[] }) => {
                 </td>
                 <td className="py-3 px-4">
                   <div className="flex space-x-2">
-                    <button className="p-1 bg-blue-900/30 rounded-lg hover:bg-blue-800/50 text-blue-400">
-                      View
-                    </button>
-                    <button className="p-1 bg-red-900/30 rounded-lg hover:bg-red-800/50 text-red-400">
-                      Delete
+                    <Link href={`/battery/${battery.id}`}>
+                      <a className="p-1 bg-blue-900/30 rounded-lg hover:bg-blue-800/50 text-blue-400">
+                        View
+                      </a>
+                    </Link>
+                    <button 
+                      className="p-1 bg-red-900/30 rounded-lg hover:bg-red-800/50 text-red-400"
+                      onClick={() => handleDelete(battery.id)}
+                      disabled={deletingId === battery.id}
+                    >
+                      {deletingId === battery.id ? (
+                        <span className="inline-block w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></span>
+                      ) : 'Delete'}
                     </button>
                   </div>
                 </td>
@@ -123,7 +145,7 @@ const BatteryTable = ({ batteries }: { batteries: Battery[] }) => {
   );
 };
 
-const RealtimeIndicator = () => {
+const RealtimeIndicator: React.FC = () => {
   const [dots, setDots] = useState('.');
   
   useEffect(() => {
@@ -142,8 +164,14 @@ const RealtimeIndicator = () => {
   );
 };
 
-export default function Dashboard() {
-  const { batteries, fetchBatteries, isLoading, startRealtimeUpdates } = useBatteryStore();
+const Dashboard: React.FC = () => {
+  const { 
+    batteries, 
+    fetchBatteries, 
+    isLoading, 
+    startRealtimeUpdates,
+    deleteBattery 
+  } = useBatteryStore();
   
   useEffect(() => {
     // Fetch battery data on initial load
@@ -151,7 +179,16 @@ export default function Dashboard() {
     
     // Start simulated real-time updates
     startRealtimeUpdates();
+    
+    // Cleanup function to stop real-time updates when unmounting
+    return () => {
+      useBatteryStore.getState().stopRealtimeUpdates();
+    };
   }, [fetchBatteries, startRealtimeUpdates]);
+  
+  const handleDeleteBattery = async (id: number) => {
+    await deleteBattery(id);
+  };
   
   return (
     <>
@@ -171,7 +208,7 @@ export default function Dashboard() {
           ) : (
             <>
               <BatteryOverview batteries={batteries} />
-              <BatteryTable batteries={batteries} />
+              <BatteryTable batteries={batteries} onDelete={handleDeleteBattery} />
             </>
           )}
           
@@ -180,4 +217,6 @@ export default function Dashboard() {
       </div>
     </>
   );
-}
+};
+
+export default Dashboard;
