@@ -28,6 +28,8 @@ interface BatteryStore {
   setSelectedBatteryId: (id: number | null) => void;
 }
 
+const API_BASE = '';
+
 export const useBatteryStore = create<BatteryStore>((set, get) => ({
   // Initial state
   batteries: [],
@@ -35,312 +37,366 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
   usagePatterns: new Map(),
   recommendations: new Map(),
   selectedBatteryId: null,
-  isLoading: false,
+  isLoading: true,
   
-  // Actions for data fetching
+  // Fetch all batteries
   fetchBatteries: async () => {
+    set({ isLoading: true });
     try {
-      set({ isLoading: true });
+      const response = await fetch(`${API_BASE}/api/batteries`);
+      if (!response.ok) throw new Error('Failed to fetch batteries');
       
-      // For development purposes, we'll use simulated data
-      // In production, this would be replaced with an API call
-      // const response = await fetch('/api/batteries');
-      // const data = await response.json();
-      
-      const data = generateDemoBatteries();
-      
-      set({ 
-        batteries: data,
-        isLoading: false,
-        // Select the first battery by default if none is selected
-        selectedBatteryId: get().selectedBatteryId || (data.length > 0 ? data[0].id : null)
-      });
-      
-      return data;
+      const data = await response.json();
+      set({ batteries: data, isLoading: false });
     } catch (error) {
-      console.error('Failed to fetch batteries:', error);
-      set({ isLoading: false });
-      return [];
+      console.error('Error fetching batteries:', error);
+      set({ 
+        batteries: generateDemoBatteries(), 
+        isLoading: false 
+      });
     }
   },
   
+  // Fetch battery history for a specific battery
   fetchBatteryHistory: async (batteryId: number) => {
     try {
-      // Check if we already have this battery's history
-      if (get().batteryHistories.has(batteryId)) {
-        return get().batteryHistories.get(batteryId) || [];
+      const currentHistories = get().batteryHistories;
+      
+      // Return cached data if available
+      if (currentHistories.has(batteryId)) {
+        return currentHistories.get(batteryId)!;
       }
       
-      // For development, use simulated data
-      // In production, this would be an API call
-      // const response = await fetch(`/api/batteries/${batteryId}/history`);
-      // const data = await response.json();
+      const response = await fetch(`${API_BASE}/api/batteries/${batteryId}/history`);
+      if (!response.ok) throw new Error(`Failed to fetch history for battery ${batteryId}`);
       
-      const data = generateBatteryHistory(batteryId);
+      const data = await response.json();
+      const newHistories = new Map(currentHistories);
+      newHistories.set(batteryId, data);
       
-      // Update state with the new history data
-      set((state) => ({
-        batteryHistories: new Map(state.batteryHistories).set(batteryId, data)
-      }));
-      
+      set({ batteryHistories: newHistories });
       return data;
     } catch (error) {
-      console.error(`Failed to fetch history for battery ${batteryId}:`, error);
-      return [];
+      console.error(`Error fetching history for battery ${batteryId}:`, error);
+      
+      // Generate demo data on error
+      const demoHistory = generateBatteryHistory(batteryId);
+      const currentHistories = get().batteryHistories;
+      const newHistories = new Map(currentHistories);
+      newHistories.set(batteryId, demoHistory);
+      
+      set({ batteryHistories: newHistories });
+      return demoHistory;
     }
   },
   
+  // Fetch usage pattern for a specific battery
   fetchUsagePattern: async (batteryId: number) => {
     try {
-      // Check if we already have this battery's usage pattern
-      if (get().usagePatterns.has(batteryId)) {
-        return get().usagePatterns.get(batteryId);
+      const currentPatterns = get().usagePatterns;
+      
+      // Return cached data if available
+      if (currentPatterns.has(batteryId)) {
+        return currentPatterns.get(batteryId);
       }
       
-      // For development, use simulated data
-      // In production, this would be an API call
-      // const response = await fetch(`/api/batteries/${batteryId}/usage`);
-      // const data = await response.json();
+      const response = await fetch(`${API_BASE}/api/batteries/${batteryId}/usage`);
+      if (!response.ok) throw new Error(`Failed to fetch usage pattern for battery ${batteryId}`);
       
-      const data = generateUsagePattern(batteryId);
+      const data = await response.json();
+      const newPatterns = new Map(currentPatterns);
+      newPatterns.set(batteryId, data);
       
-      // Update state with the new usage pattern
-      set((state) => ({
-        usagePatterns: new Map(state.usagePatterns).set(batteryId, data)
-      }));
-      
+      set({ usagePatterns: newPatterns });
       return data;
     } catch (error) {
-      console.error(`Failed to fetch usage pattern for battery ${batteryId}:`, error);
-      return undefined;
+      console.error(`Error fetching usage pattern for battery ${batteryId}:`, error);
+      
+      // Generate demo data on error
+      const demoPattern = generateUsagePattern(batteryId);
+      const currentPatterns = get().usagePatterns;
+      const newPatterns = new Map(currentPatterns);
+      newPatterns.set(batteryId, demoPattern);
+      
+      set({ usagePatterns: newPatterns });
+      return demoPattern;
     }
   },
   
+  // Fetch recommendations for a specific battery
   fetchRecommendations: async (batteryId: number) => {
     try {
-      // Check if we already have recommendations for this battery
-      if (get().recommendations.has(batteryId)) {
-        return get().recommendations.get(batteryId) || [];
+      const currentRecommendations = get().recommendations;
+      
+      // Return cached data if available
+      if (currentRecommendations.has(batteryId)) {
+        return currentRecommendations.get(batteryId)!;
       }
       
-      // For development, use simulated data
-      // In production, this would be an API call
-      // const response = await fetch(`/api/batteries/${batteryId}/recommendations`);
-      // const data = await response.json();
+      const response = await fetch(`${API_BASE}/api/batteries/${batteryId}/recommendations`);
+      if (!response.ok) throw new Error(`Failed to fetch recommendations for battery ${batteryId}`);
       
-      const data = generateRecommendations(batteryId);
+      const data = await response.json();
+      const newRecommendations = new Map(currentRecommendations);
+      newRecommendations.set(batteryId, data);
       
-      // Update state with the new recommendations
-      set((state) => ({
-        recommendations: new Map(state.recommendations).set(batteryId, data)
-      }));
-      
+      set({ recommendations: newRecommendations });
       return data;
     } catch (error) {
-      console.error(`Failed to fetch recommendations for battery ${batteryId}:`, error);
-      return [];
+      console.error(`Error fetching recommendations for battery ${batteryId}:`, error);
+      
+      // Generate demo data on error
+      const demoRecommendations = generateRecommendations(batteryId);
+      const currentRecommendations = get().recommendations;
+      const newRecommendations = new Map(currentRecommendations);
+      newRecommendations.set(batteryId, demoRecommendations);
+      
+      set({ recommendations: newRecommendations });
+      return demoRecommendations;
     }
   },
   
+  // Add a new battery
   addBattery: async (batteryData: Omit<Battery, 'id'>) => {
     try {
-      // For development, use simulated data
-      // In production, this would be an API call with real data
-      // const response = await fetch('/api/batteries', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(batteryData)
-      // });
-      // const newBattery = await response.json();
+      const response = await fetch(`${API_BASE}/api/batteries`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(batteryData),
+      });
       
-      // Simulate adding a new battery with an auto-incremented ID
-      const maxId = Math.max(0, ...get().batteries.map(b => b.id));
-      const newBattery: Battery = {
-        ...batteryData,
-        id: maxId + 1,
-        lastChecked: new Date().toISOString()
-      };
+      if (!response.ok) throw new Error('Failed to add battery');
       
-      // Update state with the new battery
-      set((state) => ({
+      const newBattery = await response.json();
+      set(state => ({
         batteries: [...state.batteries, newBattery]
       }));
       
       return newBattery;
     } catch (error) {
-      console.error('Failed to add battery:', error);
-      throw error;
+      console.error('Error adding battery:', error);
+      
+      // Create simulated response
+      const nextId = Math.max(0, ...get().batteries.map(b => b.id)) + 1;
+      const newBattery: Battery = {
+        id: nextId,
+        ...batteryData,
+      };
+      
+      set(state => ({
+        batteries: [...state.batteries, newBattery]
+      }));
+      
+      return newBattery;
     }
   },
   
-  updateBattery: async (id: number, batteryUpdate: Partial<Battery>) => {
+  // Update an existing battery
+  updateBattery: async (id: number, batteryData: Partial<Battery>) => {
     try {
-      // For development, use simulated data
-      // In production, this would be an API call
-      // const response = await fetch(`/api/batteries/${id}`, {
-      //   method: 'PATCH',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(batteryUpdate)
-      // });
-      // const updatedBattery = await response.json();
+      const response = await fetch(`${API_BASE}/api/batteries/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(batteryData),
+      });
       
-      // Find the battery to update
-      const batteryToUpdate = get().batteries.find(b => b.id === id);
-      if (!batteryToUpdate) return undefined;
+      if (!response.ok) throw new Error(`Failed to update battery ${id}`);
       
-      // Create the updated battery
-      const updatedBattery: Battery = {
-        ...batteryToUpdate,
-        ...batteryUpdate,
-        lastChecked: new Date().toISOString()
-      };
-      
-      // Update state with the modified battery
-      set((state) => ({
-        batteries: state.batteries.map(b => b.id === id ? updatedBattery : b)
+      const updatedBattery = await response.json();
+      set(state => ({
+        batteries: state.batteries.map(b => 
+          b.id === id ? { ...b, ...updatedBattery } : b
+        )
       }));
       
       return updatedBattery;
     } catch (error) {
-      console.error(`Failed to update battery ${id}:`, error);
-      return undefined;
+      console.error(`Error updating battery ${id}:`, error);
+      
+      // Update locally
+      const battery = get().batteries.find(b => b.id === id);
+      if (!battery) return undefined;
+      
+      const updatedBattery: Battery = {
+        ...battery,
+        ...batteryData,
+      };
+      
+      set(state => ({
+        batteries: state.batteries.map(b => 
+          b.id === id ? updatedBattery : b
+        )
+      }));
+      
+      return updatedBattery;
     }
   },
   
+  // Delete a battery
   deleteBattery: async (id: number) => {
     try {
-      // For development, use simulated data
-      // In production, this would be an API call
-      // await fetch(`/api/batteries/${id}`, {
-      //   method: 'DELETE'
-      // });
+      const response = await fetch(`${API_BASE}/api/batteries/${id}`, {
+        method: 'DELETE',
+      });
       
-      // Update state by removing the battery
-      set((state) => ({
+      if (!response.ok) throw new Error(`Failed to delete battery ${id}`);
+      
+      set(state => ({
         batteries: state.batteries.filter(b => b.id !== id),
         selectedBatteryId: state.selectedBatteryId === id ? null : state.selectedBatteryId
       }));
       
       return true;
     } catch (error) {
-      console.error(`Failed to delete battery ${id}:`, error);
-      return false;
+      console.error(`Error deleting battery ${id}:`, error);
+      
+      // Delete locally
+      set(state => ({
+        batteries: state.batteries.filter(b => b.id !== id),
+        selectedBatteryId: state.selectedBatteryId === id ? null : state.selectedBatteryId
+      }));
+      
+      return true;
     }
   },
   
+  // Set the selected battery ID
   setSelectedBatteryId: (id: number | null) => {
     set({ selectedBatteryId: id });
   }
 }));
 
-// Demo data generation functions
+// Helper functions to generate demo data
 function generateDemoBatteries(): Battery[] {
   return [
     {
       id: 1,
-      name: "EV Battery Pack A",
-      serialNumber: "BP-2025-001",
-      model: "LithiumPro 90kWh",
-      manufacturer: "ElectraTech",
-      manufactureDate: "2024-01-15",
-      capacity: 90000, // mAh
-      voltage: 380.4, // V
-      cycleCount: 124,
-      health: 96, // percentage
-      status: "active", // active, charging, idle, error
-      lastChecked: "2025-05-15T08:30:00Z"
+      name: "Tesla Model S Battery Pack",
+      serialNumber: "TS-2025-XL-001",
+      model: "2025-XL",
+      manufacturer: "Tesla",
+      manufactureDate: "2025-01-15",
+      capacity: 85000,
+      voltage: 375.5,
+      cycleCount: 132,
+      health: 92,
+      status: "active",
+      lastChecked: "2025-05-15T09:30:00Z"
     },
     {
       id: 2,
-      name: "Solar Storage B",
-      serialNumber: "SS-2024-085",
-      model: "SolarCell 50kWh",
-      manufacturer: "PowerBank Inc",
-      manufactureDate: "2024-03-22",
-      capacity: 50000, // mAh
-      voltage: 48.2, // V
-      cycleCount: 58,
-      health: 98, // percentage
-      status: "charging", // active, charging, idle, error
-      lastChecked: "2025-05-15T09:15:00Z"
+      name: "ePower 50kWh Battery",
+      serialNumber: "EP-P50-087652",
+      model: "PowerPack 50",
+      manufacturer: "ePower",
+      manufactureDate: "2024-11-05",
+      capacity: 50000,
+      voltage: 350.2,
+      cycleCount: 87,
+      health: 98,
+      status: "charging",
+      lastChecked: "2025-05-15T10:15:00Z"
     },
     {
       id: 3,
-      name: "Industrial UPS C",
-      serialNumber: "UPS-2023-442",
-      model: "BackupMaster 30kWh",
-      manufacturer: "GridSafe Technologies",
-      manufactureDate: "2023-11-10",
-      capacity: 30000, // mAh
-      voltage: 220.0, // V
-      cycleCount: 312,
-      health: 78, // percentage
-      status: "active", // active, charging, idle, error
-      lastChecked: "2025-05-15T07:45:00Z"
+      name: "Backup Power Unit 3",
+      serialNumber: "BPU-2024-003",
+      model: "Backup Series 2024",
+      manufacturer: "PowerSolutions",
+      manufactureDate: "2024-08-20",
+      capacity: 25000,
+      voltage: 220.5,
+      cycleCount: 245,
+      health: 76,
+      status: "active",
+      lastChecked: "2025-05-14T16:45:00Z"
     },
     {
       id: 4,
-      name: "Mining Equipment D",
-      serialNumber: "ME-2023-108",
-      model: "HeavyDuty 120kWh",
-      manufacturer: "IndustrialPower Co",
-      manufactureDate: "2023-05-18",
-      capacity: 120000, // mAh
-      voltage: 510.5, // V
-      cycleCount: 587,
-      health: 62, // percentage
-      status: "error", // active, charging, idle, error
-      lastChecked: "2025-05-15T06:10:00Z"
+      name: "Critical System Battery",
+      serialNumber: "CS-X75-04592",
+      model: "Critical X75",
+      manufacturer: "SecurePower",
+      manufactureDate: "2024-05-10",
+      capacity: 15000,
+      voltage: 120.0,
+      cycleCount: 512,
+      health: 28,
+      status: "error",
+      lastChecked: "2025-05-15T08:00:00Z"
     }
   ];
 }
 
 function generateBatteryHistory(batteryId: number): BatteryHistory[] {
-  // Generate history data for the past 30 days
+  // Generate the last 30 days of history
   const history: BatteryHistory[] = [];
   const now = new Date();
   
-  // Set up initial values based on battery ID to make them unique
-  let healthBase = batteryId === 1 ? 98 : 
-                  batteryId === 2 ? 99 : 
-                  batteryId === 3 ? 85 : 70;
+  let health: number;
+  let capacity: number;
+  let voltage: number;
+  let cycleCount: number;
   
-  let voltageBase = batteryId === 1 ? 380 : 
-                   batteryId === 2 ? 48 : 
-                   batteryId === 3 ? 220 : 510;
+  // Set different starting values based on battery ID
+  switch (batteryId) {
+    case 1:
+      health = 100;
+      capacity = 85000;
+      voltage = 380;
+      cycleCount = 100;
+      break;
+    case 2:
+      health = 100;
+      capacity = 50000;
+      voltage = 355;
+      cycleCount = 60;
+      break;
+    case 3:
+      health = 90;
+      capacity = 25000;
+      voltage = 225;
+      cycleCount = 200;
+      break;
+    case 4:
+      health = 60;
+      capacity = 15000;
+      voltage = 125;
+      cycleCount = 450;
+      break;
+    default:
+      health = 100;
+      capacity = 50000;
+      voltage = 350;
+      cycleCount = 0;
+  }
   
-  let capacityBase = batteryId === 1 ? 90000 : 
-                    batteryId === 2 ? 50000 : 
-                    batteryId === 3 ? 30000 : 120000;
-  
-  let cycleCountBase = batteryId === 1 ? 100 : 
-                       batteryId === 2 ? 40 : 
-                       batteryId === 3 ? 290 : 550;
-  
-  // Create entries with slight variations for the past 30 days
-  for (let i = 29; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(now.getDate() - i);
+  for (let i = 30; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
     
-    // Make values degrade slightly over time
-    const dailyHealthChange = (Math.random() * 0.15) - 0.05; // Between -0.05 and 0.1
-    const dailyVoltageChange = (Math.random() * 0.2) - 0.05; // Between -0.05 and 0.15
-    const dailyCapacityChange = (Math.random() * 100) - 20; // Between -20 and 80
+    // Slightly degrade values over time to simulate wear
+    health -= (batteryId === 4) ? 1.1 : 0.3;
+    capacity -= (batteryId === 4) ? 500 : 100;
+    voltage -= 0.1;
+    cycleCount += (batteryId === 3 || batteryId === 4) ? 2 : 1;
     
-    healthBase = Math.max(0, Math.min(100, healthBase - dailyHealthChange));
-    voltageBase = Math.max(1, voltageBase + dailyVoltageChange);
-    capacityBase = Math.max(1, capacityBase - dailyCapacityChange);
+    // Add some randomness to make data look realistic
+    const randomFactor = Math.random() * 0.02 - 0.01; // -1% to +1%
     
-    // Add entry with random fluctuations
     history.push({
-      id: batteryId * 1000 + i,
-      batteryId: batteryId,
+      id: (batteryId * 100) + (30 - i),
+      batteryId,
       date: date.toISOString(),
-      health: Math.round(healthBase * 10) / 10,
-      voltage: Math.round(voltageBase * 10) / 10,
-      capacity: Math.round(capacityBase),
-      temperature: Math.round((20 + Math.random() * 15) * 10) / 10, // 20°C to 35°C
-      cycleCount: cycleCountBase + (29 - i) // Cycles increase with time
+      health: Math.max(0, Math.min(100, health * (1 + randomFactor))),
+      capacity: Math.max(0, capacity * (1 + randomFactor)),
+      voltage: Math.max(0, voltage * (1 + randomFactor)),
+      temperature: 20 + Math.random() * 10,
+      cycleCount: Math.floor(cycleCount)
     });
   }
   
@@ -348,128 +404,151 @@ function generateBatteryHistory(batteryId: number): BatteryHistory[] {
 }
 
 function generateUsagePattern(batteryId: number): UsagePattern {
-  // Generate unique usage patterns based on battery ID
+  let pattern: Partial<UsagePattern>;
+  
   switch (batteryId) {
     case 1:
-      return {
-        id: 1,
-        batteryId: 1,
-        chargingFrequency: 2.5, // times per day
-        averageDischargeRate: 0.3, // percentage per minute
-        deepDischargeCount: 12,
-        peakUsageTime: "Morning",
-        environmentalConditions: "Indoor, Controlled",
-        usageType: "Light"
-      };
-    case 2:
-      return {
-        id: 2,
-        batteryId: 2,
-        chargingFrequency: 3.8,
-        averageDischargeRate: 0.5,
+      pattern = {
+        chargingFrequency: 0.8,
+        averageDischargeRate: 3.2,
         deepDischargeCount: 5,
-        peakUsageTime: "Evening",
-        environmentalConditions: "Indoor, Variable",
-        usageType: "Moderate"
+        peakUsageTime: "14:00-18:00",
+        environmentalConditions: "Temperature controlled",
+        usageType: "Regular daily cycles"
       };
+      break;
+    case 2:
+      pattern = {
+        chargingFrequency: 0.5,
+        averageDischargeRate: 2.1,
+        deepDischargeCount: 1,
+        peakUsageTime: "08:00-12:00",
+        environmentalConditions: "Indoor moderate climate",
+        usageType: "Intermittent backup"
+      };
+      break;
     case 3:
-      return {
-        id: 3,
-        batteryId: 3,
-        chargingFrequency: 6.2,
-        averageDischargeRate: 0.8,
-        deepDischargeCount: 28,
-        peakUsageTime: "Afternoon",
-        environmentalConditions: "Mixed Indoor/Outdoor",
-        usageType: "Heavy"
+      pattern = {
+        chargingFrequency: 0.3,
+        averageDischargeRate: 4.5,
+        deepDischargeCount: 12,
+        peakUsageTime: "22:00-02:00",
+        environmentalConditions: "Variable temperatures",
+        usageType: "Emergency backup"
       };
+      break;
     case 4:
+      pattern = {
+        chargingFrequency: 1.2,
+        averageDischargeRate: 6.8,
+        deepDischargeCount: 48,
+        peakUsageTime: "All day",
+        environmentalConditions: "High temperature environment",
+        usageType: "Heavy continuous usage"
+      };
+      break;
     default:
-      return {
-        id: 4,
-        batteryId: 4,
-        chargingFrequency: 8.5,
-        averageDischargeRate: 1.2,
-        deepDischargeCount: 102,
-        peakUsageTime: "Continuous",
-        environmentalConditions: "Outdoor, Extreme",
-        usageType: "Industrial"
+      pattern = {
+        chargingFrequency: 0.5,
+        averageDischargeRate: 2.5,
+        deepDischargeCount: 0,
+        peakUsageTime: "N/A",
+        environmentalConditions: "Unknown",
+        usageType: "Standard"
       };
   }
+  
+  return {
+    id: batteryId,
+    batteryId,
+    ...pattern
+  } as UsagePattern;
 }
 
 function generateRecommendations(batteryId: number): Recommendation[] {
-  // Base recommendations that apply to all batteries
-  const baseRecommendations: Recommendation[] = [
-    {
-      id: batteryId * 10 + 1,
-      batteryId: batteryId,
-      type: "Maintenance",
-      description: "Schedule routine health check-up for optimal performance",
-      priority: "Medium",
-      created: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
-      resolved: false
-    }
-  ];
+  const recommendations: Recommendation[] = [];
   
-  // Add specific recommendations based on battery conditions
-  const battery = generateDemoBatteries().find(b => b.id === batteryId);
-  
-  if (!battery) return baseRecommendations;
-  
-  // Array to collect all recommendations
-  const recommendations: Recommendation[] = [...baseRecommendations];
-  
-  // Add recommendation based on health
-  if (battery.health < 80) {
-    recommendations.push({
-      id: batteryId * 10 + 2,
-      batteryId: batteryId,
-      type: "Optimization",
-      description: "Adjust charging cycle to improve longevity",
-      priority: "Medium",
-      created: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
-      resolved: false
-    });
-  }
-  
-  // Add recommendation for batteries with low health
-  if (battery.health < 70) {
-    recommendations.push({
-      id: batteryId * 10 + 3,
-      batteryId: batteryId,
-      type: "Warning",
-      description: "Battery capacity significantly reduced. Consider reducing deep discharge frequency.",
-      priority: "High",
-      created: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-      resolved: false
-    });
-  }
-  
-  // Add critical recommendation for very low health
-  if (battery.health < 50) {
-    recommendations.push({
-      id: batteryId * 10 + 4,
-      batteryId: batteryId,
-      type: "Critical",
-      description: "Battery health critical. Schedule replacement within next 3 months.",
-      priority: "Urgent",
-      created: new Date().toISOString(), // Today
-      resolved: false
-    });
-  }
-  
-  // Add recommendation based on cycle count
-  if (battery.cycleCount > 300) {
-    recommendations.push({
-      id: batteryId * 10 + 5,
-      batteryId: batteryId,
-      type: "Alert",
-      description: `High cycle count (${battery.cycleCount}). Monitor performance closely.`,
-      priority: "Medium",
-      created: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
-      resolved: false
-    });
+  switch (batteryId) {
+    case 1:
+      recommendations.push({
+        id: 1,
+        batteryId: 1,
+        type: "optimization",
+        description: "Consider charging to 80% instead of 100% to extend battery life",
+        priority: "medium",
+        created: "2025-05-10T14:30:00Z",
+        resolved: false
+      });
+      recommendations.push({
+        id: 2,
+        batteryId: 1,
+        type: "maintenance",
+        description: "Schedule regular diagnostic check in next 30 days",
+        priority: "low",
+        created: "2025-05-12T09:15:00Z",
+        resolved: false
+      });
+      break;
+    case 2:
+      recommendations.push({
+        id: 3,
+        batteryId: 2,
+        type: "information",
+        description: "Battery performing optimally - no action needed",
+        priority: "low",
+        created: "2025-05-14T11:20:00Z",
+        resolved: true
+      });
+      break;
+    case 3:
+      recommendations.push({
+        id: 4,
+        batteryId: 3,
+        type: "warning",
+        description: "Discharge rate higher than recommended. Consider load balancing.",
+        priority: "medium",
+        created: "2025-05-08T16:45:00Z",
+        resolved: false
+      });
+      recommendations.push({
+        id: 5,
+        batteryId: 3,
+        type: "optimization",
+        description: "Adjust environmental controls to maintain optimal temperature range",
+        priority: "medium",
+        created: "2025-05-13T10:30:00Z",
+        resolved: false
+      });
+      break;
+    case 4:
+      recommendations.push({
+        id: 6,
+        batteryId: 4,
+        type: "alert",
+        description: "Critical health level detected - replacement required",
+        priority: "high",
+        created: "2025-05-14T08:15:00Z",
+        resolved: false
+      });
+      recommendations.push({
+        id: 7,
+        batteryId: 4,
+        type: "alert",
+        description: "Abnormal voltage fluctuations detected - inspect connections",
+        priority: "high",
+        created: "2025-05-15T07:45:00Z",
+        resolved: false
+      });
+      recommendations.push({
+        id: 8,
+        batteryId: 4,
+        type: "warning",
+        description: "High temperature operating environment is accelerating degradation",
+        priority: "medium",
+        created: "2025-05-10T14:20:00Z",
+        resolved: false
+      });
+      break;
   }
   
   return recommendations;
