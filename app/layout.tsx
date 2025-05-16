@@ -1,26 +1,26 @@
-import './globals.css';
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import { Providers } from './providers';
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import ClientProvider from "./providers";
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Coulomb.ai - Battery Health Dashboard',
-  description: 'A cutting-edge Battery Health Visualization Dashboard that transforms complex battery performance data into intuitive, actionable insights.',
+  title: "Battery Health Dashboard | Coulomb.ai",
+  description: "Real-time battery health monitoring and analytics platform",
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark">
       <body className={inter.className}>
-        <Providers>
+        <ClientProvider>
           {children}
-        </Providers>
+        </ClientProvider>
       </body>
     </html>
   );
