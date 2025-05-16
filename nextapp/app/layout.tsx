@@ -1,10 +1,16 @@
 'use client';
 
-import React from 'react';
-import { Inter } from 'next/font/google';
+import { Metadata } from 'next';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const metadata: Metadata = {
+  title: 'Coulomb.ai - Battery Health Monitoring Dashboard',
+  description: 'Real-time battery health monitoring, analytics, and predictive maintenance platform',
+  applicationName: 'Coulomb.ai',
+  authors: [{ name: 'Coulomb.ai' }],
+  keywords: ['battery', 'health', 'monitoring', 'analytics', 'dashboard', 'maintenance', 'energy'],
+  viewport: 'width=device-width, initial-scale=1',
+};
 
 export default function RootLayout({
   children,
@@ -12,18 +18,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="light">
+    <html lang="en" suppressHydrationWarning>
       <head>
-        <title>Coulomb.ai - Battery Health Monitoring</title>
-        <meta name="description" content="Advanced battery health monitoring and predictive analytics platform for optimal battery performance." />
-        <meta property="og:title" content="Coulomb.ai - Battery Health Monitoring" />
-        <meta property="og:description" content="Advanced battery health monitoring and predictive analytics platform for optimal battery performance." />
-        <meta property="og:type" content="website" />
+        <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        {/* Add favicon */}
+        <title>{metadata.title as string}</title>
+        <meta name="description" content={metadata.description as string} />
+        <meta name="application-name" content={metadata.applicationName as string} />
+        <meta name="keywords" content={(metadata.keywords as string[]).join(', ')} />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content={metadata.title as string} />
+        <meta property="og:description" content={metadata.description as string} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Coulomb.ai" />
+        
+        {/* Favicon and app icons */}
         <link rel="icon" href="/favicon.ico" />
       </head>
-      <body className={`${inter.className} min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-50 antialiased`}>
+      <body>
         {children}
       </body>
     </html>

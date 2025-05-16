@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDateTime, getHealthStatusText } from '@/lib/utils';
 import BatteryIcon from '@/components/ui/battery-icon';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ClockIcon, BoltIcon, CalendarIcon, ChipIcon } from 'lucide-react';
+import { Clock as ClockIcon, Bolt as BoltIcon, Calendar as CalendarIcon, CircuitBoard } from 'lucide-react';
 
 interface BatteryStatusCardProps {
   battery: BatteryType | null;
