@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 240 40% 3%;
+    --foreground: 240 10% 97%;
+    
+    --muted: 240 10% 15%;
+    --muted-foreground: 240 5% 65%;
+    
+    --popover: 240 45% 8%;
+    --popover-foreground: 240 10% 97%;
+    
+    --card: 240 45% 8%;
+    --card-foreground: 240 10% 97%;
+    
+    --border: 240 12% 15%;
+    --input: 240 12% 15%;
+    
+    --primary: 270 95% 60%;
+    --primary-foreground: 240 5% 100%;
+    
+    --secondary: 210 75% 50%;
+    --secondary-foreground: 240 5% 100%;
+    
+    --accent: 235 70% 50%;
+    --accent-foreground: 0 0% 98%;
+    
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 98%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 12%;
+
+    --danger: 0 70% 50%;
+    --danger-foreground: 0 0% 98%;
+    
+    --ring: 240 10% 60%;
+    
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-gradient-dark text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Custom battery glow effects */
+  .glow-primary {
+    box-shadow: 0 0 20px 2px hsla(var(--primary) / 0.15);
+  }
+  
+  .glow-secondary {
+    box-shadow: 0 0 20px 2px hsla(var(--secondary) / 0.15);
+  }
+  
+  .glow-text-primary {
+    text-shadow: 0 0 10px hsla(var(--primary) / 0.5);
+  }
+  
+  .glow-text-secondary {
+    text-shadow: 0 0 10px hsla(var(--secondary) / 0.5);
+  }
+
+  /* Card glassmorphism */
+  .glass-card {
+    backdrop-filter: blur(8px);
+    background: hsla(var(--card) / 0.6);
+    border: 1px solid hsla(var(--border) / 0.3);
+  }
+}
