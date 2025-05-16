@@ -1,167 +1,268 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { PlusCircle, BarChart3, Battery, GaugeCircle, Clock } from 'lucide-react';
-import BatteryStatusCard from '@/components/dashboard/battery-status-card';
+import { useState, useEffect } from 'react';
+import { Battery } from '@/types';
 import { useBatteryStore } from '@/lib/store';
+import BatteryStatusCard from '@/components/dashboard/battery-status-card';
+import { 
+  Card, 
+  CardHeader, 
+  CardTitle, 
+  CardContent, 
+  CardFooter 
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ArrowRight, Plus, RefreshCw } from 'lucide-react';
 
 export default function Dashboard() {
-  return (
-    <div className="space-y-6">
-      {/* Page header */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <Button variant="gradient" className="gap-2 w-full sm:w-auto">
-          <PlusCircle className="h-4 w-4" />
-          <span>Add Battery</span>
-        </Button>
-      </div>
-      
-      <DashboardClient />
-    </div>
-  );
-}
-
-function DashboardClient() {
+  // Get battery data from store
   const { 
     batteries, 
-    isLoading, 
     selectedBatteryId, 
-    setSelectedBatteryId,
-    fetchBatteries
+    setSelectedBatteryId, 
+    isLoading, 
+    fetchBatteries 
   } = useBatteryStore();
   
+  // Load batteries on first render
   useEffect(() => {
     fetchBatteries();
   }, [fetchBatteries]);
   
-  const selectedBattery = selectedBatteryId 
-    ? batteries.find(b => b.id === selectedBatteryId) 
-    : batteries[0] || null;
+  // Get selected battery
+  const selectedBattery = batteries.find(b => b.id === selectedBatteryId) || null;
+  
+  // For summary metrics
+  const batteryCount = batteries.length;
+  const criticalBatteries = batteries.filter(b => b.health < 40).length;
+  const warningBatteries = batteries.filter(b => b.health >= 40 && b.health < 70).length;
+  const healthyBatteries = batteries.filter(b => b.health >= 70).length;
   
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {/* Main status card */}
-      <div className="md:col-span-2 lg:col-span-1">
-        <BatteryStatusCard 
-          battery={selectedBattery} 
-          isLoading={isLoading} 
-        />
+    <div className="space-y-6">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        
+        <div className="flex items-center gap-2">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="h-9"
+            onClick={() => fetchBatteries()}
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh
+          </Button>
+          
+          <Button 
+            size="sm" 
+            className="h-9"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add Battery
+          </Button>
+        </div>
       </div>
       
-      {/* Overview metrics */}
-      <Card className="overflow-hidden border border-border/40 bg-gradient-to-br from-card/50 to-card shadow-xl">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold">
-            <span className="bg-gradient-to-br from-foreground/90 to-foreground/60 bg-clip-text text-transparent">
-              Fleet Overview
-            </span>
-          </CardTitle>
-          <CardDescription>
-            Summary of all monitored batteries
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col items-center justify-center p-3 border border-border/50 rounded-md bg-card/50">
-              <Battery className="h-8 w-8 mb-2 text-primary" strokeWidth={1.5} />
-              <div className="text-3xl font-bold">{isLoading ? "-" : batteries.length}</div>
-              <div className="text-xs text-muted-foreground">Total Batteries</div>
-            </div>
-            
-            <div className="flex flex-col items-center justify-center p-3 border border-border/50 rounded-md bg-card/50">
-              <GaugeCircle className="h-8 w-8 mb-2 text-amber-500" strokeWidth={1.5} />
-              <div className="text-3xl font-bold">
-                {isLoading ? "-" : Math.round(batteries.reduce((acc, b) => acc + b.health, 0) / batteries.length)}%
-              </div>
-              <div className="text-xs text-muted-foreground">Avg. Health</div>
-            </div>
-            
-            <div className="flex flex-col items-center justify-center p-3 border border-border/50 rounded-md bg-card/50">
-              <BarChart3 className="h-8 w-8 mb-2 text-violet-500" strokeWidth={1.5} />
-              <div className="text-3xl font-bold">
-                {isLoading ? "-" : batteries.filter(b => b.health < 80).length}
-              </div>
-              <div className="text-xs text-muted-foreground">Need Attention</div>
-            </div>
-            
-            <div className="flex flex-col items-center justify-center p-3 border border-border/50 rounded-md bg-card/50">
-              <Clock className="h-8 w-8 mb-2 text-blue-500" strokeWidth={1.5} />
-              <div className="text-3xl font-bold">
-                {isLoading ? "-" : Math.round(batteries.reduce((acc, b) => acc + b.cycleCount, 0) / batteries.length)}
-              </div>
-              <div className="text-xs text-muted-foreground">Avg. Cycles</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Summary metrics */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="bg-card/50 backdrop-blur-sm">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Batteries</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{batteryCount}</div>
+            <p className="text-xs text-muted-foreground">Monitored devices</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-card/50 backdrop-blur-sm">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Critical</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-red-500">{criticalBatteries}</div>
+            <p className="text-xs text-muted-foreground">Require immediate attention</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-card/50 backdrop-blur-sm">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Warning</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-yellow-500">{warningBatteries}</div>
+            <p className="text-xs text-muted-foreground">Need monitoring</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-card/50 backdrop-blur-sm">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Healthy</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-500">{healthyBatteries}</div>
+            <p className="text-xs text-muted-foreground">Operating normally</p>
+          </CardContent>
+        </Card>
+      </div>
       
-      {/* Battery selection cards */}
-      <Card className="overflow-hidden border border-border/40 bg-gradient-to-br from-card/50 to-card shadow-xl lg:col-span-2">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold">
-            <span className="bg-gradient-to-br from-foreground/90 to-foreground/60 bg-clip-text text-transparent">
-              Battery Fleet
-            </span>
-          </CardTitle>
-          <CardDescription>
-            Select a battery to view details
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-24 rounded-md bg-muted/50 animate-pulse" />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-              {batteries.map((battery) => (
-                <div
-                  key={battery.id}
-                  className={`relative overflow-hidden p-4 border rounded-md cursor-pointer transition-all ${
-                    selectedBatteryId === battery.id
-                      ? 'border-primary/50 bg-gradient-to-br from-primary/10 to-primary/5 shadow-md'
-                      : 'border-border/50 bg-card/50 hover:border-border'
-                  }`}
-                  onClick={() => setSelectedBatteryId(battery.id)}
-                >
-                  <div className="absolute top-0 right-0 w-8 h-8">
-                    <div className={`w-16 h-16 -mt-8 -mr-8 rounded-full ${
-                      battery.health >= 80 ? 'bg-green-500/10' :
-                      battery.health >= 60 ? 'bg-amber-500/10' : 'bg-red-500/10'
-                    }`} />
+      {/* Two main columns */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="space-y-6">
+          {/* Battery Status Card */}
+          <BatteryStatusCard battery={selectedBattery} isLoading={isLoading} />
+          
+          {/* Recommendations Panel */}
+          <Card className="bg-card/50 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-xl">Recommendations</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {!selectedBattery ? (
+                <p className="text-muted-foreground text-sm">Select a battery to view recommendations</p>
+              ) : (
+                <>
+                  <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-md">
+                    <p className="text-sm font-medium mb-1 text-amber-500">Regular Maintenance</p>
+                    <p className="text-sm text-muted-foreground">Schedule a routine health check-up for optimal performance</p>
                   </div>
                   
-                  <div className="flex items-start gap-3">
-                    <div className={`w-3 h-3 mt-1 rounded-full ${
-                      battery.health >= 80 ? 'bg-green-500' :
-                      battery.health >= 60 ? 'bg-amber-500' : 'bg-red-500'
-                    }`} />
-                    
-                    <div>
-                      <div className="font-medium">{battery.name}</div>
-                      <div className="text-xs text-muted-foreground">{battery.model}</div>
-                      <div className="mt-2 text-sm">
-                        <span className={`font-medium ${
-                          battery.health >= 80 ? 'text-green-500' :
-                          battery.health >= 60 ? 'text-amber-500' : 'text-red-500'
-                        }`}>
-                          {battery.health}%
+                  {selectedBattery.health < 80 && (
+                    <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-md">
+                      <p className="text-sm font-medium mb-1 text-blue-500">Optimization</p>
+                      <p className="text-sm text-muted-foreground">Adjust charging cycle to improve longevity</p>
+                    </div>
+                  )}
+                  
+                  {selectedBattery.health < 60 && (
+                    <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-md">
+                      <p className="text-sm font-medium mb-1 text-red-500">Warning</p>
+                      <p className="text-sm text-muted-foreground">Battery capacity significantly reduced. Consider reducing deep discharge frequency.</p>
+                    </div>
+                  )}
+                </>
+              )}
+            </CardContent>
+            <CardFooter>
+              <Button variant="outline" size="sm" className="w-full">
+                View All Recommendations
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+        
+        <div className="space-y-6">
+          {/* Battery Selection Panel */}
+          <Card className="bg-card/50 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-xl">Battery Selection</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {isLoading ? (
+                  <p className="text-muted-foreground">Loading batteries...</p>
+                ) : batteries.length === 0 ? (
+                  <p className="text-muted-foreground">No batteries found.</p>
+                ) : (
+                  batteries.map(battery => (
+                    <div 
+                      key={battery.id}
+                      onClick={() => setSelectedBatteryId(battery.id)}
+                      className={`
+                        flex items-center justify-between p-3 rounded-md transition-colors cursor-pointer
+                        ${selectedBatteryId === battery.id 
+                          ? 'bg-primary/10 border border-primary/30' 
+                          : 'hover:bg-muted border border-transparent'}
+                      `}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`
+                          w-3 h-3 rounded-full
+                          ${battery.health >= 70 ? 'bg-green-500' : 
+                            battery.health >= 40 ? 'bg-yellow-500' : 'bg-red-500'}
+                        `} />
+                        <span className={`font-medium ${selectedBatteryId === battery.id ? 'text-primary' : ''}`}>
+                          {battery.name}
                         </span>
-                        <span className="text-muted-foreground"> · {battery.cycleCount} cycles</span>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {battery.health}% Health
                       </div>
                     </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button variant="outline" size="sm" className="w-full">
+                View All Batteries
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </Button>
+            </CardFooter>
+          </Card>
+          
+          {/* Usage Patterns */}
+          <Card className="bg-card/50 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="text-xl">Usage Pattern</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {!selectedBattery ? (
+                <p className="text-muted-foreground text-sm">Select a battery to view usage patterns</p>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Charging Frequency:</span>
+                    <span className="text-sm font-medium">
+                      {selectedBattery.id === 1 ? '2.5 times/day' : 
+                       selectedBattery.id === 2 ? '3.8 times/day' :
+                       selectedBattery.id === 3 ? '6.2 times/day' : '8.5 times/day'}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Discharge Rate:</span>
+                    <span className="text-sm font-medium">
+                      {selectedBattery.id === 1 ? '0.3%/min' : 
+                       selectedBattery.id === 2 ? '0.5%/min' :
+                       selectedBattery.id === 3 ? '0.8%/min' : '1.2%/min'}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Peak Usage:</span>
+                    <span className="text-sm font-medium">
+                      {selectedBattery.id === 1 ? 'Morning' : 
+                       selectedBattery.id === 2 ? 'Evening' :
+                       selectedBattery.id === 3 ? 'Afternoon' : 'Continuous'}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Environment:</span>
+                    <span className="text-sm font-medium">
+                      {selectedBattery.id === 1 ? 'Indoor, Controlled' : 
+                       selectedBattery.id === 2 ? 'Indoor, Variable' :
+                       selectedBattery.id === 3 ? 'Mixed Indoor/Outdoor' : 'Outdoor, Extreme'}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-sm text-muted-foreground">Usage Type:</span>
+                    <span className="text-sm font-medium">
+                      {selectedBattery.id === 1 ? 'Light' : 
+                       selectedBattery.id === 2 ? 'Moderate' :
+                       selectedBattery.id === 3 ? 'Heavy' : 'Industrial'}
+                    </span>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

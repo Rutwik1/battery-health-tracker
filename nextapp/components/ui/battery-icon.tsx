@@ -1,8 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { cn } from '@/lib/utils';
-
 interface BatteryIconProps {
   percentage: number;
   status: string;
@@ -10,119 +7,109 @@ interface BatteryIconProps {
 }
 
 export default function BatteryIcon({ percentage, status, className = '' }: BatteryIconProps) {
-  const [isAnimating, setIsAnimating] = useState(false);
+  const safePercentage = Math.max(0, Math.min(100, percentage));
   
-  // Start animation every 3 seconds if battery is charging
-  useEffect(() => {
-    if (status === 'charging') {
-      const interval = setInterval(() => {
-        setIsAnimating(true);
-        const timeout = setTimeout(() => {
-          setIsAnimating(false);
-        }, 1500);
-        
-        return () => clearTimeout(timeout);
-      }, 3000);
-      
-      return () => clearInterval(interval);
-    }
-  }, [status]);
-  
-  // Determine color based on percentage
-  const getColor = (percentage: number) => {
-    if (percentage >= 60) return 'bg-green-500';
-    if (percentage >= 35) return 'bg-yellow-500';
-    return 'bg-red-500';
+  // Determine color based on battery health percentage
+  const getColor = () => {
+    if (safePercentage >= 70) return 'rgb(34, 197, 94)'; // Green
+    if (safePercentage >= 40) return 'rgb(234, 179, 8)';  // Yellow
+    return 'rgb(239, 68, 68)'; // Red
   };
   
-  // Get pulse animation class if charging
-  const getPulseClass = () => {
-    if (status === 'charging') {
-      return isAnimating ? 'animate-pulse duration-1000' : '';
+  // Handle special status indicators
+  const getStatusIndicator = () => {
+    switch (status?.toLowerCase()) {
+      case 'charging':
+        return (
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <svg 
+              className="h-6 w-6 text-blue-500" 
+              xmlns="http://www.w3.org/2000/svg" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+            </svg>
+          </div>
+        );
+      case 'error':
+        return (
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <svg 
+              className="h-6 w-6 text-red-500" 
+              xmlns="http://www.w3.org/2000/svg" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          </div>
+        );
+      default:
+        return null;
     }
-    return '';
   };
   
-  // Get glow effect for border
-  const getGlowEffect = () => {
-    if (percentage < 20) {
-      return 'shadow-red-500/50 shadow-lg';
-    }
-    if (status === 'charging') {
-      return 'shadow-green-500/30 shadow-lg';
-    }
-    return '';
-  };
+  // Animation for the battery fill
+  const fillAnimation = status?.toLowerCase() === 'charging' ? 'pulse 2s infinite' : 'none';
   
   return (
-    <div className={cn('relative flex items-center', className)}>
-      <div 
-        className={cn(
-          'relative w-12 h-6 bg-background border-2 border-foreground/70 rounded-sm overflow-hidden',
-          getGlowEffect()
-        )}
-      >
+    <div className={`relative ${className}`}>
+      {/* Battery outline */}
+      <div className="relative w-full h-full">
+        {/* Main battery body */}
         <div 
-          className={cn(
-            'absolute bottom-0 left-0 right-0 transition-all duration-700',
-            getColor(percentage),
-            getPulseClass()
-          )}
-          style={{ height: `${percentage}%` }}
+          className="w-[85%] h-full border-2 border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden"
+          style={{ 
+            boxShadow: '0 0 10px rgba(120, 120, 255, 0.2)' 
+          }}
+        >
+          {/* Fill level */}
+          <div 
+            className="h-full transition-all duration-1000 ease-in-out"
+            style={{ 
+              width: `${safePercentage}%`,
+              backgroundColor: getColor(),
+              animation: fillAnimation,
+              boxShadow: `0 0 10px ${getColor()}80`
+            }}
+          />
+        </div>
+        
+        {/* Battery terminal/nub */}
+        <div 
+          className="absolute top-1/2 right-0 w-[15%] h-[40%] bg-gray-300 dark:bg-gray-600 rounded-r-sm"
+          style={{ transform: 'translateY(-50%)' }}
         />
         
-        {/* Battery level indicator text */}
-        <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-foreground">
-          {percentage}%
+        {/* Percentage text */}
+        <div className="absolute inset-0 flex items-center justify-center text-xs font-medium" style={{ color: safePercentage > 50 ? 'white' : 'inherit' }}>
+          {safePercentage}%
         </div>
       </div>
       
-      {/* Battery cap */}
-      <div 
-        className={cn(
-          'h-4 w-1 bg-background border-2 border-l-0 border-foreground/70 rounded-r-sm',
-          getGlowEffect()
-        )}
-      />
+      {/* Status indicator (charging, error, etc.) */}
+      {getStatusIndicator()}
       
-      {/* Charging indicator */}
-      {status === 'charging' && (
-        <div className="absolute -right-3 -top-1">
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="16" 
-            height="16" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-            className="text-green-500 animate-pulse"
-          >
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-          </svg>
-        </div>
-      )}
-      
-      {/* Discharging indicator */}
-      {status === 'discharging' && (
-        <div className="absolute -right-3 -top-1">
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="16" 
-            height="16" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-            className="text-blue-500"
-          >
-            <path d="M18 20V6M6 4v16M18 12H4M10.5 7.5L6 4M10.5 16.5L6 20M13.5 7.5L18 4M13.5 16.5L18 20"/>
-          </svg>
-        </div>
+      {/* Glowing effect for charging or critical status */}
+      {(status?.toLowerCase() === 'charging' || safePercentage < 20) && (
+        <div 
+          className="absolute inset-0 rounded-lg pointer-events-none"
+          style={{ 
+            background: `radial-gradient(circle at center, ${getColor()}30 0%, transparent 70%)`,
+            animation: 'pulse 2s infinite'
+          }}
+        />
       )}
     </div>
   );
