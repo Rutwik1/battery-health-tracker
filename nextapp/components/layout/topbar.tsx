@@ -1,70 +1,84 @@
 'use client';
 
-import Link from 'next/link';
-import { Menu, Bell, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Bell, Menu, Search, Settings, SunMoon } from 'lucide-react';
+import { useState } from 'react';
 
 interface TopbarProps {
   onMenuClick: () => void;
 }
 
 export default function Topbar({ onMenuClick }: TopbarProps) {
+  const [darkMode, setDarkMode] = useState(false);
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    document.documentElement.classList.toggle('dark');
+  };
+
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border/30 bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      {/* Mobile menu button */}
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="md:hidden" 
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-gray-200 bg-white px-4 dark:border-gray-800 dark:bg-gray-950 sm:px-6">
+      <Button
+        variant="ghost"
+        size="icon"
         onClick={onMenuClick}
+        className="lg:hidden"
+        aria-label="Toggle menu"
       >
         <Menu className="h-5 w-5" />
-        <span className="sr-only">Toggle menu</span>
       </Button>
       
-      {/* Logo for mobile (centered) */}
-      <div className="md:hidden flex-1 flex justify-center">
-        <Link href="/dashboard" className="flex items-center">
-          <span className="font-bold text-lg bg-gradient-to-r from-primary to-indigo-500 bg-clip-text text-transparent">
-            Coulomb.ai
-          </span>
-        </Link>
+      {/* Search bar */}
+      <div className="hidden md:flex-1 md:flex md:gap-4 lg:gap-8">
+        <form className="relative flex-1 max-w-md">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+          <input
+            type="search"
+            placeholder="Search batteries, alerts, analytics..."
+            className="h-9 w-full rounded-md border border-gray-200 bg-white pl-8 pr-4 text-sm text-gray-700 outline-none transition-colors focus:border-indigo-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-300 dark:focus:border-indigo-500"
+          />
+        </form>
       </div>
       
-      {/* Search bar (hidden on mobile) */}
-      <div className="hidden md:flex flex-1 items-center gap-2">
-        <Search className="h-4 w-4 text-muted-foreground" />
-        <input 
-          type="search" 
-          placeholder="Search batteries, alerts, reports..." 
-          className="flex-1 h-9 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-        />
-      </div>
-      
-      {/* Right actions */}
-      <div className="flex items-center gap-2">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="relative"
-        >
-          <Bell className="h-5 w-5" />
-          {/* Notification indicator */}
-          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />
-          <span className="sr-only">Notifications</span>
-        </Button>
-        
-        {/* User avatar */}
+      {/* Right side icons */}
+      <div className="flex flex-1 items-center justify-end gap-3">
         <Button
           variant="ghost"
           size="icon"
-          className="rounded-full overflow-hidden bg-muted"
+          className="relative hidden md:flex"
+          aria-label="Notifications"
         >
-          <span className="sr-only">User menu</span>
-          <div className="h-full w-full flex items-center justify-center text-xs font-medium">
-            AR
-          </div>
+          <Bell className="h-5 w-5" />
+          <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] font-medium text-white flex items-center justify-center">
+            3
+          </span>
         </Button>
+        
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleDarkMode}
+          aria-label="Toggle theme"
+        >
+          <SunMoon className="h-5 w-5" />
+        </Button>
+        
+        <Button
+          variant="ghost"
+          size="icon"
+          className="hidden md:flex"
+          aria-label="Settings"
+        >
+          <Settings className="h-5 w-5" />
+        </Button>
+        
+        <div className="relative flex h-9 w-9 shrink-0 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700">
+          <img
+            src="https://ui-avatars.com/api/?name=Admin+User&background=6366F1&color=fff"
+            alt="Admin User"
+            className="rounded-full"
+          />
+        </div>
       </div>
     </header>
   );

@@ -1,266 +1,234 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Battery } from '@/types';
+import { useEffect } from 'react';
 import { useBatteryStore } from '@/lib/store';
 import BatteryStatusCard from '@/components/dashboard/battery-status-card';
-import { 
-  Card, 
-  CardHeader, 
-  CardTitle, 
-  CardContent, 
-  CardFooter 
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ArrowRight, Plus, RefreshCw } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatNumber } from '@/lib/utils';
+import Image from 'next/image';
 
 export default function Dashboard() {
-  // Get battery data from store
-  const { 
-    batteries, 
-    selectedBatteryId, 
-    setSelectedBatteryId, 
-    isLoading, 
-    fetchBatteries 
-  } = useBatteryStore();
+  const { batteries, isLoading, selectedBatteryId, setSelectedBatteryId, fetchBatteryHistory } = useBatteryStore();
   
-  // Load batteries on first render
+  const selectedBattery = batteries.find(b => b.id === selectedBatteryId) || (batteries.length > 0 ? batteries[0] : null);
+  
+  // Fetch battery history data for visualizations
   useEffect(() => {
-    fetchBatteries();
-  }, [fetchBatteries]);
+    if (selectedBattery) {
+      fetchBatteryHistory(selectedBattery.id);
+    }
+  }, [selectedBattery, fetchBatteryHistory]);
   
-  // Get selected battery
-  const selectedBattery = batteries.find(b => b.id === selectedBatteryId) || null;
-  
-  // For summary metrics
+  // Calculate summary statistics
   const batteryCount = batteries.length;
-  const criticalBatteries = batteries.filter(b => b.health < 40).length;
-  const warningBatteries = batteries.filter(b => b.health >= 40 && b.health < 70).length;
-  const healthyBatteries = batteries.filter(b => b.health >= 70).length;
+  const activeCount = batteries.filter(b => b.status === 'active').length;
+  const chargingCount = batteries.filter(b => b.status === 'charging').length;
+  const criticalCount = batteries.filter(b => b.health < 30).length;
+  
+  const avgHealth = batteries.length > 0 
+    ? Math.round(batteries.reduce((sum, battery) => sum + battery.health, 0) / batteries.length) 
+    : 0;
+  
+  const totalCapacity = batteries.reduce((sum, battery) => sum + battery.capacity, 0) / 1000; // Convert to kWh
   
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Battery Health Dashboard</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
+            Monitor and optimize battery performance across your fleet
+          </p>
+        </div>
         
-        <div className="flex items-center gap-2">
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="h-9"
-            onClick={() => fetchBatteries()}
-          >
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh
-          </Button>
-          
-          <Button 
-            size="sm" 
-            className="h-9"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add Battery
-          </Button>
+        <div className="flex items-center space-x-2">
+          <div className="flex items-center h-10 rounded-md bg-white dark:bg-gray-800 shadow-sm px-3 border border-gray-200 dark:border-gray-700">
+            <span className="text-sm font-medium">{new Date().toLocaleDateString('en-US', { 
+              month: 'long', 
+              day: 'numeric', 
+              year: 'numeric' 
+            })}</span>
+          </div>
         </div>
       </div>
       
-      {/* Summary metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-card/50 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Batteries</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{batteryCount}</div>
-            <p className="text-xs text-muted-foreground">Monitored devices</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-card/50 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Critical</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-red-500">{criticalBatteries}</div>
-            <p className="text-xs text-muted-foreground">Require immediate attention</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-card/50 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Warning</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-yellow-500">{warningBatteries}</div>
-            <p className="text-xs text-muted-foreground">Need monitoring</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-card/50 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Healthy</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-500">{healthyBatteries}</div>
-            <p className="text-xs text-muted-foreground">Operating normally</p>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Two main columns */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="space-y-6">
-          {/* Battery Status Card */}
-          <BatteryStatusCard battery={selectedBattery} isLoading={isLoading} />
-          
-          {/* Recommendations Panel */}
-          <Card className="bg-card/50 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-xl">Recommendations</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {!selectedBattery ? (
-                <p className="text-muted-foreground text-sm">Select a battery to view recommendations</p>
-              ) : (
-                <>
-                  <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-md">
-                    <p className="text-sm font-medium mb-1 text-amber-500">Regular Maintenance</p>
-                    <p className="text-sm text-muted-foreground">Schedule a routine health check-up for optimal performance</p>
-                  </div>
-                  
-                  {selectedBattery.health < 80 && (
-                    <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-md">
-                      <p className="text-sm font-medium mb-1 text-blue-500">Optimization</p>
-                      <p className="text-sm text-muted-foreground">Adjust charging cycle to improve longevity</p>
-                    </div>
-                  )}
-                  
-                  {selectedBattery.health < 60 && (
-                    <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-md">
-                      <p className="text-sm font-medium mb-1 text-red-500">Warning</p>
-                      <p className="text-sm text-muted-foreground">Battery capacity significantly reduced. Consider reducing deep discharge frequency.</p>
-                    </div>
-                  )}
-                </>
-              )}
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" size="sm" className="w-full">
-                View All Recommendations
-                <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
-        
-        <div className="space-y-6">
-          {/* Battery Selection Panel */}
-          <Card className="bg-card/50 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-xl">Battery Selection</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {isLoading ? (
-                  <p className="text-muted-foreground">Loading batteries...</p>
-                ) : batteries.length === 0 ? (
-                  <p className="text-muted-foreground">No batteries found.</p>
-                ) : (
-                  batteries.map(battery => (
-                    <div 
-                      key={battery.id}
-                      onClick={() => setSelectedBatteryId(battery.id)}
-                      className={`
-                        flex items-center justify-between p-3 rounded-md transition-colors cursor-pointer
-                        ${selectedBatteryId === battery.id 
-                          ? 'bg-primary/10 border border-primary/30' 
-                          : 'hover:bg-muted border border-transparent'}
-                      `}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`
-                          w-3 h-3 rounded-full
-                          ${battery.health >= 70 ? 'bg-green-500' : 
-                            battery.health >= 40 ? 'bg-yellow-500' : 'bg-red-500'}
-                        `} />
-                        <span className={`font-medium ${selectedBatteryId === battery.id ? 'text-primary' : ''}`}>
-                          {battery.name}
-                        </span>
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {battery.health}% Health
-                      </div>
-                    </div>
-                  ))
-                )}
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800">
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Batteries</p>
+                <p className="text-3xl font-bold mt-1">{formatNumber(batteryCount)}</p>
               </div>
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" size="sm" className="w-full">
-                View All Batteries
-                <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
-            </CardFooter>
-          </Card>
-          
-          {/* Usage Patterns */}
-          <Card className="bg-card/50 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="text-xl">Usage Pattern</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {!selectedBattery ? (
-                <p className="text-muted-foreground text-sm">Select a battery to view usage patterns</p>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Charging Frequency:</span>
-                    <span className="text-sm font-medium">
-                      {selectedBattery.id === 1 ? '2.5 times/day' : 
-                       selectedBattery.id === 2 ? '3.8 times/day' :
-                       selectedBattery.id === 3 ? '6.2 times/day' : '8.5 times/day'}
-                    </span>
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Discharge Rate:</span>
-                    <span className="text-sm font-medium">
-                      {selectedBattery.id === 1 ? '0.3%/min' : 
-                       selectedBattery.id === 2 ? '0.5%/min' :
-                       selectedBattery.id === 3 ? '0.8%/min' : '1.2%/min'}
-                    </span>
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Peak Usage:</span>
-                    <span className="text-sm font-medium">
-                      {selectedBattery.id === 1 ? 'Morning' : 
-                       selectedBattery.id === 2 ? 'Evening' :
-                       selectedBattery.id === 3 ? 'Afternoon' : 'Continuous'}
-                    </span>
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Environment:</span>
-                    <span className="text-sm font-medium">
-                      {selectedBattery.id === 1 ? 'Indoor, Controlled' : 
-                       selectedBattery.id === 2 ? 'Indoor, Variable' :
-                       selectedBattery.id === 3 ? 'Mixed Indoor/Outdoor' : 'Outdoor, Extreme'}
-                    </span>
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Usage Type:</span>
-                    <span className="text-sm font-medium">
-                      {selectedBattery.id === 1 ? 'Light' : 
-                       selectedBattery.id === 2 ? 'Moderate' :
-                       selectedBattery.id === 3 ? 'Heavy' : 'Industrial'}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 dark:text-blue-400">
+                  <rect x="7" y="2" width="10" height="20" rx="2" ry="2" />
+                  <line x1="7" y1="7" x2="17" y2="7" />
+                  <line x1="7" y1="12" x2="17" y2="12" />
+                  <line x1="7" y1="17" x2="17" y2="17" />
+                </svg>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800">
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-green-600 dark:text-green-400">Active Batteries</p>
+                <p className="text-3xl font-bold mt-1">{formatNumber(activeCount)}</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-800 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600 dark:text-green-400">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                </svg>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950 dark:to-amber-900 border-amber-200 dark:border-amber-800">
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-amber-600 dark:text-amber-400">Average Health</p>
+                <p className="text-3xl font-bold mt-1">{avgHealth}%</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-800 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600 dark:text-amber-400">
+                  <path d="M22 12h-4" />
+                  <path d="M6 12H2" />
+                  <path d="M17 12a5 5 0 0 1-10 0" />
+                  <path d="M7 12a5 5 0 0 0 10 0" />
+                </svg>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900 border-red-200 dark:border-red-800">
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-red-600 dark:text-red-400">Critical Status</p>
+                <p className="text-3xl font-bold mt-1">{formatNumber(criticalCount)}</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-800 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600 dark:text-red-400">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Main content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Selected Battery */}
+        <div className="col-span-1">
+          <h2 className="text-xl font-bold mb-4">Selected Battery</h2>
+          <BatteryStatusCard battery={selectedBattery} isLoading={isLoading} />
+        </div>
+        
+        {/* Battery List */}
+        <div className="col-span-1 lg:col-span-2">
+          <h2 className="text-xl font-bold mb-4">Battery Fleet</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {isLoading ? (
+              // Skeleton cards
+              Array(4).fill(null).map((_, i) => (
+                <Card key={i} className="h-24 animate-pulse bg-gray-200 dark:bg-gray-800">
+                  <CardContent className="p-4">
+                    <div className="h-4 w-2/3 bg-gray-300 dark:bg-gray-700 rounded"></div>
+                    <div className="h-4 w-1/2 bg-gray-300 dark:bg-gray-700 rounded mt-2"></div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              // Actual battery cards
+              batteries.map((battery) => (
+                <Card 
+                  key={battery.id}
+                  className={`cursor-pointer transition-all hover:shadow-md ${
+                    selectedBattery?.id === battery.id 
+                      ? 'border-indigo-500 ring-2 ring-indigo-200 dark:ring-indigo-900'
+                      : 'border-gray-200 dark:border-gray-800'
+                  }`}
+                  onClick={() => setSelectedBatteryId(battery.id)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-medium text-gray-900 dark:text-gray-100">{battery.name}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {battery.model} • Health: {battery.health}%
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Last updated: {new Date(battery.lastChecked).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                        battery.status === 'active' ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400' :
+                        battery.status === 'charging' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' :
+                        battery.status === 'error' ? 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-400' :
+                        'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                      }`}>
+                        {battery.status === 'active' && (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M5 12h14"></path>
+                            <path d="M12 5v14"></path>
+                          </svg>
+                        )}
+                        {battery.status === 'charging' && (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+                          </svg>
+                        )}
+                        {battery.status === 'error' && (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                          </svg>
+                        )}
+                        {battery.status === 'idle' && (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="8" y1="12" x2="16" y2="12"></line>
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+      
+      {/* Coulomb.ai Logo */}
+      <div className="flex justify-center pt-6 pb-8">
+        <div className="text-center space-y-2">
+          <div className="flex items-center justify-center space-x-2">
+            <div className="w-8 h-8 rounded-md bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white overflow-hidden shadow-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="7" y="2" width="10" height="20" rx="2" ry="2" />
+                <line x1="7" y1="7" x2="17" y2="7" />
+                <line x1="7" y1="12" x2="17" y2="12" />
+                <line x1="7" y1="17" x2="17" y2="17" />
+              </svg>
+            </div>
+            <span className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">
+              Coulomb.ai
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Advanced Battery Intelligence</p>
         </div>
       </div>
     </div>

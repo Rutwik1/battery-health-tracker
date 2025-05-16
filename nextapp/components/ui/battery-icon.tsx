@@ -1,7 +1,7 @@
 'use client';
 
-import * as React from 'react';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
 
 interface BatteryIconProps {
   percentage: number;
@@ -10,70 +10,99 @@ interface BatteryIconProps {
 }
 
 export default function BatteryIcon({ percentage, status, className = '' }: BatteryIconProps) {
-  // Ensure percentage is within bounds
+  const [mounted, setMounted] = useState(false);
+  
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  if (!mounted) return null;
+  
+  // Ensure percentage is between 0 and 100
   const safePercentage = Math.max(0, Math.min(100, percentage));
   
-  // Determine fill color based on health percentage and status
-  const getFillColor = () => {
-    if (status === 'error') return 'bg-red-500';
-    if (safePercentage >= 90) return 'bg-green-500';
-    if (safePercentage >= 70) return 'bg-emerald-400';
-    if (safePercentage >= 50) return 'bg-yellow-400';
-    if (safePercentage >= 30) return 'bg-orange-500';
+  // Determine color based on battery health
+  const getHealthColor = () => {
+    if (safePercentage >= 75) return 'bg-green-500';
+    if (safePercentage >= 50) return 'bg-lime-500';
+    if (safePercentage >= 30) return 'bg-amber-500';
     return 'bg-red-500';
   };
   
-  // Create a pulsing effect for charging batteries
-  const isCharging = status === 'charging';
+  // Determine animation/styling based on status
+  const getStatusStyles = () => {
+    switch (status.toLowerCase()) {
+      case 'charging':
+        return {
+          fillClass: `${getHealthColor()} relative overflow-hidden before:absolute before:inset-0 before:translate-x-[-100%] before:animate-pulse before:bg-white/30`,
+          wrapperClass: 'animate-battery-pulse'
+        };
+      case 'error':
+        return {
+          fillClass: `bg-red-500 animate-pulse`,
+          wrapperClass: 'animate-battery-error'
+        };
+      case 'active':
+        return {
+          fillClass: getHealthColor(),
+          wrapperClass: ''
+        };
+      default:
+        return {
+          fillClass: `${getHealthColor()} opacity-70`,
+          wrapperClass: ''
+        };
+    }
+  };
+  
+  const { fillClass, wrapperClass } = getStatusStyles();
   
   return (
-    <div className={cn('relative', className)}>
+    <div className={cn('relative', wrapperClass, className)}>
       {/* Battery body */}
-      <div className="relative w-12 h-6 rounded-md border-2 border-gray-700 overflow-hidden bg-gray-100 dark:bg-gray-800">
+      <div className="h-8 w-14 rounded-sm border-2 border-gray-600 dark:border-gray-400 bg-gray-200 dark:bg-gray-800 overflow-hidden flex items-center">
         {/* Battery fill level */}
         <div 
-          className={cn(
-            'absolute bottom-0 left-0 transition-all duration-300',
-            getFillColor(),
-            isCharging && 'animate-pulse'
-          )}
-          style={{ 
-            width: '100%',
-            height: `${safePercentage}%`,
-          }}
+          className={cn("h-full transition-all duration-700", fillClass)}
+          style={{ width: `${safePercentage}%` }}
         />
-        
-        {/* Battery percentage text */}
-        <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-900 dark:text-white">
-          {safePercentage}%
-        </div>
       </div>
       
-      {/* Battery tip */}
-      <div className="absolute -right-1 top-1/2 transform -translate-y-1/2 w-1 h-3 bg-gray-700 rounded-r-sm" />
+      {/* Battery terminal */}
+      <div className="absolute -right-1 top-1/2 h-3 w-1 -translate-y-1/2 rounded-r-sm bg-gray-600 dark:bg-gray-400" />
       
-      {/* Charging indicator */}
-      {isCharging && (
-        <div className="absolute -right-3 top-1/2 transform -translate-y-1/2">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="currentColor" className="text-yellow-400" />
-          </svg>
+      {/* Percentage label */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className={cn(
+          "text-xs font-semibold",
+          safePercentage > 40 ? "text-gray-900 mix-blend-overlay" : "text-white"
+        )}>
+          {safePercentage}%
+        </span>
+      </div>
+      
+      {/* Status indicator for charging */}
+      {status.toLowerCase() === 'charging' && (
+        <div className="absolute -top-1 -right-1">
+          <div className="h-4 w-4 flex items-center justify-center rounded-full bg-green-500 text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+            </svg>
+          </div>
         </div>
       )}
       
-      {/* Error indicator */}
-      {status === 'error' && (
-        <div className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-red-500 border border-white flex items-center justify-center">
-          <span className="text-white text-xs">!</span>
+      {/* Status indicator for error */}
+      {status.toLowerCase() === 'error' && (
+        <div className="absolute -top-1 -right-1">
+          <div className="h-4 w-4 flex items-center justify-center rounded-full bg-red-500 text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </div>
         </div>
-      )}
-      
-      {/* Glowing effect when charging or active */}
-      {(isCharging || status === 'active') && (
-        <div className={cn(
-          'absolute inset-0 rounded-md filter blur-sm opacity-40', 
-          isCharging ? 'bg-yellow-400' : 'bg-emerald-400'
-        )} />
       )}
     </div>
   );

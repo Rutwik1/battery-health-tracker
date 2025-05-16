@@ -1,15 +1,20 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   Battery, 
-  BarChart2, 
-  Calendar, 
-  AlertTriangle, 
+  ChevronRight, 
+  Home, 
+  Info, 
+  LineChart, 
   Settings, 
-  HelpCircle,
-  X 
+  X, 
+  AlertCircle, 
+  BarChart3,
+  Download,
+  Upload 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -28,131 +33,166 @@ interface NavItemProps {
 
 const NavItem = ({ href, icon, children, active, onClick }: NavItemProps) => {
   return (
-    <Link 
-      href={href} 
-      onClick={onClick}
-      className={`
-        flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors
-        ${active 
-          ? 'bg-primary/10 text-primary' 
-          : 'text-muted-foreground hover:bg-muted hover:text-foreground'}
-      `}
-    >
-      <span className="text-base">{icon}</span>
-      <span>{children}</span>
+    <Link href={href} onClick={onClick} className="block">
+      <div
+        className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+          active
+            ? 'bg-indigo-100 text-indigo-900 dark:bg-indigo-900 dark:text-indigo-100'
+            : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100'
+        }`}
+      >
+        <span className="mr-3 h-5 w-5">{icon}</span>
+        <span>{children}</span>
+      </div>
     </Link>
   );
 };
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const [isMounted, setIsMounted] = useState(false);
+  
+  // Prevent hydration issues
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+  
+  if (!isMounted) {
+    return null;
+  }
+  
+  // Mobile sidebar overlay
+  const overlayClasses = open
+    ? 'fixed inset-0 z-40 bg-gray-600 bg-opacity-75 transition-opacity lg:hidden'
+    : 'hidden';
   
   return (
     <>
-      {/* Overlay for mobile */}
-      {open && (
-        <div 
-          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
-          onClick={onClose}
-        />
-      )}
+      {/* Mobile sidebar overlay */}
+      <div className={overlayClasses} onClick={onClose} />
       
-      {/* Sidebar */}
-      <div 
-        className={`
-          fixed top-0 bottom-0 left-0 z-50 w-72 border-r border-border/40 bg-background p-6 
-          shadow-lg transition-transform duration-300 ease-in-out md:shadow-none
-          ${open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-        `}
+      {/* Sidebar container */}
+      <div
+        className={`fixed top-0 left-0 bottom-0 z-50 flex flex-col w-64 bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800 transition-transform duration-300 ease-in-out lg:static lg:z-auto lg:translate-x-0 ${
+          open ? 'translate-x-0' : '-translate-x-full'
+        }`}
       >
-        {/* Mobile close button */}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="absolute right-4 top-4 md:hidden" 
-          onClick={onClose}
-        >
-          <X className="h-5 w-5" />
-          <span className="sr-only">Close sidebar</span>
-        </Button>
-        
-        {/* Logo */}
-        <div className="mb-10 flex items-center">
-          <Link href="/dashboard" className="flex items-center space-x-2" onClick={onClose}>
-            <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-primary to-indigo-500 flex items-center justify-center">
-              <Battery className="h-4 w-4 text-white" />
+        {/* Sidebar header */}
+        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 dark:border-gray-800">
+          <div className="flex items-center">
+            <div className="h-8 w-8 flex-shrink-0 overflow-hidden rounded-md bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+              <Battery className="h-5 w-5 text-white" />
             </div>
-            <span className="font-bold text-xl bg-gradient-to-r from-primary to-indigo-500 bg-clip-text text-transparent">
+            <span className="ml-2 text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">
               Coulomb.ai
             </span>
-          </Link>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="lg:hidden"
+            aria-label="Close sidebar"
+          >
+            <X className="h-5 w-5" />
+          </Button>
         </div>
         
-        {/* Navigation */}
-        <nav className="space-y-6">
+        {/* Navigation links */}
+        <div className="flex-1 overflow-y-auto p-4">
           <div className="space-y-1">
-            <h3 className="text-xs font-medium text-muted-foreground px-3 uppercase tracking-wider">
-              Overview
-            </h3>
-            <NavItem 
-              href="/dashboard" 
-              icon={<BarChart2 className="h-5 w-5" />} 
+            <NavItem
+              href="/dashboard"
+              icon={<Home className="h-5 w-5" />}
               active={pathname === '/dashboard'}
               onClick={onClose}
             >
               Dashboard
             </NavItem>
-            <NavItem 
-              href="/calendar" 
-              icon={<Calendar className="h-5 w-5" />}
-              active={pathname === '/calendar'}
+            <NavItem
+              href="/batteries"
+              icon={<Battery className="h-5 w-5" />}
+              active={pathname === '/batteries'}
               onClick={onClose}
             >
-              Maintenance
+              Batteries
             </NavItem>
-            <NavItem 
-              href="/alerts" 
-              icon={<AlertTriangle className="h-5 w-5" />}
-              active={pathname === '/alerts'}
+            <NavItem
+              href="/analytics"
+              icon={<LineChart className="h-5 w-5" />}
+              active={pathname === '/analytics'}
               onClick={onClose}
             >
-              Alerts
+              Analytics
+            </NavItem>
+            <NavItem
+              href="/recommendations"
+              icon={<AlertCircle className="h-5 w-5" />}
+              active={pathname === '/recommendations'}
+              onClick={onClose}
+            >
+              Recommendations
+            </NavItem>
+            <NavItem
+              href="/reports"
+              icon={<BarChart3 className="h-5 w-5" />}
+              active={pathname === '/reports'}
+              onClick={onClose}
+            >
+              Reports
             </NavItem>
           </div>
           
-          <div className="space-y-1">
-            <h3 className="text-xs font-medium text-muted-foreground px-3 uppercase tracking-wider">
-              Settings
+          <div className="mt-8">
+            <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Data Management
             </h3>
-            <NavItem 
-              href="/settings" 
+            <div className="mt-2 space-y-1">
+              <NavItem
+                href="/import"
+                icon={<Upload className="h-5 w-5" />}
+                active={pathname === '/import'}
+                onClick={onClose}
+              >
+                Import Data
+              </NavItem>
+              <NavItem
+                href="/export"
+                icon={<Download className="h-5 w-5" />}
+                active={pathname === '/export'}
+                onClick={onClose}
+              >
+                Export Data
+              </NavItem>
+            </div>
+          </div>
+        </div>
+        
+        {/* Bottom links */}
+        <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+          <div className="space-y-1">
+            <NavItem
+              href="/settings"
               icon={<Settings className="h-5 w-5" />}
               active={pathname === '/settings'}
               onClick={onClose}
             >
               Settings
             </NavItem>
-            <NavItem 
-              href="/help" 
-              icon={<HelpCircle className="h-5 w-5" />}
-              active={pathname === '/help'}
+            <NavItem
+              href="/about"
+              icon={<Info className="h-5 w-5" />}
+              active={pathname === '/about'}
               onClick={onClose}
             >
-              Help & Support
+              About
             </NavItem>
           </div>
-        </nav>
-        
-        {/* Status indicator */}
-        <div className="mt-auto pt-4">
-          <div className="rounded-md bg-primary/10 p-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">AI Status</span>
-              <span className="flex h-2 w-2 rounded-full bg-green-500" />
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Predictive analytics system is actively monitoring battery health
-            </p>
+          
+          {/* Version info */}
+          <div className="mt-4 px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
+            <p>Battery Monitor v2.1.0</p>
+            <p>© 2025 Coulomb.ai</p>
           </div>
         </div>
       </div>
