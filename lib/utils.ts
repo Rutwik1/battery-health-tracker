@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import { formatDistanceToNow, format } from 'date-fns'
+import { formatDistance, format, parseISO } from 'date-fns'
 
 /**
  * Combines class names with Tailwind CSS classes
@@ -21,7 +21,7 @@ export function getBatteryStatusColor(status: string): string {
     case 'Fair':
       return 'text-warning'
     case 'Poor':
-      return 'text-danger'
+      return 'text-destructive'
     default:
       return 'text-muted-foreground'
   }
@@ -38,37 +38,46 @@ export function formatNumber(num: number): string {
  * Calculate remaining battery lifespan in months
  */
 export function calculateRemainingLifespan(
-  currentHealth: number,
-  degradationRate: number,
-  minimumHealth: number = 80
+  healthPercentage: number,
+  degradationRate: number
 ): number {
-  // If degradation rate is zero or negative, return a very high number (essentially infinity)
-  if (degradationRate <= 0) return 999
-
-  // Calculate how much health percentage points are left until minimum
-  const healthLeft = currentHealth - minimumHealth
-
-  // If already below minimum, return 0
-  if (healthLeft <= 0) return 0
-
-  // Calculate how many months it will take to reach minimum health
-  const monthsLeft = Math.ceil(healthLeft / degradationRate)
-
-  return monthsLeft
+  // Calculate how many months until the battery reaches 60% health (considered end of life)
+  // If the battery is already below 60%, return 0
+  if (healthPercentage <= 60) return 0
+  
+  // Calculate remaining health percentage until 60%
+  const remainingHealth = healthPercentage - 60
+  
+  // Calculate months based on degradation rate
+  const monthsRemaining = Math.ceil(remainingHealth / degradationRate)
+  
+  return monthsRemaining
 }
 
 /**
  * Format date to relative time (e.g., "2 days ago", "1 month ago")
  */
 export function formatRelativeTime(date: string | Date): string {
-  return formatDistanceToNow(new Date(date), { addSuffix: true })
+  try {
+    const dateToFormat = typeof date === 'string' ? parseISO(date) : date
+    return formatDistance(dateToFormat, new Date(), { addSuffix: true })
+  } catch (error) {
+    console.error('Error formatting relative time:', error)
+    return 'Invalid date'
+  }
 }
 
 /**
  * Format date to specific format
  */
 export function formatDate(date: string | Date, formatString: string = 'MMM dd, yyyy'): string {
-  return format(new Date(date), formatString)
+  try {
+    const dateToFormat = typeof date === 'string' ? parseISO(date) : date
+    return format(dateToFormat, formatString)
+  } catch (error) {
+    console.error('Error formatting date:', error)
+    return 'Invalid date'
+  }
 }
 
 /**
@@ -77,8 +86,7 @@ export function formatDate(date: string | Date, formatString: string = 'MMM dd, 
 export function calculatePercentage(value: number, total: number, decimals: number = 0): number {
   if (total === 0) return 0
   const percentage = (value / total) * 100
-  const factor = Math.pow(10, decimals)
-  return Math.round(percentage * factor) / factor
+  return Number(percentage.toFixed(decimals))
 }
 
 /**
@@ -86,5 +94,5 @@ export function calculatePercentage(value: number, total: number, decimals: numb
  */
 export function truncateText(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text
-  return text.slice(0, maxLength) + '...'
+  return text.substring(0, maxLength) + '...'
 }

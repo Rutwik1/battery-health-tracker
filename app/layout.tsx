@@ -1,13 +1,17 @@
+import './globals.css'
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter as FontSans } from 'next/font/google'
+import { cn } from '@/lib/utils'
 import { Providers } from './providers'
-import React from 'react'
 
-const inter = Inter({ subsets: ['latin'] })
+const fontSans = FontSans({
+  subsets: ['latin'],
+  variable: '--font-sans',
+})
 
 export const metadata: Metadata = {
-  title: 'Battery Health Visualization Dashboard',
-  description: 'Real-time monitoring and insights for your battery fleet',
+  title: 'Coulomb.ai - Battery Health Dashboard',
+  description: 'Monitor and optimize your batteries with advanced analytics',
 }
 
 export default function RootLayout({
@@ -17,7 +21,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <head />
+      <body className={cn(
+        'min-h-screen bg-background font-sans antialiased',
+        fontSans.variable
+      )}>
         <Providers>
           {children}
         </Providers>

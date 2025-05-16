@@ -1,19 +1,9 @@
 'use client'
 
-import React, { useMemo } from 'react'
-import { format, subDays } from 'date-fns'
-import { Battery, BatteryHistory } from '@/lib/store/batteryStore'
-import { getBatteryStatusColor, formatNumber } from '@/lib/utils'
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend
-} from 'recharts'
+import React, { useEffect, useState } from 'react'
+import { Line, LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { Battery } from '@/lib/store/batteryStore'
+import { getBatteryStatusColor, formatDate } from '@/lib/utils'
 
 interface CapacityChartProps {
   batteries: Battery[];
@@ -23,136 +13,170 @@ interface CapacityChartProps {
 }
 
 export default function CapacityChart({ batteries, timeRange, isLoading, detailed = false }: CapacityChartProps) {
-  // Generate sample data for demonstration
-  const chartData = useMemo(() => {
-    if (batteries.length === 0) return []
+  const [data, setData] = useState<any[]>([])
+  
+  // Generate chart data based on selected time frame and batteries
+  useEffect(() => {
+    if (batteries.length === 0) return
     
-    const days = timeRange
-    const now = new Date()
-    const data: Array<{
-      date: string;
-      [key: string]: string | number;
-    }> = []
-    
-    // Create date points from past to now
-    for (let i = days; i >= 0; i--) {
-      const date = subDays(now, i)
-      const formattedDate = format(date, 'MMM dd')
-      const dataPoint: { date: string; [key: string]: string | number } = { date: formattedDate }
+    // For detailed view of a single battery
+    if (detailed && batteries.length === 1) {
+      const battery = batteries[0]
+      const today = new Date()
+      const historyData = []
       
-      // For each battery, calculate its health at this date point
-      batteries.forEach(battery => {
-        // Calculate health at this point (this is a simplified model)
-        const daysPassed = days - i
-        const healthDecreasePerDay = battery.degradationRate / 30 // Convert monthly to daily rate
+      // Generate data points for the specified number of days
+      for (let i = timeRange - 1; i >= 0; i--) {
+        const date = new Date(today)
+        date.setDate(date.getDate() - i)
         
-        // Initial health is the current plus the degradation over the time period
-        const initialHealth = Math.min(100, battery.healthPercentage + (healthDecreasePerDay * daysPassed))
+        // Calculate degradation for this point in time
+        const dailyDegradation = battery.degradationRate / 30 // % per day
+        const healthDecreaseTotal = dailyDegradation * i
+        const healthAtThisPoint = Math.min(100, battery.healthPercentage + healthDecreaseTotal)
         
-        // Add to data point using battery name as key
-        dataPoint[battery.name] = initialHealth
-      })
+        historyData.push({
+          date: formatDate(date, 'MMM dd'),
+          [battery.name]: healthAtThisPoint
+        })
+      }
       
-      data.push(dataPoint)
+      setData(historyData)
+      return
     }
     
-    return data
-  }, [batteries, timeRange])
-  
-  const getLineColors = (battery: Battery) => {
-    const statusColor = getBatteryStatusColor(battery.status)
+    // For overview of multiple batteries
+    const today = new Date()
+    const historyData = []
     
-    // Extract the color code (assuming tailwind text-* classes)
-    // We want to convert something like 'text-success' to 'rgb(var(--success))' 
-    // Since these are custom properties in our CSS
-    const colorKey = statusColor.replace('text-', '')
-    return `rgb(var(--${colorKey}))`
+    // Calculate number of data points based on time range
+    let points = 12 // Default for yearly view
+    let stepSize = Math.ceil(timeRange / points) // Days between points
+    
+    if (timeRange <= 30) {
+      points = 6 // 6 points for 30 days
+      stepSize = 5 // Every 5 days
+    } else if (timeRange <= 90) {
+      points = 9 // 9 points for 90 days
+      stepSize = 10 // Every 10 days
+    } else if (timeRange <= 180) {
+      points = 12 // 12 points for 180 days
+      stepSize = 15 // Every 15 days
+    }
+    
+    // Generate data for chart
+    for (let i = points - 1; i >= 0; i--) {
+      const date = new Date(today)
+      date.setDate(date.getDate() - (i * stepSize))
+      
+      const dataPoint: any = {
+        date: formatDate(date, 'MMM dd')
+      }
+      
+      // Calculate health for each battery at this point in time
+      batteries.forEach(battery => {
+        const daysAgo = i * stepSize
+        const dailyDegradation = battery.degradationRate / 30 // % per day
+        const healthDecreaseTotal = dailyDegradation * daysAgo
+        const healthAtThisPoint = Math.min(100, battery.healthPercentage + healthDecreaseTotal)
+        
+        dataPoint[battery.name] = healthAtThisPoint
+      })
+      
+      historyData.push(dataPoint)
+    }
+    
+    setData(historyData)
+  }, [batteries, timeRange, detailed])
+  
+  // Generate line colors based on battery status
+  const getLineColors = (battery: Battery) => {
+    const baseColor = getBatteryStatusColor(battery.status)
+    
+    switch (baseColor) {
+      case 'text-success':
+        return '#10b981'
+      case 'text-primary':
+        return '#3b82f6'
+      case 'text-warning':
+        return '#f59e0b'
+      case 'text-destructive':
+        return '#ef4444'
+      default:
+        return '#6b7280'
+    }
   }
   
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full w-full bg-muted/10 rounded-md">
-        <div className="animate-pulse space-y-4 w-full px-8">
-          <div className="h-4 bg-muted/30 rounded w-1/4 mx-auto"></div>
-          <div className="h-[200px] bg-muted/20 rounded"></div>
-          <div className="flex justify-center space-x-2">
-            <div className="h-3 w-16 bg-muted/30 rounded"></div>
-            <div className="h-3 w-16 bg-muted/30 rounded"></div>
-            <div className="h-3 w-16 bg-muted/30 rounded"></div>
-          </div>
-        </div>
-      </div>
-    )
+    return <div className="w-full h-full flex items-center justify-center">Loading...</div>
   }
   
   if (batteries.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full w-full bg-muted/10 rounded-md p-8">
-        <p className="text-muted-foreground mb-2">No battery data to display</p>
-        <button className="px-3 py-1 text-sm border border-border rounded-md hover:bg-muted transition-colors">
-          Add Battery
-        </button>
+      <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+        No battery data available
       </div>
     )
   }
   
   return (
-    <div className="h-full w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart
-          data={chartData}
-          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
-          <XAxis 
-            dataKey="date" 
-            stroke="var(--muted-foreground)" 
-            fontSize={12}
-            tickMargin={10} 
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart
+        data={data}
+        margin={{
+          top: 20,
+          right: 30,
+          left: 0,
+          bottom: 0,
+        }}
+      >
+        <CartesianGrid strokeDasharray="3 3" stroke="#2d2d2d" opacity={0.2} />
+        <XAxis 
+          dataKey="date" 
+          tick={{ fontSize: 12 }} 
+          stroke="#888888"
+          tickMargin={10}
+        />
+        <YAxis 
+          domain={[0, 100]} 
+          tick={{ fontSize: 12 }} 
+          stroke="#888888"
+          tickMargin={10}
+          label={{ 
+            value: 'Health %', 
+            angle: -90, 
+            position: 'insideLeft',
+            style: { textAnchor: 'middle', fill: '#888888', fontSize: 12 },
+            offset: -5
+          }}
+        />
+        <Tooltip 
+          formatter={(value: number) => [`${value.toFixed(1)}%`, 'Health']}
+          contentStyle={{ 
+            backgroundColor: 'rgba(30, 30, 30, 0.8)',
+            borderColor: 'rgba(100, 100, 100, 0.2)',
+            borderRadius: '6px',
+            fontSize: '12px'
+          }}
+        />
+        <Legend 
+          verticalAlign="top" 
+          height={36}
+          formatter={(value) => <span style={{ fontSize: '12px', color: '#d1d5db' }}>{value}</span>}
+        />
+        
+        {batteries.map((battery) => (
+          <Line
+            key={battery.id}
+            type="monotone"
+            dataKey={battery.name}
+            stroke={getLineColors(battery)}
+            strokeWidth={2}
+            dot={detailed ? { r: 4, strokeWidth: 1 } : false}
+            activeDot={{ r: 6 }}
           />
-          <YAxis 
-            stroke="var(--muted-foreground)" 
-            fontSize={12}
-            tickFormatter={(value) => `${value}%`}
-            domain={[0, 100]}
-            tickMargin={10}
-          />
-          <Tooltip 
-            contentStyle={{ 
-              backgroundColor: 'var(--background)',
-              borderColor: 'var(--border)',
-              borderRadius: '0.375rem',
-              boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)'
-            }}
-            itemStyle={{ padding: '2px 0' }}
-            formatter={(value: number, name: string) => [
-              `${value.toFixed(1)}%`, 
-              name
-            ]}
-            labelStyle={{ 
-              color: 'var(--muted-foreground)',
-              marginBottom: '4px',
-              fontSize: '14px'
-            }}
-          />
-          <Legend 
-            formatter={(value) => (
-              <span style={{ color: 'var(--foreground)', fontSize: '14px' }}>{value}</span>
-            )}
-          />
-          {batteries.map((battery) => (
-            <Line
-              key={battery.id}
-              type="monotone"
-              dataKey={battery.name}
-              stroke={getLineColors(battery)}
-              strokeWidth={2}
-              dot={{ r: 3, strokeWidth: 1 }}
-              activeDot={{ r: 5, strokeWidth: 0 }}
-            />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+        ))}
+      </LineChart>
+    </ResponsiveContainer>
   )
 }

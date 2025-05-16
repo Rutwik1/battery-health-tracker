@@ -3,181 +3,141 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import {
-  Battery,
-  LayoutDashboard,
-  Settings,
-  Bell,
-  Users,
-  HelpCircle,
-  ChevronLeft,
-  ChevronRight,
-  Lightning,
-  BarChart3
+import { 
+  LayoutDashboard, 
+  Battery, 
+  Settings, 
+  Bell, 
+  Users, 
+  Zap,
+  ChevronsLeft, 
+  ChevronsRight,
+  Gauge,
+  BarChart3,
+  FileText
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import Image from 'next/image'
 
 export default function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
+  const [collapsed, setCollapsed] = useState(false)
   
-  const isActive = (path: string) => {
-    if (path === '/' && pathname === '/') return true
-    if (path !== '/' && pathname.startsWith(path)) return true
-    return false
-  }
+  const navigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Batteries', href: '/batteries', icon: Battery },
+    { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+    { name: 'Reports', href: '/reports', icon: FileText },
+    { name: 'Alerts', href: '/alerts', icon: Bell },
+  ]
+  
+  const secondaryNavigation = [
+    { name: 'Settings', href: '/settings', icon: Settings },
+    { name: 'Team', href: '/team', icon: Users },
+  ]
   
   return (
-    <div
-      className={`${
-        collapsed ? 'w-16' : 'w-64'
-      } bg-muted/50 border-r border-border transition-all duration-300 ease-in-out flex flex-col h-screen relative group`}
+    <div 
+      className={cn(
+        "h-full bg-card border-r flex flex-col transition-all duration-300",
+        collapsed ? "w-16" : "w-64"
+      )}
     >
-      {/* Toggle button */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="absolute -right-3 top-20 bg-background border border-border rounded-full p-1 shadow-sm z-10 text-muted-foreground hover:text-foreground transition-colors"
-      >
-        {collapsed ? (
-          <ChevronRight className="h-4 w-4" />
-        ) : (
-          <ChevronLeft className="h-4 w-4" />
-        )}
-      </button>
-      
-      {/* Logo */}
-      <div className={`p-4 flex items-center ${collapsed ? 'justify-center' : 'justify-start'}`}>
-        <div className="relative h-8 w-8 mr-2 rounded-full overflow-hidden">
-          <Image 
-            src="/battery-icon.png" 
-            alt="Coulomb.ai logo" 
-            width={32} 
-            height={32}
-            priority
-          />
+      {/* Logo Section */}
+      <div className="p-4 border-b flex items-center justify-between">
+        <div className="flex items-center gap-2 overflow-hidden">
+          <div className="flex-shrink-0 relative w-8 h-8">
+            <Battery className="h-8 w-8 text-primary absolute" />
+            <Zap className="h-4 w-4 text-primary-foreground absolute left-2 top-2 z-10" />
+          </div>
+          
+          {!collapsed && (
+            <div>
+              <h1 className="font-bold text-lg tracking-tight">Coulomb.ai</h1>
+              <p className="text-xs text-muted-foreground -mt-1">Battery Health</p>
+            </div>
+          )}
         </div>
-        <div className={`${collapsed ? 'hidden' : 'block'} transition-all duration-300`}>
-          <h1 className="text-lg font-bold">Coulomb.ai</h1>
-          <p className="text-xs text-muted-foreground -mt-1">Battery Analytics</p>
+        
+        <button 
+          onClick={() => setCollapsed(!collapsed)}
+          className="p-1 rounded-md hover:bg-muted/50 text-muted-foreground"
+        >
+          {collapsed ? <ChevronsRight className="h-4 w-4" /> : <ChevronsLeft className="h-4 w-4" />}
+        </button>
+      </div>
+      
+      {/* Navigation Links */}
+      <div className="flex-1 overflow-y-auto py-4 px-3">
+        <nav className="space-y-1">
+          {navigation.map((item) => {
+            const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
+            
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                  isActive 
+                    ? "bg-primary/10 text-primary font-medium" 
+                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                )}
+              >
+                <item.icon className="h-5 w-5 flex-shrink-0" />
+                {!collapsed && <span>{item.name}</span>}
+              </Link>
+            )
+          })}
+        </nav>
+        
+        <div className="mt-8 pt-4 border-t">
+          <h3 className={cn(
+            "px-3 mb-2 text-xs font-semibold text-muted-foreground",
+            collapsed && "text-center"
+          )}>
+            {!collapsed ? "System" : "···"}
+          </h3>
+          
+          <nav className="space-y-1">
+            {secondaryNavigation.map((item) => {
+              const isActive = pathname === item.href
+              
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                    isActive 
+                      ? "bg-muted text-foreground font-medium" 
+                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                  )}
+                >
+                  <item.icon className="h-5 w-5 flex-shrink-0" />
+                  {!collapsed && <span>{item.name}</span>}
+                </Link>
+              )
+            })}
+          </nav>
         </div>
       </div>
       
-      {/* Navigation */}
-      <nav className="mt-6 px-2 flex-1">
-        <div className="space-y-1">
-          <Link 
-            href="/"
-            className={`
-              flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors
-              ${isActive('/') 
-                ? 'bg-primary/10 text-primary' 
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground'}
-            `}
-          >
-            <LayoutDashboard className={`h-5 w-5 ${collapsed ? 'mx-auto' : 'mr-3'}`} />
-            <span className={collapsed ? 'hidden' : 'block'}>Dashboard</span>
-          </Link>
-          
-          <div className={`px-3 py-2 text-xs font-semibold text-muted-foreground ${collapsed ? 'hidden' : 'block'}`}>
-            Monitoring
-          </div>
-          
-          <Link 
-            href="/batteries"
-            className={`
-              flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors
-              ${isActive('/batteries') 
-                ? 'bg-primary/10 text-primary' 
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground'}
-            `}
-          >
-            <Battery className={`h-5 w-5 ${collapsed ? 'mx-auto' : 'mr-3'}`} />
-            <span className={collapsed ? 'hidden' : 'block'}>Batteries</span>
-          </Link>
-          
-          <Link 
-            href="/analytics"
-            className={`
-              flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors
-              ${isActive('/analytics') 
-                ? 'bg-primary/10 text-primary' 
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground'}
-            `}
-          >
-            <BarChart3 className={`h-5 w-5 ${collapsed ? 'mx-auto' : 'mr-3'}`} />
-            <span className={collapsed ? 'hidden' : 'block'}>Analytics</span>
-          </Link>
-          
-          <Link 
-            href="/forecasts"
-            className={`
-              flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors
-              ${isActive('/forecasts') 
-                ? 'bg-primary/10 text-primary' 
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground'}
-            `}
-          >
-            <Lightning className={`h-5 w-5 ${collapsed ? 'mx-auto' : 'mr-3'}`} />
-            <span className={collapsed ? 'hidden' : 'block'}>Forecasts</span>
-          </Link>
-          
-          <div className={`px-3 py-2 text-xs font-semibold text-muted-foreground ${collapsed ? 'hidden' : 'block'}`}>
-            System
-          </div>
-          
-          <Link 
-            href="/notifications"
-            className={`
-              flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors
-              ${isActive('/notifications') 
-                ? 'bg-primary/10 text-primary' 
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground'}
-            `}
-          >
-            <Bell className={`h-5 w-5 ${collapsed ? 'mx-auto' : 'mr-3'}`} />
-            <span className={collapsed ? 'hidden' : 'block'}>Notifications</span>
-          </Link>
-          
-          <Link 
-            href="/users"
-            className={`
-              flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors
-              ${isActive('/users') 
-                ? 'bg-primary/10 text-primary' 
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground'}
-            `}
-          >
-            <Users className={`h-5 w-5 ${collapsed ? 'mx-auto' : 'mr-3'}`} />
-            <span className={collapsed ? 'hidden' : 'block'}>Users</span>
-          </Link>
-          
-          <Link 
-            href="/settings"
-            className={`
-              flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors
-              ${isActive('/settings') 
-                ? 'bg-primary/10 text-primary' 
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground'}
-            `}
-          >
-            <Settings className={`h-5 w-5 ${collapsed ? 'mx-auto' : 'mr-3'}`} />
-            <span className={collapsed ? 'hidden' : 'block'}>Settings</span>
-          </Link>
+      {/* User Profile */}
+      <div className={cn(
+        "border-t p-4",
+        collapsed ? "flex justify-center" : "flex items-center gap-3"
+      )}>
+        <div className="flex-shrink-0 h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+          <Users className="h-4 w-4" />
         </div>
-      </nav>
-      
-      {/* Footer */}
-      <div className={`p-4 border-t border-border ${collapsed ? 'hidden' : 'block'}`}>
-        <Link 
-          href="/help"
-          className="flex items-center text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <HelpCircle className="h-4 w-4 mr-2" />
-          <span>Help & Documentation</span>
-        </Link>
-        <div className="mt-3 text-xs text-muted-foreground">
-          <span>Version 2.0.4</span>
-        </div>
+        
+        {!collapsed && (
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-medium">Admin User</div>
+            <div className="text-xs text-muted-foreground truncate">admin@coulomb.ai</div>
+          </div>
+        )}
       </div>
     </div>
   )

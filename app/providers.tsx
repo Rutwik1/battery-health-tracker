@@ -1,16 +1,36 @@
 'use client'
 
+import React, { ReactNode, useEffect } from 'react'
 import { ThemeProvider } from 'next-themes'
-import { ReactNode, useEffect } from 'react'
+import { useBatteryStore } from '@/lib/store/batteryStore'
 
-export function Providers({ children }: { children: ReactNode }) {
-  // Ensure the dark theme is applied immediately to avoid flicker
+interface ProvidersProps {
+  children: ReactNode
+}
+
+export function Providers({ children }: ProvidersProps) {
+  const { fetchBatteries, startRealtimeUpdates, stopRealtimeUpdates } = useBatteryStore()
+  
+  // Initialize the data store and start real-time updates
   useEffect(() => {
-    document.documentElement.classList.add('dark')
-  }, [])
-
+    // Fetch initial data
+    fetchBatteries()
+    
+    // Start real-time updates
+    startRealtimeUpdates()
+    
+    // Cleanup on unmount
+    return () => {
+      stopRealtimeUpdates()
+    }
+  }, [fetchBatteries, startRealtimeUpdates, stopRealtimeUpdates])
+  
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+    >
       {children}
     </ThemeProvider>
   )

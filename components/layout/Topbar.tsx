@@ -1,117 +1,50 @@
 'use client'
 
 import React from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import {
-  Search,
-  Bell,
-  HelpCircle,
-  User,
-  Menu,
-  ChevronDown,
-  LogOut,
-  Settings,
-  UserCircle
-} from 'lucide-react'
+import { Search, Bell, Sun, Moon, HelpCircle } from 'lucide-react'
+import { useTheme } from 'next-themes'
+import { cn } from '@/lib/utils'
 
 export default function Topbar() {
-  const pathname = usePathname()
+  const { setTheme, theme } = useTheme()
+  
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark')
+  }
   
   return (
-    <header className="h-16 border-b border-border bg-muted/20 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-      {/* Left: Mobile menu button & breadcrumbs */}
-      <div className="flex items-center">
-        <button className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 md:hidden">
-          <Menu className="h-5 w-5" />
-        </button>
-        
-        <div className="ml-4 md:ml-0">
-          <div className="text-sm breadcrumbs hidden md:flex items-center text-muted-foreground">
-            <ul className="flex items-center space-x-1">
-              <li>
-                <Link href="/" className="hover:text-foreground">
-                  Home
-                </Link>
-              </li>
-              
-              {pathname.split('/').filter(Boolean).map((segment, index, segments) => {
-                const href = `/${segments.slice(0, index + 1).join('/')}`
-                const isLast = index === segments.length - 1
-                const name = segment.charAt(0).toUpperCase() + segment.slice(1)
-                
-                return (
-                  <React.Fragment key={segment}>
-                    <li className="text-muted-foreground">/</li>
-                    <li>
-                      {isLast ? (
-                        <span className="font-medium text-foreground">{name}</span>
-                      ) : (
-                        <Link href={href} className="hover:text-foreground">
-                          {name}
-                        </Link>
-                      )}
-                    </li>
-                  </React.Fragment>
-                )
-              })}
-            </ul>
-          </div>
-        </div>
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+      {/* Search Bar */}
+      <div className="relative w-full max-w-sm hidden md:flex">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <input
+          type="search"
+          placeholder="Search batteries..."
+          className="h-9 w-full rounded-md border border-input bg-background pl-8 pr-4 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        />
       </div>
       
-      {/* Right: Search, notifications, help, profile */}
-      <div className="flex items-center space-x-3">
-        {/* Search */}
-        <div className="hidden md:block relative">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <Search className="h-4 w-4 text-muted-foreground" />
-          </div>
-          <input
-            type="search"
-            placeholder="Search..."
-            className="block w-60 rounded-md border border-input pl-10 pr-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          />
-        </div>
-        
-        {/* Notifications */}
-        <button className="relative p-2 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50">
-          <Bell className="h-5 w-5" />
+      <div className="ml-auto flex items-center gap-4">
+        {/* Notifications Button */}
+        <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:bg-muted/50 h-9 w-9 relative">
+          <Bell className="h-5 w-5 text-muted-foreground" />
           <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary"></span>
         </button>
         
-        {/* Help */}
-        <button className="p-2 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50">
-          <HelpCircle className="h-5 w-5" />
+        {/* Help Button */}
+        <button className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:bg-muted/50 h-9 w-9">
+          <HelpCircle className="h-5 w-5 text-muted-foreground" />
         </button>
         
-        {/* Profile Dropdown */}
-        <div className="relative">
-          <button className="flex items-center space-x-1 p-1 rounded-md hover:bg-muted/50 text-sm">
-            <div className="w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center text-primary border border-border">
-              <UserCircle className="h-6 w-6" />
-            </div>
-            <span className="hidden sm:inline-block font-medium">Admin User</span>
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-          </button>
-          
-          {/* Hidden dropdown menu (for illustration) */}
-          <div className="hidden absolute right-0 mt-1 w-48 py-1 bg-background rounded-md shadow-lg border border-border z-10">
-            <Link href="/profile" className="flex items-center px-4 py-2 text-sm hover:bg-muted/50">
-              <User className="mr-2 h-4 w-4" />
-              Your Profile
-            </Link>
-            <Link href="/settings" className="flex items-center px-4 py-2 text-sm hover:bg-muted/50">
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </Link>
-            <div className="border-t border-border my-1"></div>
-            <button className="flex w-full items-center px-4 py-2 text-sm text-danger hover:bg-muted/50">
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign out
-            </button>
-          </div>
-        </div>
+        {/* Theme Switcher */}
+        <button
+          onClick={toggleTheme}
+          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:bg-muted/50 h-9 w-9"
+        >
+          <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-muted-foreground" />
+          <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-muted-foreground" />
+          <span className="sr-only">Toggle theme</span>
+        </button>
       </div>
     </header>
   )
