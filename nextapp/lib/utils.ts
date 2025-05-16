@@ -12,58 +12,54 @@ export function cn(...inputs: ClassValue[]) {
  * Formats a number with commas and specified precision
  */
 export function formatNumber(num: number, precision = 0) {
-  return num.toLocaleString(undefined, {
-    minimumFractionDigits: precision,
-    maximumFractionDigits: precision,
-  });
+  return num.toFixed(precision).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 /**
  * Returns tailwind class for battery health status color
  */
 export function getHealthStatusColor(health: number) {
-  if (health >= 90) return "text-success";
-  if (health >= 70) return "text-primary";
-  if (health >= 50) return "text-warning";
-  return "text-destructive";
+  if (health >= 80) return 'text-primary';
+  if (health >= 50) return 'text-warning';
+  return 'text-destructive';
 }
 
 /**
  * Returns descriptive text for battery health
  */
 export function getHealthStatusText(health: number) {
-  if (health >= 90) return "Excellent";
-  if (health >= 70) return "Good";
-  if (health >= 50) return "Fair";
-  if (health >= 30) return "Poor";
-  return "Critical";
+  if (health >= 80) return 'Excellent';
+  if (health >= 70) return 'Good';
+  if (health >= 50) return 'Fair';
+  if (health >= 30) return 'Poor';
+  return 'Critical';
 }
 
 /**
  * Calculates degradation percentage between initial and current health
  */
 export function calculateDegradation(initialHealth: number, currentHealth: number) {
-  return initialHealth > 0 ? ((initialHealth - currentHealth) / initialHealth) * 100 : 0;
+  return ((initialHealth - currentHealth) / initialHealth) * 100;
 }
 
 /**
  * Formats a date as 'Month Day' (e.g., Jan 15)
  */
 export function formatDateToMonthDay(date: Date | string) {
-  const dateObj = typeof date === "string" ? new Date(date) : date;
-  return dateObj.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  const d = new Date(date);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 /**
  * Formats a date with time (e.g., Jan 15, 2025 14:30)
  */
 export function formatDateTime(date: Date | string) {
-  const dateObj = typeof date === "string" ? new Date(date) : date;
-  return dateObj.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+  const d = new Date(date);
+  return d.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric', 
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
   });
 }

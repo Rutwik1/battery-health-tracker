@@ -2,48 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 240 40% 3%;
-    --foreground: 240 10% 97%;
-    
-    --muted: 240 10% 15%;
-    --muted-foreground: 240 5% 65%;
-    
-    --popover: 240 45% 8%;
-    --popover-foreground: 240 10% 97%;
-    
-    --card: 240 45% 8%;
-    --card-foreground: 240 10% 97%;
-    
-    --border: 240 12% 15%;
-    --input: 240 12% 15%;
-    
-    --primary: 270 95% 60%;
-    --primary-foreground: 240 5% 100%;
-    
-    --secondary: 210 75% 50%;
-    --secondary-foreground: 240 5% 100%;
-    
-    --accent: 235 70% 50%;
-    --accent-foreground: 0 0% 98%;
-    
-    --destructive: 0 60% 50%;
-    --destructive-foreground: 0 0% 98%;
+:root {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  
+  --primary: 252 80% 65%;
+  --primary-foreground: 0 0% 98%;
+  
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  
+  --destructive: 0 62.8% 60.6%;
+  --destructive-foreground: 0 0% 98%;
+  
+  --warning: 38 92% 50%;
+  --warning-foreground: 0 0% 98%;
+  
+  --success: 145 80% 42%;
+  --success-foreground: 0 0% 98%;
 
-    --success: 142 70% 45%;
-    --success-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 240 4.9% 83.9%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 12%;
-
-    --danger: 0 70% 50%;
-    --danger-foreground: 0 0% 98%;
-    
-    --ring: 240 10% 60%;
-    
-    --radius: 0.5rem;
-  }
+  --radius: 0.5rem;
 }
 
 @layer base {
@@ -51,31 +45,64 @@
     @apply border-border;
   }
   body {
-    @apply bg-gradient-dark text-foreground;
+    @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+}
 
-  /* Custom battery glow effects */
-  .glow-primary {
-    box-shadow: 0 0 20px 2px hsla(var(--primary) / 0.15);
+@layer components {
+  /* Custom backgrounds */
+  .bg-gradient-dark {
+    @apply bg-gradient-to-tr from-black via-gray-900 to-blue-950;
   }
   
-  .glow-secondary {
-    box-shadow: 0 0 20px 2px hsla(var(--secondary) / 0.15);
+  .bg-gradient-card {
+    @apply bg-gradient-to-br from-slate-950 to-slate-900 border-border/40;
+  }
+  
+  .bg-gradient-primary {
+    @apply bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500;
+  }
+  
+  /* Custom glow effects */
+  .glow-soft {
+    @apply relative;
+  }
+  
+  .glow-soft::before {
+    @apply content-[''] absolute inset-0 -z-10 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-blue-500/10 blur-xl opacity-50 rounded-lg;
+  }
+  
+  .glow-primary {
+    @apply shadow-[0_0_20px_rgba(129,140,248,0.3)];
+  }
+  
+  .glow-soft-primary {
+    @apply shadow-[0_0_10px_rgba(129,140,248,0.2)];
   }
   
   .glow-text-primary {
-    text-shadow: 0 0 10px hsla(var(--primary) / 0.5);
+    @apply relative;
   }
   
-  .glow-text-secondary {
-    text-shadow: 0 0 10px hsla(var(--secondary) / 0.5);
+  .glow-text-primary::after {
+    @apply content-[''] absolute inset-0 -z-10 blur-sm opacity-80 bg-indigo-600/20 rounded-lg;
   }
-
-  /* Card glassmorphism */
-  .glass-card {
-    backdrop-filter: blur(8px);
-    background: hsla(var(--card) / 0.6);
-    border: 1px solid hsla(var(--border) / 0.3);
+  
+  /* Animation utilities */
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+    100% {
+      transform: translateY(0px);
+    }
   }
 }

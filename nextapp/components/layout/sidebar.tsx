@@ -1,15 +1,15 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
-  BarChart3, 
-  Battery, 
-  Gauge, 
-  Home,
-  Settings,
-  HelpCircle
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { X, LayoutDashboard, Battery, Activity, Settings, ChevronRight, BarChart3 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+interface SidebarProps {
+  open: boolean;
+  onClose: () => void;
+}
 
 interface NavItemProps {
   href: string;
@@ -21,112 +21,105 @@ interface NavItemProps {
 
 const NavItem = ({ href, icon, children, active, onClick }: NavItemProps) => {
   return (
-    <Link
-      href={href}
-      className={cn(
-        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all",
-        active 
-          ? "bg-primary/10 text-primary glow-text-primary" 
-          : "text-muted-foreground hover:bg-primary/5 hover:text-primary"
-      )}
-      onClick={onClick}
-    >
-      <div className="text-lg">{icon}</div>
-      <div>{children}</div>
+    <Link href={href} onClick={onClick} className="block">
+      <div 
+        className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+          active 
+            ? 'bg-primary/10 text-primary glow-soft-primary' 
+            : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+        }`}
+      >
+        <span className="text-lg">{icon}</span>
+        <span className="flex-1">{children}</span>
+        {active && <ChevronRight className="h-4 w-4" />}
+      </div>
     </Link>
   );
 };
 
-export default function Sidebar({ 
-  isMobile, 
-  onNavItemClick 
-}: { 
-  isMobile?: boolean; 
-  onNavItemClick?: () => void 
-}) {
+export default function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
-
+  
+  // Handle small screen sidebar
+  const sidebarClasses = open 
+    ? "translate-x-0 opacity-100" 
+    : "-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100";
+  
   return (
-    <div className={cn(
-      "flex flex-col gap-4 h-full bg-gradient-dark",
-      isMobile ? "p-4" : "py-6 px-4"
-    )}>
-      {/* Logo/Brand */}
-      <div className="px-3 py-2 mb-6 flex items-center">
-        <div className="relative w-10 h-10 mr-3">
-          <div className="absolute inset-0 rounded-full bg-primary/20 animate-pulse" />
-          <div className="absolute inset-0.5 rounded-full bg-primary/30" />
-          <div className="absolute inset-1 rounded-full bg-gradient-primary flex items-center justify-center">
-            <Battery className="w-5 h-5 text-white" />
+    <>
+      {/* Mobile overlay */}
+      {open && (
+        <div 
+          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm lg:hidden"
+          onClick={onClose}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div 
+        className={`fixed lg:sticky top-0 z-50 h-full w-64 bg-gradient-to-b from-gray-900 to-slate-950 border-r border-border/40 p-4 transform transition-all duration-300 ease-in-out ${sidebarClasses}`}
+      >
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <Link href="/dashboard" className="flex items-center gap-2">
+              <Battery className="h-6 w-6 text-primary" />
+              <span className="font-bold text-lg bg-gradient-primary text-transparent bg-clip-text">Coulomb.ai</span>
+            </Link>
+            <Button variant="ghost" size="icon" className="lg:hidden" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {/* Navigation */}
+          <nav className="space-y-1 mb-6">
+            <NavItem 
+              href="/dashboard" 
+              icon={<LayoutDashboard />}
+              active={pathname === '/dashboard'}
+              onClick={onClose}
+            >
+              Dashboard
+            </NavItem>
+            <NavItem 
+              href="/dashboard/batteries" 
+              icon={<Battery />}
+              active={pathname === '/dashboard/batteries'}
+              onClick={onClose}
+            >
+              Batteries
+            </NavItem>
+            <NavItem 
+              href="/dashboard/analytics" 
+              icon={<BarChart3 />}
+              active={pathname === '/dashboard/analytics'}
+              onClick={onClose}
+            >
+              Analytics
+            </NavItem>
+            <NavItem 
+              href="/dashboard/monitoring" 
+              icon={<Activity />}
+              active={pathname === '/dashboard/monitoring'}
+              onClick={onClose}
+            >
+              Monitoring
+            </NavItem>
+          </nav>
+          
+          {/* Footer */}
+          <div className="mt-auto">
+            <NavItem 
+              href="/dashboard/settings" 
+              icon={<Settings />}
+              active={pathname === '/dashboard/settings'}
+              onClick={onClose}
+            >
+              Settings
+            </NavItem>
           </div>
         </div>
-        {!isMobile && (
-          <div className="flex flex-col">
-            <span className="font-bold text-xl tracking-tight bg-gradient-primary bg-clip-text text-transparent">
-              Coulomb.ai
-            </span>
-            <span className="text-xs text-muted-foreground">
-              Battery Analytics
-            </span>
-          </div>
-        )}
       </div>
-
-      {/* Navigation */}
-      <nav className="flex flex-col gap-1 px-2 flex-1">
-        <NavItem 
-          href="/" 
-          icon={<Home />} 
-          active={pathname === '/'} 
-          onClick={onNavItemClick}
-        >
-          Dashboard
-        </NavItem>
-        <NavItem 
-          href="/batteries" 
-          icon={<Battery />} 
-          active={pathname === '/batteries' || pathname.startsWith('/batteries/')} 
-          onClick={onNavItemClick}
-        >
-          Batteries
-        </NavItem>
-        <NavItem 
-          href="/analytics" 
-          icon={<BarChart3 />} 
-          active={pathname === '/analytics'} 
-          onClick={onNavItemClick}
-        >
-          Analytics
-        </NavItem>
-        <NavItem 
-          href="/performance" 
-          icon={<Gauge />} 
-          active={pathname === '/performance'} 
-          onClick={onNavItemClick}
-        >
-          Performance
-        </NavItem>
-      </nav>
-
-      {/* Bottom links */}
-      <div className="mt-auto border-t border-border/40 pt-4 px-2">
-        <NavItem 
-          href="/settings" 
-          icon={<Settings />} 
-          active={pathname === '/settings'} 
-          onClick={onNavItemClick}
-        >
-          Settings
-        </NavItem>
-        <NavItem 
-          href="/help" 
-          icon={<HelpCircle />} 
-          active={pathname === '/help'} 
-          onClick={onNavItemClick}
-        >
-          Help
-        </NavItem>
-      </div>
-    </div>
+    </>
   );
 }

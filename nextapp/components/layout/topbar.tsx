@@ -1,71 +1,45 @@
-import React, { useState } from 'react';
-import { Menu, Bell, Search, X } from 'lucide-react';
+'use client';
+
+import React from 'react';
+import { Menu, Bell, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 
 interface TopbarProps {
   onMenuClick: () => void;
 }
 
 export default function Topbar({ onMenuClick }: TopbarProps) {
-  const [showSearch, setShowSearch] = useState(false);
-  
   return (
-    <div className="flex h-16 items-center px-4 border-b border-border/40 bg-gradient-dark">
-      {/* Menu button (mobile only) */}
-      <Button variant="ghost" size="icon" className="md:hidden mr-2" onClick={onMenuClick}>
+    <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 border-b border-border/40 bg-gradient-to-r from-slate-950 to-slate-900">
+      {/* Mobile menu button */}
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        onClick={onMenuClick}
+        className="lg:hidden"
+      >
         <Menu className="h-5 w-5" />
       </Button>
       
-      {/* Page title/breadcrumb (hidden when search is active on mobile) */}
-      {!(showSearch && window.innerWidth < 768) && (
-        <div className="flex items-center">
-          <h2 className="text-lg font-medium">Dashboard</h2>
-        </div>
-      )}
+      {/* Left section - Title on desktop */}
+      <div className="hidden lg:block">
+        <h1 className="text-lg font-medium">Battery Health Monitoring</h1>
+      </div>
       
-      {/* Search bar */}
-      <div className={cn(
-        "ml-auto flex items-center gap-4",
-        showSearch ? "flex-1 md:flex-none md:ml-auto" : ""
-      )}>
-        {showSearch ? (
-          <div className="relative flex-1 md:w-64">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search batteries..."
-              className="w-full bg-background/50 border border-border/50 rounded-md py-2 pl-9 pr-4 focus:outline-none focus:ring-1 focus:ring-primary text-sm"
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-1 top-1.5 h-6 w-6"
-              onClick={() => setShowSearch(false)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        ) : (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowSearch(true)}
-          >
-            <Search className="h-5 w-5" />
-          </Button>
-        )}
-        
-        {/* Notifications */}
+      {/* Right section */}
+      <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon">
           <Bell className="h-5 w-5" />
         </Button>
         
-        {/* User profile button */}
-        <Button variant="ghost" size="icon" className="rounded-full bg-primary/10">
-          <span className="font-medium text-sm">JD</span>
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="rounded-full bg-primary/10"
+        >
+          <User className="h-5 w-5" />
         </Button>
       </div>
-    </div>
+    </header>
   );
 }

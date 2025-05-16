@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import Sidebar from '@/components/layout/sidebar';
 import Topbar from '@/components/layout/topbar';
@@ -7,35 +9,28 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  
+  const toggleSidebar = () => {
+    setSidebarOpen(prev => !prev);
+  };
   
   return (
-    <div className="h-screen flex flex-col md:flex-row">
-      {/* Mobile sidebar overlay */}
-      {showMobileMenu && (
-        <div 
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 md:hidden"
-          onClick={() => setShowMobileMenu(false)}
-        />
-      )}
-      
+    <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
-      <div
-        className={`${
-          showMobileMenu ? 'fixed inset-y-0 left-0 z-50' : 'hidden'
-        } md:relative md:flex md:w-64 md:flex-col md:z-auto`}
-      >
-        <Sidebar 
-          isMobile={showMobileMenu} 
-          onNavItemClick={() => setShowMobileMenu(false)} 
-        />
-      </div>
+      <Sidebar 
+        open={sidebarOpen} 
+        onClose={() => setSidebarOpen(false)} 
+      />
       
-      {/* Main content */}
+      {/* Main Content */}
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Topbar onMenuClick={() => setShowMobileMenu(true)} />
-        <main className="flex-1 overflow-auto p-4">
-          {children}
+        <Topbar onMenuClick={toggleSidebar} />
+        
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gradient-dark">
+          <div className="container mx-auto">
+            {children}
+          </div>
         </main>
       </div>
     </div>
