@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 230 25% 10%;
+    --foreground: 213 15% 95%;
+    
+    --card: 232 23% 15%;
+    --card-foreground: 213 15% 95%;
+    
+    --popover: 232 23% 15%;
+    --popover-foreground: 213 15% 95%;
+    
+    --primary: 258 90% 60%;
+    --primary-foreground: 210 40% 98%;
+    
+    --secondary: 232 23% 20%; 
+    --secondary-foreground: 210 40% 98%;
+    
+    --muted: 232 20% 18%;
+    --muted-foreground: 215 20% 65%;
+    
+    --accent: 210 40% 60%;
+    --accent-foreground: 210 40% 98%;
+    
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --success: 142 76% 45%;
+    --success-foreground: 210 40% 98%;
+    
+    --warning: 38 92% 50%;
+    --warning-foreground: 210 40% 98%;
+    
+    --danger: 0 72% 51%;
+    --danger-foreground: 210 40% 98%;
+    
+    --border: 232 23% 20%;
+    --input: 232 23% 20%;
+    --ring: 258 90% 60%;
+    
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.gradient-heading {
+  @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+}
+
+.card-glow {
+  position: relative;
+}
+
+.card-glow:before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  background: linear-gradient(to bottom right, hsl(var(--primary) / 0.6), transparent 70%);
+  border-radius: var(--radius);
+  filter: blur(10px);
+  opacity: 0.3;
+  transition: all 0.3s ease-in-out;
+}
+
+.card-glow:hover:before {
+  opacity: 0.5;
+  filter: blur(15px);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.5);
+}
