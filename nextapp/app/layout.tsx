@@ -5,8 +5,9 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Coulomb.ai - Battery Health Monitoring Dashboard',
-  description: 'Smart battery health monitoring and analytics platform',
+  title: 'Coulomb.ai | Battery Health Management',
+  description: 'Advanced battery health monitoring system with AI-powered predictive analytics',
+  keywords: 'battery health, monitoring, coulomb, analytics, predictive maintenance',
 };
 
 export default function RootLayout({
@@ -17,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <div className="min-h-screen bg-gradient-dark text-foreground">
+        <div className="min-h-screen bg-gradient-to-b from-background to-background/90 text-foreground">
           {children}
         </div>
       </body>

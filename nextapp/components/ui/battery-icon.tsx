@@ -1,7 +1,7 @@
 'use client';
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
+import React from 'react';
+import { cn } from '@/lib/utils';
 
 interface BatteryIconProps {
   percentage: number;
@@ -10,50 +10,67 @@ interface BatteryIconProps {
 }
 
 export default function BatteryIcon({ percentage, status, className = '' }: BatteryIconProps) {
-  // Calculate fill height based on percentage
-  const fillHeight = Math.max(0, Math.min(100, percentage)) + '%';
-  
-  // Determine color based on percentage and status
+  // Calculate the color based on battery health percentage
   const getColor = () => {
-    if (status.toLowerCase() === 'charging') return 'bg-blue-500';
-    if (percentage >= 80) return 'bg-green-500';
-    if (percentage >= 60) return 'bg-emerald-400';
-    if (percentage >= 40) return 'bg-yellow-400';
-    if (percentage >= 20) return 'bg-orange-500';
-    return 'bg-red-500';
+    if (percentage >= 80) return 'bg-green-500 shadow-green-500/40';
+    if (percentage >= 60) return 'bg-amber-500 shadow-amber-500/40';
+    return 'bg-red-500 shadow-red-500/40';
   };
-  
-  // Add glow effect for charging or critical status
-  const getGlow = () => {
-    if (status.toLowerCase() === 'charging') return 'animate-pulse shadow-lg shadow-blue-500/50';
-    if (percentage <= 15) return 'animate-pulse shadow-lg shadow-red-500/50';
+
+  // Get visual animation based on battery status
+  const getAnimation = () => {
+    if (status === 'charging') return 'animate-pulse';
+    if (status === 'discharging' && percentage < 20) return 'animate-pulse';
     return '';
   };
 
+  // Change opacity based on health to give visual cue
+  const getOpacity = () => {
+    return `opacity-${Math.max(Math.floor(percentage / 10), 3) * 10}`;
+  };
+
+  const color = getColor();
+  const animation = getAnimation();
+
   return (
-    <div className={cn("relative h-14 w-8 rounded-md border-2 border-gray-300 dark:border-gray-700 flex flex-col", className)}>
-      {/* Battery tip */}
-      <div className="absolute -top-1 left-1/2 -translate-x-1/2 h-1 w-4 bg-gray-300 dark:bg-gray-700 rounded-t-sm" />
-      
-      {/* Battery fill container */}
-      <div className="absolute bottom-0.5 left-0.5 right-0.5 top-0.5 bg-gray-100 dark:bg-gray-900 rounded-sm overflow-hidden">
+    <div className={cn("relative", className)}>
+      {/* Battery body */}
+      <div className="w-full h-full rounded-md border-2 border-foreground/40 bg-muted/20 flex flex-col-reverse p-0.5 overflow-hidden">
         {/* Battery fill level */}
         <div 
-          className={cn("absolute bottom-0 left-0 right-0 transition-all duration-500", getColor(), getGlow())}
-          style={{ height: fillHeight }}
+          className={cn(
+            "w-full rounded transition-all duration-300 shadow-inner", 
+            color,
+            animation
+          )}
+          style={{ 
+            height: `${percentage}%`,
+            boxShadow: '0 0 10px 1px currentColor'
+          }}
         />
-        
-        {/* Charging indicator */}
-        {status.toLowerCase() === 'charging' && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-white text-xs transform -rotate-90">⚡</div>
+
+        {/* Battery indicator dots */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="grid grid-cols-1 gap-3 w-[30%]">
+            {[1, 2, 3].map((i) => (
+              <div 
+                key={i}
+                className={cn(
+                  "h-1 w-1 rounded-full mx-auto bg-foreground/40",
+                  percentage >= 25 * i && "bg-background"
+                )}
+              />
+            ))}
           </div>
-        )}
-        
-        {/* Warning indicator */}
-        {percentage <= 15 && status.toLowerCase() !== 'charging' && (
+        </div>
+
+        {/* Battery terminal */}
+        <div className="absolute -top-1.5 left-1/2 transform -translate-x-1/2 w-1/4 h-1.5 bg-foreground/40 rounded-t-sm" />
+
+        {/* Charging indicator */}
+        {status === 'charging' && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-white text-xs">!</div>
+            <div className="text-background text-xl font-bold">⚡</div>
           </div>
         )}
       </div>
