@@ -1,5 +1,6 @@
-import { type ClassValue, clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+import { formatDistanceToNow, format } from 'date-fns'
 
 /**
  * Combines class names with Tailwind CSS classes
@@ -12,14 +13,14 @@ export function cn(...inputs: ClassValue[]) {
  * Returns color based on battery status
  */
 export function getBatteryStatusColor(status: string): string {
-  switch (status.toLowerCase()) {
-    case 'healthy':
+  switch (status) {
+    case 'Healthy':
       return 'text-success'
-    case 'good':
+    case 'Good':
       return 'text-primary'
-    case 'fair':
+    case 'Fair':
       return 'text-warning'
-    case 'poor':
+    case 'Poor':
       return 'text-danger'
     default:
       return 'text-muted-foreground'
@@ -30,64 +31,60 @@ export function getBatteryStatusColor(status: string): string {
  * Format number with commas
  */
 export function formatNumber(num: number): string {
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 }
 
 /**
  * Calculate remaining battery lifespan in months
  */
 export function calculateRemainingLifespan(
-  cycleCount: number, 
-  expectedCycles: number,
-  initialDate: string | Date
+  currentHealth: number,
+  degradationRate: number,
+  minimumHealth: number = 80
 ): number {
-  const initialDateObj = new Date(initialDate)
-  const now = new Date()
-  
-  // Calculate months elapsed
-  const monthsElapsed = 
-    (now.getFullYear() - initialDateObj.getFullYear()) * 12 + 
-    (now.getMonth() - initialDateObj.getMonth())
-  
-  // If no months elapsed yet, return expected cycles directly
-  if (monthsElapsed <= 0) return expectedCycles
-  
-  // Calculate average cycles per month
-  const cyclesPerMonth = cycleCount / Math.max(1, monthsElapsed)
-  
-  // Calculate remaining cycles
-  const remainingCycles = Math.max(0, expectedCycles - cycleCount)
-  
-  // Calculate remaining months
-  return Math.max(0, Math.round(remainingCycles / cyclesPerMonth))
+  // If degradation rate is zero or negative, return a very high number (essentially infinity)
+  if (degradationRate <= 0) return 999
+
+  // Calculate how much health percentage points are left until minimum
+  const healthLeft = currentHealth - minimumHealth
+
+  // If already below minimum, return 0
+  if (healthLeft <= 0) return 0
+
+  // Calculate how many months it will take to reach minimum health
+  const monthsLeft = Math.ceil(healthLeft / degradationRate)
+
+  return monthsLeft
 }
 
 /**
  * Format date to relative time (e.g., "2 days ago", "1 month ago")
  */
 export function formatRelativeTime(date: string | Date): string {
-  const now = new Date()
-  const pastDate = new Date(date)
-  const diffMs = now.getTime() - pastDate.getTime()
-  
-  const diffSecs = Math.floor(diffMs / 1000)
-  const diffMins = Math.floor(diffSecs / 60)
-  const diffHours = Math.floor(diffMins / 60)
-  const diffDays = Math.floor(diffHours / 24)
-  const diffMonths = Math.floor(diffDays / 30)
-  const diffYears = Math.floor(diffMonths / 12)
-  
-  if (diffYears > 0) {
-    return `${diffYears} ${diffYears === 1 ? 'year' : 'years'} ago`
-  } else if (diffMonths > 0) {
-    return `${diffMonths} ${diffMonths === 1 ? 'month' : 'months'} ago`
-  } else if (diffDays > 0) {
-    return `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`
-  } else if (diffHours > 0) {
-    return `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`
-  } else if (diffMins > 0) {
-    return `${diffMins} ${diffMins === 1 ? 'minute' : 'minutes'} ago`
-  } else {
-    return 'just now'
-  }
+  return formatDistanceToNow(new Date(date), { addSuffix: true })
+}
+
+/**
+ * Format date to specific format
+ */
+export function formatDate(date: string | Date, formatString: string = 'MMM dd, yyyy'): string {
+  return format(new Date(date), formatString)
+}
+
+/**
+ * Calculate percentage with optional decimal precision
+ */
+export function calculatePercentage(value: number, total: number, decimals: number = 0): number {
+  if (total === 0) return 0
+  const percentage = (value / total) * 100
+  const factor = Math.pow(10, decimals)
+  return Math.round(percentage * factor) / factor
+}
+
+/**
+ * Truncate text with ellipsis
+ */
+export function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text
+  return text.slice(0, maxLength) + '...'
 }

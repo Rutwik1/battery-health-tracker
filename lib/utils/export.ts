@@ -1,57 +1,56 @@
 import { Battery } from '@/lib/store/batteryStore'
-import { format } from 'date-fns'
+import { formatDate } from '@/lib/utils'
 
 /**
  * Exports battery data to CSV
  */
 export function exportBatteryData(batteries: Battery[], timeRange: string) {
-  // Prepare CSV headers
+  // Define CSV headers
   const headers = [
     'Name',
     'Serial Number',
-    'Initial Capacity (mAh)',
+    'Health Percentage',
     'Current Capacity (mAh)',
-    'Health (%)',
+    'Initial Capacity (mAh)',
     'Cycle Count',
     'Expected Cycles',
+    'Degradation Rate (% per month)',
     'Status',
     'Initial Date',
-    'Last Updated',
-    'Degradation Rate (%/month)'
-  ].join(',')
+    'Last Updated'
+  ]
   
-  // Prepare CSV rows
-  const rows = batteries.map(battery => {
-    return [
-      battery.name,
-      battery.serialNumber,
-      battery.initialCapacity,
-      battery.currentCapacity,
-      battery.healthPercentage,
-      battery.cycleCount,
-      battery.expectedCycles,
-      battery.status,
-      format(new Date(battery.initialDate), 'yyyy-MM-dd'),
-      format(new Date(battery.lastUpdated), 'yyyy-MM-dd'),
-      battery.degradationRate
-    ].join(',')
-  })
+  // Map battery data to CSV format
+  const rows = batteries.map(battery => [
+    battery.name,
+    battery.serialNumber,
+    `${battery.healthPercentage}%`,
+    battery.currentCapacity.toString(),
+    battery.initialCapacity.toString(),
+    battery.cycleCount.toString(),
+    battery.expectedCycles.toString(),
+    `${battery.degradationRate}%`,
+    battery.status,
+    formatDate(battery.initialDate, 'yyyy-MM-dd'),
+    formatDate(battery.lastUpdated, 'yyyy-MM-dd')
+  ])
   
   // Combine headers and rows
-  const csvContent = [headers, ...rows].join('\n')
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.join(','))
+  ].join('\n')
   
-  // Create download link
+  // Create a blob and download link
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
-  
-  // Create temp link and trigger download
   const link = document.createElement('a')
+  
   link.setAttribute('href', url)
-  link.setAttribute('download', `battery_data_${timeRange}_days.csv`)
+  link.setAttribute('download', `battery-data-${timeRange}-days.csv`)
+  link.style.visibility = 'hidden'
+  
   document.body.appendChild(link)
   link.click()
-  
-  // Clean up
   document.body.removeChild(link)
-  URL.revokeObjectURL(url)
 }

@@ -1,50 +1,118 @@
 'use client'
 
 import React from 'react'
-import { Search, Bell, Menu } from 'lucide-react'
-import { useState } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import {
+  Search,
+  Bell,
+  HelpCircle,
+  User,
+  Menu,
+  ChevronDown,
+  LogOut,
+  Settings,
+  UserCircle
+} from 'lucide-react'
 
 export default function Topbar() {
-  const [isSearchFocused, setIsSearchFocused] = useState(false)
+  const pathname = usePathname()
   
   return (
-    <div className="bg-background/60 backdrop-blur-md border-b border-border/20 py-3 px-4 md:py-4 md:px-6 flex items-center justify-between">
-      {/* Mobile Menu Button */}
-      <button className="md:hidden p-2 rounded-lg hover:bg-muted/50">
-        <Menu size={22} />
-      </button>
-      
-      {/* Search */}
-      <div className={`relative hidden md:flex items-center rounded-lg bg-muted/30 border ${isSearchFocused ? 'border-primary/50 ring-1 ring-primary/20' : 'border-border/50'} w-80 transition-all`}>
-        <Search className="h-4 w-4 absolute left-3 text-muted-foreground" />
-        <input 
-          type="text" 
-          placeholder="Search batteries, devices..." 
-          className="bg-transparent border-none focus:outline-none py-2 pl-10 pr-4 w-full text-sm"
-          onFocus={() => setIsSearchFocused(true)}
-          onBlur={() => setIsSearchFocused(false)}
-        />
-      </div>
-      
-      {/* Right Actions */}
-      <div className="flex items-center gap-4">
-        {/* Notifications */}
-        <button className="relative p-2 rounded-lg hover:bg-muted/50">
-          <Bell size={20} className="text-muted-foreground" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
+    <header className="h-16 border-b border-border bg-muted/20 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      {/* Left: Mobile menu button & breadcrumbs */}
+      <div className="flex items-center">
+        <button className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:text-foreground hover:bg-muted/50 md:hidden">
+          <Menu className="h-5 w-5" />
         </button>
         
-        {/* User Profile */}
-        <div className="flex items-center">
-          <div className="h-8 w-8 rounded-full bg-primary/10 mr-2 flex items-center justify-center text-primary font-medium">
-            AK
-          </div>
-          <div className="hidden md:block">
-            <div className="text-sm font-medium">Admin</div>
-            <div className="text-xs text-muted-foreground">admin@coulomb.ai</div>
+        <div className="ml-4 md:ml-0">
+          <div className="text-sm breadcrumbs hidden md:flex items-center text-muted-foreground">
+            <ul className="flex items-center space-x-1">
+              <li>
+                <Link href="/" className="hover:text-foreground">
+                  Home
+                </Link>
+              </li>
+              
+              {pathname.split('/').filter(Boolean).map((segment, index, segments) => {
+                const href = `/${segments.slice(0, index + 1).join('/')}`
+                const isLast = index === segments.length - 1
+                const name = segment.charAt(0).toUpperCase() + segment.slice(1)
+                
+                return (
+                  <React.Fragment key={segment}>
+                    <li className="text-muted-foreground">/</li>
+                    <li>
+                      {isLast ? (
+                        <span className="font-medium text-foreground">{name}</span>
+                      ) : (
+                        <Link href={href} className="hover:text-foreground">
+                          {name}
+                        </Link>
+                      )}
+                    </li>
+                  </React.Fragment>
+                )
+              })}
+            </ul>
           </div>
         </div>
       </div>
-    </div>
+      
+      {/* Right: Search, notifications, help, profile */}
+      <div className="flex items-center space-x-3">
+        {/* Search */}
+        <div className="hidden md:block relative">
+          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <Search className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <input
+            type="search"
+            placeholder="Search..."
+            className="block w-60 rounded-md border border-input pl-10 pr-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          />
+        </div>
+        
+        {/* Notifications */}
+        <button className="relative p-2 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50">
+          <Bell className="h-5 w-5" />
+          <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary"></span>
+        </button>
+        
+        {/* Help */}
+        <button className="p-2 text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50">
+          <HelpCircle className="h-5 w-5" />
+        </button>
+        
+        {/* Profile Dropdown */}
+        <div className="relative">
+          <button className="flex items-center space-x-1 p-1 rounded-md hover:bg-muted/50 text-sm">
+            <div className="w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center text-primary border border-border">
+              <UserCircle className="h-6 w-6" />
+            </div>
+            <span className="hidden sm:inline-block font-medium">Admin User</span>
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          </button>
+          
+          {/* Hidden dropdown menu (for illustration) */}
+          <div className="hidden absolute right-0 mt-1 w-48 py-1 bg-background rounded-md shadow-lg border border-border z-10">
+            <Link href="/profile" className="flex items-center px-4 py-2 text-sm hover:bg-muted/50">
+              <User className="mr-2 h-4 w-4" />
+              Your Profile
+            </Link>
+            <Link href="/settings" className="flex items-center px-4 py-2 text-sm hover:bg-muted/50">
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </Link>
+            <div className="border-t border-border my-1"></div>
+            <button className="flex w-full items-center px-4 py-2 text-sm text-danger hover:bg-muted/50">
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign out
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
   )
 }

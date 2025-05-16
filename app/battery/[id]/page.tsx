@@ -1,28 +1,23 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React from 'react'
 import { useParams } from 'next/navigation'
-import { useBatteryStore } from '@/lib/store/batteryStore'
 import BatteryDetailView from '@/components/battery/BatteryDetailView'
 
 export default function BatteryDetailPage() {
   const params = useParams()
-  const { fetchBatteries } = useBatteryStore()
+  const batteryId = parseInt(params?.id as string, 10)
   
-  const batteryId = params?.id ? parseInt(params.id as string) : null
-  
-  useEffect(() => {
-    // Fetch initial data if not already loaded
-    fetchBatteries()
-  }, [fetchBatteries])
-  
-  if (!batteryId) {
+  if (isNaN(batteryId)) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="bg-card/30 backdrop-blur-md border border-border/30 p-6 rounded-xl shadow-lg">
-          <h2 className="text-xl font-semibold mb-3">Invalid Battery ID</h2>
-          <p className="text-muted-foreground mb-4">No battery ID was provided or the ID is invalid.</p>
-          <a href="/dashboard" className="bg-primary text-primary-foreground px-4 py-2 rounded-md inline-block">
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">Invalid Battery ID</h1>
+          <p className="text-muted-foreground mt-2">The battery ID is invalid or not provided.</p>
+          <a 
+            href="/dashboard" 
+            className="mt-4 inline-block px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+          >
             Return to Dashboard
           </a>
         </div>
