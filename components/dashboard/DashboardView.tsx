@@ -1,38 +1,51 @@
 'use client'
 
-import { useState } from 'react'
-import { useBatteryStore, Battery } from '@/lib/store/batteryStore'
+import React, { useState, useEffect } from 'react'
+import { useBatteryStore } from '@/lib/store/batteryStore'
 import { 
-  Download, 
-  LineChart, 
-  BarChartBig, 
-  Calendar, 
-  Zap, 
-  BatteryIcon, 
-  Sparkles 
+  Download,
+  Plus,
+  BarChart,
+  Battery,
+  TrendingUp,
+  ListFilter,
+  ChevronDown
 } from 'lucide-react'
-import BatteryStatusCard from './BatteryStatusCard'
-import CapacityChart from './CapacityChart'
-import CycleChart from './CycleChart'
-import BatteryHealthTable from './BatteryHealthTable'
-import DegradationCard from './DegradationCard'
-import UsagePatternCard from './UsagePatternCard'
-import RecommendationsCard from './RecommendationsCard'
-import Sidebar from '../layout/Sidebar'
-import Topbar from '../layout/Topbar'
+import BatteryStatusCard from '@/components/dashboard/BatteryStatusCard'
+import CapacityChart from '@/components/dashboard/CapacityChart'
+import CycleChart from '@/components/dashboard/CycleChart'
+import BatteryHealthTable from '@/components/dashboard/BatteryHealthTable'
+import Sidebar from '@/components/layout/Sidebar'
+import Topbar from '@/components/layout/Topbar'
 import { exportBatteryData } from '@/lib/utils/export'
-import { Card } from '../ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function DashboardView() {
-  const [timeRange, setTimeRange] = useState("30")
-  const { batteries, isLoading } = useBatteryStore()
-
-  const handleExport = () => {
-    if (batteries) {
-      exportBatteryData(batteries, timeRange)
+  const { batteries, isLoading, fetchBatteries, startRealtimeUpdates } = useBatteryStore()
+  const [timeRange, setTimeRange] = useState<number>(90)
+  const [activeTab, setActiveTab] = useState<'overview' | 'table'>('overview')
+  
+  useEffect(() => {
+    fetchBatteries()
+    startRealtimeUpdates()
+    
+    return () => {
+      useBatteryStore.getState().stopRealtimeUpdates()
     }
+  }, [fetchBatteries, startRealtimeUpdates])
+  
+  const exportData = () => {
+    exportBatteryData(batteries, timeRange.toString())
   }
-
+  
+  const batteryStatusSummary = {
+    healthy: batteries.filter(b => b.status === 'Healthy').length,
+    good: batteries.filter(b => b.status === 'Good').length,
+    fair: batteries.filter(b => b.status === 'Fair').length,
+    poor: batteries.filter(b => b.status === 'Poor').length,
+    total: batteries.length
+  }
+  
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar />
@@ -40,169 +53,209 @@ export default function DashboardView() {
       <div className="flex flex-col flex-1 overflow-hidden">
         <Topbar />
         
-        <main className="flex-1 relative overflow-y-auto focus:outline-none">
-          {/* Background effects */}
-          <div className="absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-primary/5 via-accent/3 to-transparent -z-10"></div>
-          <div className="absolute top-40 left-20 w-[800px] h-[800px] rounded-full bg-primary/5 blur-[120px] -z-10"></div>
-          <div className="absolute top-80 right-20 w-[600px] h-[600px] rounded-full bg-accent/5 blur-[100px] -z-10"></div>
-          <div className="absolute bottom-40 left-1/2 w-[400px] h-[400px] rounded-full bg-success/5 blur-[80px] -z-10"></div>
-          
-          <div className="py-10 px-6 md:px-8 lg:px-12">
-            {/* Page Header */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-12">
-              <div>
-                <div className="inline-flex items-center space-x-2 mb-3">
-                  <div className="bg-primary/10 p-1.5 rounded-md backdrop-blur-md">
-                    <Zap className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="text-sm font-medium text-primary">Coulomb.ai Analytics</span>
-                </div>
-                <h1 className="text-4xl font-heading font-bold mb-3">
-                  <span className="text-gradient">Battery Performance</span> Dashboard
-                </h1>
-                <p className="text-muted-foreground text-lg">Real-time monitoring and insights for your battery fleet</p>
-              </div>
+        <main className="flex-1 relative overflow-y-auto focus:outline-none pt-2">
+          <div className="py-6 px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+              <h1 className="text-2xl font-semibold mb-4 md:mb-0">Battery Health Dashboard</h1>
               
-              <div className="mt-8 md:mt-0 flex flex-wrap items-center gap-4">
-                {/* Time Range Filter */}
-                <div className="flex items-center space-x-2 bg-muted/30 p-1.5 pl-3 rounded-lg border border-border/50 backdrop-blur-md">
-                  <Calendar className="h-4 w-4 text-primary" />
-                  <select 
-                    className="w-[160px] border-0 bg-transparent focus:ring-0"
-                    value={timeRange}
-                    onChange={(e) => setTimeRange(e.target.value)}
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                <div className="relative">
+                  <button
+                    className="inline-flex items-center space-x-1 px-4 py-2 border border-border rounded-md hover:bg-muted/50 transition-colors"
                   >
-                    <option value="7">Last 7 Days</option>
-                    <option value="30">Last 30 Days</option>
-                    <option value="90">Last 90 Days</option>
-                    <option value="180">Last 6 Months</option>
-                    <option value="365">Last Year</option>
-                  </select>
+                    <ListFilter className="h-4 w-4 text-muted-foreground" />
+                    <span>Filter</span>
+                    <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                  </button>
                 </div>
                 
-                {/* Export Button */}
-                <button 
-                  onClick={handleExport} 
-                  disabled={isLoading || !batteries.length}
-                  className="relative overflow-hidden bg-gradient-to-r from-primary to-accent hover:opacity-90 text-background shadow-md shadow-primary/20 group px-4 py-2 rounded-md font-medium flex items-center"
+                <div className="relative">
+                  <select
+                    className="appearance-none bg-transparent border border-border rounded-md px-4 py-2 pr-8 focus:outline-none focus:ring-1 focus:ring-primary text-sm"
+                    value={timeRange}
+                    onChange={(e) => setTimeRange(Number(e.target.value))}
+                  >
+                    <option value={30}>Last 30 Days</option>
+                    <option value={90}>Last 90 Days</option>
+                    <option value={180}>Last 6 Months</option>
+                    <option value={365}>Last Year</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                </div>
+                
+                <button
+                  onClick={exportData}
+                  className="inline-flex items-center px-4 py-2 border border-border rounded-md hover:bg-muted/50 transition-colors"
                 >
-                  <span className="absolute inset-0 bg-white/10 group-hover:opacity-0 transition-opacity"></span>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export Battery Data
+                  <Download className="mr-2 h-4 w-4 text-muted-foreground" />
+                  Export Data
+                </button>
+                
+                <button className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Battery
                 </button>
               </div>
             </div>
             
-            {/* Animated divider */}
-            <div className="w-full h-px bg-gradient-to-r from-border/0 via-border/50 to-border/0 mb-12"></div>
-            
-            {/* Battery Status Overview */}
-            <div className="mb-3 flex items-center">
-              <BatteryIcon className="h-5 w-5 mr-2 text-primary" />
-              <h2 className="text-xl font-heading font-medium">Battery Status Overview</h2>
+            <div className="mb-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card className="bg-success/10 border-success/30">
+                  <CardContent className="p-4 flex justify-between items-center">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Healthy</p>
+                      <p className="text-2xl font-semibold text-success">{batteryStatusSummary.healthy}</p>
+                    </div>
+                    <div className="h-10 w-10 rounded-full bg-success/20 flex items-center justify-center">
+                      <Battery className="h-5 w-5 text-success" />
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-primary/10 border-primary/30">
+                  <CardContent className="p-4 flex justify-between items-center">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Good</p>
+                      <p className="text-2xl font-semibold text-primary">{batteryStatusSummary.good}</p>
+                    </div>
+                    <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                      <Battery className="h-5 w-5 text-primary" />
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-warning/10 border-warning/30">
+                  <CardContent className="p-4 flex justify-between items-center">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Fair</p>
+                      <p className="text-2xl font-semibold text-warning">{batteryStatusSummary.fair}</p>
+                    </div>
+                    <div className="h-10 w-10 rounded-full bg-warning/20 flex items-center justify-center">
+                      <Battery className="h-5 w-5 text-warning" />
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-danger/10 border-danger/30">
+                  <CardContent className="p-4 flex justify-between items-center">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Poor</p>
+                      <p className="text-2xl font-semibold text-danger">{batteryStatusSummary.poor}</p>
+                    </div>
+                    <div className="h-10 w-10 rounded-full bg-danger/20 flex items-center justify-center">
+                      <Battery className="h-5 w-5 text-danger" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
             
-            {isLoading ? (
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-12">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-[140px] bg-muted/30 animate-pulse rounded-xl backdrop-blur-md"></div>
-                ))}
+            <div className="mb-6">
+              <div className="border-b border-border">
+                <div className="flex -mb-px">
+                  <button
+                    className={`py-4 px-6 border-b-2 font-medium text-sm focus:outline-none ${
+                      activeTab === 'overview'
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                    }`}
+                    onClick={() => setActiveTab('overview')}
+                  >
+                    Overview
+                  </button>
+                  <button
+                    className={`py-4 px-6 border-b-2 font-medium text-sm focus:outline-none ${
+                      activeTab === 'table'
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                    }`}
+                    onClick={() => setActiveTab('table')}
+                  >
+                    Health Table
+                  </button>
+                </div>
               </div>
-            ) : batteries.length === 0 ? (
-              <div className="bg-danger/10 p-6 rounded-xl mb-12 border border-danger/20 backdrop-blur-md">
-                <p className="text-danger font-medium">Failed to load battery data</p>
-              </div>
+            </div>
+            
+            {activeTab === 'overview' ? (
+              <>
+                <div className="mb-8">
+                  <Card>
+                    <CardHeader className="pb-0">
+                      <CardTitle className="flex items-center">
+                        <TrendingUp className="mr-2 h-5 w-5 text-primary" />
+                        <span>Battery Capacity Trends</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[350px] w-full mt-4">
+                        <CapacityChart 
+                          batteries={batteries} 
+                          timeRange={timeRange} 
+                          isLoading={isLoading} 
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                <div className="mb-8">
+                  <Card>
+                    <CardHeader className="pb-0">
+                      <CardTitle className="flex items-center">
+                        <BarChart className="mr-2 h-5 w-5 text-primary" />
+                        <span>Battery Cycle Counts</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-[300px] w-full mt-4">
+                        <CycleChart batteries={batteries} isLoading={isLoading} />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                <div className="mb-8">
+                  <h2 className="text-lg font-medium mb-4">Battery Status</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {isLoading ? (
+                      // Skeleton loading
+                      Array(4).fill(0).map((_, index) => (
+                        <Card key={index} className="animate-pulse">
+                          <CardContent className="p-6">
+                            <div className="h-6 bg-muted/50 rounded mb-4"></div>
+                            <div className="h-4 bg-muted/30 rounded w-1/2 mb-2"></div>
+                            <div className="h-2 bg-muted/30 rounded mb-4"></div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="h-12 bg-muted/30 rounded"></div>
+                              <div className="h-12 bg-muted/30 rounded"></div>
+                              <div className="h-12 bg-muted/30 rounded"></div>
+                              <div className="h-12 bg-muted/30 rounded"></div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))
+                    ) : batteries.length === 0 ? (
+                      <div className="col-span-4 text-center py-12 bg-muted/10 rounded-lg border border-border">
+                        <Battery className="mx-auto h-10 w-10 text-muted-foreground mb-2" />
+                        <h3 className="text-lg font-medium">No Batteries Found</h3>
+                        <p className="text-muted-foreground">Add batteries to monitor their health and performance</p>
+                        <button className="mt-4 inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md">
+                          <Plus className="mr-2 h-4 w-4" />
+                          Add Battery
+                        </button>
+                      </div>
+                    ) : (
+                      batteries.map((battery) => (
+                        <BatteryStatusCard key={battery.id} battery={battery} />
+                      ))
+                    )}
+                  </div>
+                </div>
+              </>
             ) : (
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-12">
-                {batteries.map((battery) => (
-                  <BatteryStatusCard key={battery.id} battery={battery} />
-                ))}
-              </div>
+              <BatteryHealthTable batteries={batteries} isLoading={isLoading} />
             )}
-            
-            {/* Charts */}
-            <div className="mb-3 flex items-center">
-              <Sparkles className="h-5 w-5 mr-2 text-accent" />
-              <h2 className="text-xl font-heading font-medium">Performance Metrics</h2>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-              <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-primary/5 relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-60"></div>
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between p-5 border-b border-border/30">
-                    <h2 className="text-lg font-heading font-semibold flex items-center">
-                      <LineChart className="h-5 w-5 mr-2 text-primary" />
-                      <span>Capacity Trends</span>
-                    </h2>
-                  </div>
-                  <div className="p-5">
-                    <CapacityChart 
-                      batteries={batteries || []} 
-                      timeRange={parseInt(timeRange)} 
-                      isLoading={isLoading} 
-                    />
-                  </div>
-                </div>
-              </Card>
-              
-              <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-accent/5 relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-transparent opacity-60"></div>
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between p-5 border-b border-border/30">
-                    <h2 className="text-lg font-heading font-semibold flex items-center">
-                      <BarChartBig className="h-5 w-5 mr-2 text-accent" />
-                      <span>Charge Cycle Analysis</span>
-                    </h2>
-                  </div>
-                  <div className="p-5">
-                    <CycleChart batteries={batteries || []} isLoading={isLoading} />
-                  </div>
-                </div>
-              </Card>
-            </div>
-            
-            {/* Battery Health Table */}
-            <div className="grid grid-cols-1 gap-8 mb-12">
-              <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-primary/5 relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-40"></div>
-                <div className="relative z-10">
-                  <BatteryHealthTable 
-                    batteries={batteries || []} 
-                    isLoading={isLoading} 
-                  />
-                </div>
-              </Card>
-            </div>
-            
-            {/* Additional Cards */}
-            <div className="mb-3 flex items-center">
-              <Sparkles className="h-5 w-5 mr-2 text-success" />
-              <h2 className="text-xl font-heading font-medium">Insights & Recommendations</h2>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-              <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-danger/5 relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-danger/10 via-transparent to-transparent opacity-40"></div>
-                <div className="relative z-10">
-                  <DegradationCard batteries={batteries || []} isLoading={isLoading} />
-                </div>
-              </Card>
-              
-              <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-success/5 relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-success/10 via-transparent to-transparent opacity-40"></div>
-                <div className="relative z-10">
-                  <UsagePatternCard batteries={batteries || []} isLoading={isLoading} />
-                </div>
-              </Card>
-              
-              <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-accent/5 relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-transparent opacity-40"></div>
-                <div className="relative z-10">
-                  <RecommendationsCard batteries={batteries || []} isLoading={isLoading} />
-                </div>
-              </Card>
-            </div>
           </div>
         </main>
       </div>

@@ -1,10 +1,19 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { useBatteryStore, Battery, BatteryHistory } from '@/lib/store/batteryStore'
-import { getBatteryStatusColor } from '@/lib/utils'
+import React, { useMemo } from 'react'
 import { format, subDays } from 'date-fns'
+import { Battery, BatteryHistory } from '@/lib/store/batteryStore'
+import { getBatteryStatusColor, formatNumber } from '@/lib/utils'
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend
+} from 'recharts'
 
 interface CapacityChartProps {
   batteries: Battery[];
@@ -14,156 +23,136 @@ interface CapacityChartProps {
 }
 
 export default function CapacityChart({ batteries, timeRange, isLoading, detailed = false }: CapacityChartProps) {
-  const [chartData, setChartData] = useState<any[]>([])
-  const { batteryHistories } = useBatteryStore()
-  
-  // Prepare chart data whenever batteries or time range changes
-  useEffect(() => {
-    if (isLoading || batteries.length === 0) {
-      setChartData([])
-      return
-    }
-
-    // Generate dates for x-axis
-    const dates: string[] = []
-    const today = new Date()
+  // Generate sample data for demonstration
+  const chartData = useMemo(() => {
+    if (batteries.length === 0) return []
     
-    // For monthly data (12 months)
-    if (timeRange >= 365 || detailed) {
-      for (let i = 11; i >= 0; i--) {
-        const date = new Date(today)
-        date.setMonth(today.getMonth() - i)
-        dates.push(format(date, 'MMM'))
-      }
-    } 
-    // For daily data
-    else {
-      const interval = Math.ceil(timeRange / 12) // Show ~12 labels
-      for (let i = timeRange - 1; i >= 0; i -= interval) {
-        dates.push(format(subDays(today, i), 'd MMM'))
-      }
-      dates.push(format(today, 'd MMM'))
-    }
-
-    // Combine all data
-    const data = dates.map((date, index) => {
-      const dataPoint: any = { date }
+    const days = timeRange
+    const now = new Date()
+    const data: Array<{
+      date: string;
+      [key: string]: string | number;
+    }> = []
+    
+    // Create date points from past to now
+    for (let i = days; i >= 0; i--) {
+      const date = subDays(now, i)
+      const formattedDate = format(date, 'MMM dd')
+      const dataPoint: { date: string; [key: string]: string | number } = { date: formattedDate }
       
-      batteries.forEach((battery) => {
-        // Get battery history data
-        const historyData = batteryHistories[battery.id] || []
-        if (historyData.length === 0) return
+      // For each battery, calculate its health at this date point
+      batteries.forEach(battery => {
+        // Calculate health at this point (this is a simplified model)
+        const daysPassed = days - i
+        const healthDecreasePerDay = battery.degradationRate / 30 // Convert monthly to daily rate
         
-        // Use the actual historical data point or extrapolate
-        const normalizedIndex = Math.floor((index / (dates.length - 1)) * (historyData.length - 1))
-        const historyPoint = historyData[normalizedIndex]
+        // Initial health is the current plus the degradation over the time period
+        const initialHealth = Math.min(100, battery.healthPercentage + (healthDecreasePerDay * daysPassed))
         
-        if (historyPoint) {
-          dataPoint[battery.name] = historyPoint.healthPercentage
-        } else {
-          // Fallback if no data
-          dataPoint[battery.name] = battery.healthPercentage
-        }
+        // Add to data point using battery name as key
+        dataPoint[battery.name] = initialHealth
       })
       
-      return dataPoint
-    })
-
-    setChartData(data)
-  }, [batteries, timeRange, isLoading, batteryHistories, detailed])
-
-  // Convert status colors to CSS variables
+      data.push(dataPoint)
+    }
+    
+    return data
+  }, [batteries, timeRange])
+  
   const getLineColors = (battery: Battery) => {
     const statusColor = getBatteryStatusColor(battery.status)
-    switch(statusColor) {
-      case 'text-success': return 'hsl(var(--success))'
-      case 'text-warning': return 'hsl(var(--warning))'
-      case 'text-danger': return 'hsl(var(--danger))'
-      default: return 'hsl(var(--primary))'
-    }
+    
+    // Extract the color code (assuming tailwind text-* classes)
+    // We want to convert something like 'text-success' to 'rgb(var(--success))' 
+    // Since these are custom properties in our CSS
+    const colorKey = statusColor.replace('text-', '')
+    return `rgb(var(--${colorKey}))`
   }
-
-  // Custom Tooltip component
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-muted/90 p-3 rounded-lg border border-border/50 backdrop-blur-md shadow-lg">
-          <p className="text-xs font-medium text-foreground mb-2">{label}</p>
-          {payload.map((entry: any, index: number) => (
-            <div key={`item-${index}`} className="flex items-center gap-2 mb-1">
-              <div
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: entry.stroke }}
-              />
-              <p className="text-xs">
-                <span className="font-medium">{entry.name}:</span>{' '}
-                <span className="text-foreground">{entry.value}%</span>
-              </p>
-            </div>
-          ))}
+  
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full w-full bg-muted/10 rounded-md">
+        <div className="animate-pulse space-y-4 w-full px-8">
+          <div className="h-4 bg-muted/30 rounded w-1/4 mx-auto"></div>
+          <div className="h-[200px] bg-muted/20 rounded"></div>
+          <div className="flex justify-center space-x-2">
+            <div className="h-3 w-16 bg-muted/30 rounded"></div>
+            <div className="h-3 w-16 bg-muted/30 rounded"></div>
+            <div className="h-3 w-16 bg-muted/30 rounded"></div>
+          </div>
         </div>
-      )
-    }
-    return null
+      </div>
+    )
   }
-
+  
+  if (batteries.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full w-full bg-muted/10 rounded-md p-8">
+        <p className="text-muted-foreground mb-2">No battery data to display</p>
+        <button className="px-3 py-1 text-sm border border-border rounded-md hover:bg-muted transition-colors">
+          Add Battery
+        </button>
+      </div>
+    )
+  }
+  
   return (
-    <div className={`chart-container ${detailed ? 'h-[350px]' : 'h-[300px]'}`}>
-      {isLoading ? (
-        <div className="h-full w-full bg-muted/20 animate-pulse rounded-lg flex items-center justify-center">
-          <span className="text-muted-foreground">Loading chart data...</span>
-        </div>
-      ) : chartData.length === 0 ? (
-        <div className="h-full w-full bg-danger/10 rounded-lg flex items-center justify-center border border-danger/20">
-          <span className="text-danger">Failed to load chart data</span>
-        </div>
-      ) : (
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={chartData}
-            margin={{
-              top: 5,
-              right: 30,
-              left: 0,
-              bottom: 5,
+    <div className="h-full w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart
+          data={chartData}
+          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
+          <XAxis 
+            dataKey="date" 
+            stroke="var(--muted-foreground)" 
+            fontSize={12}
+            tickMargin={10} 
+          />
+          <YAxis 
+            stroke="var(--muted-foreground)" 
+            fontSize={12}
+            tickFormatter={(value) => `${value}%`}
+            domain={[0, 100]}
+            tickMargin={10}
+          />
+          <Tooltip 
+            contentStyle={{ 
+              backgroundColor: 'var(--background)',
+              borderColor: 'var(--border)',
+              borderRadius: '0.375rem',
+              boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)'
             }}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-            <XAxis 
-              dataKey="date" 
-              stroke="hsl(var(--muted-foreground))" 
-              fontSize={12}
-              tickLine={false}
+            itemStyle={{ padding: '2px 0' }}
+            formatter={(value: number, name: string) => [
+              `${value.toFixed(1)}%`, 
+              name
+            ]}
+            labelStyle={{ 
+              color: 'var(--muted-foreground)',
+              marginBottom: '4px',
+              fontSize: '14px'
+            }}
+          />
+          <Legend 
+            formatter={(value) => (
+              <span style={{ color: 'var(--foreground)', fontSize: '14px' }}>{value}</span>
+            )}
+          />
+          {batteries.map((battery) => (
+            <Line
+              key={battery.id}
+              type="monotone"
+              dataKey={battery.name}
+              stroke={getLineColors(battery)}
+              strokeWidth={2}
+              dot={{ r: 3, strokeWidth: 1 }}
+              activeDot={{ r: 5, strokeWidth: 0 }}
             />
-            <YAxis 
-              domain={[50, 100]} 
-              stroke="hsl(var(--muted-foreground))" 
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => `${value}%`}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend 
-              wrapperStyle={{ 
-                fontSize: "12px", 
-                color: "hsl(var(--muted-foreground))" 
-              }}
-            />
-            {batteries.map((battery) => (
-              <Line
-                key={battery.id}
-                type="monotone"
-                dataKey={battery.name}
-                stroke={getLineColors(battery)}
-                activeDot={{ r: 6, fill: getLineColors(battery), strokeWidth: 1 }}
-                strokeWidth={2.5}
-                dot={{ r: 4, fill: "hsl(var(--background))", strokeWidth: 2 }}
-              />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
-      )}
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
     </div>
   )
 }

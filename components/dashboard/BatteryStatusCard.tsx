@@ -2,15 +2,9 @@
 
 import React from 'react'
 import { Battery } from '@/lib/store/batteryStore'
-import { getBatteryStatusColor } from '@/lib/utils'
-import { Card } from '@/components/ui/card'
-import { 
-  Battery as BatteryIcon, 
-  AlertTriangle, 
-  CheckCircle2, 
-  AlertCircle 
-} from 'lucide-react'
-import Link from 'next/link'
+import { getBatteryStatusColor, formatNumber } from '@/lib/utils'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Clock, Battery as BatteryIcon, BarChart, Zap } from 'lucide-react'
 
 interface BatteryStatusCardProps {
   battery: Battery;
@@ -19,56 +13,88 @@ interface BatteryStatusCardProps {
 export default function BatteryStatusCard({ battery }: BatteryStatusCardProps) {
   const statusColor = getBatteryStatusColor(battery.status)
   
-  const getStatusIcon = () => {
-    switch (battery.status.toLowerCase()) {
-      case 'optimal':
-        return <CheckCircle2 className="h-5 w-5 text-success" />
-      case 'good':
-        return <CheckCircle2 className="h-5 w-5 text-primary" />
-      case 'warning':
-        return <AlertTriangle className="h-5 w-5 text-warning" />
-      case 'critical':
-        return <AlertCircle className="h-5 w-5 text-danger" />
-      default:
-        return <BatteryIcon className="h-5 w-5 text-muted-foreground" />
-    }
-  }
-
   return (
-    <Link href={`/battery/${battery.id}`}>
-      <Card className="backdrop-blur-md bg-card/30 border border-border/30 h-full relative overflow-hidden hover:border-primary/40 transition-colors">
-        <div className={`absolute top-0 left-0 w-1 h-full ${statusColor.replace('text', 'bg')}`}></div>
-        <div className="p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-lg font-medium">{battery.name}</div>
-            {getStatusIcon()}
-          </div>
-          
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">Health</div>
-              <div className={`text-base font-medium ${statusColor}`}>{battery.healthPercentage}%</div>
+    <Card className="overflow-hidden">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center justify-between text-md">
+          <span>{battery.name}</span>
+          <span className={`px-2 py-1 rounded-full text-xs ${statusColor} ${statusColor.replace('text', 'bg')}/10`}>
+            {battery.status}
+          </span>
+        </CardTitle>
+        <p className="text-xs text-muted-foreground font-mono">{battery.serialNumber}</p>
+      </CardHeader>
+      <CardContent>
+        <div className="pt-2">
+          {/* Health Bar */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm text-muted-foreground">Health</span>
+              <span className={`text-sm font-medium ${statusColor}`}>{battery.healthPercentage}%</span>
             </div>
-            
-            <div className="w-full bg-muted/50 rounded-full h-1.5">
+            <div className="w-full bg-muted/50 h-2 rounded-full overflow-hidden">
               <div 
-                className={`h-1.5 rounded-full ${statusColor.replace('text', 'bg')}`}
+                className={`h-2 rounded-full ${statusColor.replace('text', 'bg')}`}
                 style={{ width: `${battery.healthPercentage}%` }}
               ></div>
             </div>
-            
-            <div className="flex items-center justify-between mt-3">
-              <div className="text-sm text-muted-foreground">Cycles</div>
-              <div className="text-base font-medium">{battery.cycleCount} / {battery.expectedCycles}</div>
+          </div>
+          
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex items-start">
+              <div className={`p-2 rounded-md ${statusColor.replace('text', 'bg')}/10 mr-3`}>
+                <BatteryIcon className={`h-4 w-4 ${statusColor}`} />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Capacity</p>
+                <p className="text-sm font-medium">
+                  {formatNumber(battery.currentCapacity)} <span className="text-xs text-muted-foreground">mAh</span>
+                </p>
+              </div>
             </div>
             
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">Capacity</div>
-              <div className="text-base font-medium">{battery.currentCapacity} mAh</div>
+            <div className="flex items-start">
+              <div className={`p-2 rounded-md ${statusColor.replace('text', 'bg')}/10 mr-3`}>
+                <BarChart className={`h-4 w-4 ${statusColor}`} />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Cycles</p>
+                <p className="text-sm font-medium">
+                  {battery.cycleCount} <span className="text-xs text-muted-foreground">/ {battery.expectedCycles}</span>
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start">
+              <div className={`p-2 rounded-md ${statusColor.replace('text', 'bg')}/10 mr-3`}>
+                <Zap className={`h-4 w-4 ${statusColor}`} />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Degradation</p>
+                <p className="text-sm font-medium">
+                  {battery.degradationRate}% <span className="text-xs text-muted-foreground">/ month</span>
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start">
+              <div className={`p-2 rounded-md ${statusColor.replace('text', 'bg')}/10 mr-3`}>
+                <Clock className={`h-4 w-4 ${statusColor}`} />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Last Update</p>
+                <p className="text-sm font-medium">
+                  {new Date(battery.lastUpdated).toLocaleDateString(undefined, {
+                    month: 'short',
+                    day: 'numeric'
+                  })}
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </Card>
-    </Link>
+      </CardContent>
+    </Card>
   )
 }
