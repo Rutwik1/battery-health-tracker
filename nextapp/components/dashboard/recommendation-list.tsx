@@ -1,0 +1,257 @@
+'use client';
+
+import React from 'react';
+import { Recommendation, Battery } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { 
+  AlertCircle, 
+  AlertTriangle, 
+  CheckCircle2, 
+  Info, 
+  Wrench, 
+  ChevronDown, 
+  ChevronUp, 
+  Clock 
+} from 'lucide-react';
+import { formatDateTime } from '@/lib/utils';
+
+interface RecommendationListProps {
+  recommendations: Recommendation[];
+  battery: Battery | null;
+  isLoading: boolean;
+  onResolve?: (id: number) => void;
+}
+
+export default function RecommendationList({ 
+  recommendations, 
+  battery, 
+  isLoading,
+  onResolve 
+}: RecommendationListProps) {
+  const [expanded, setExpanded] = React.useState<boolean>(true);
+
+  // Get icon based on recommendation type
+  const getRecommendationIcon = (type: string, priority: string) => {
+    switch (type.toLowerCase()) {
+      case 'alert':
+        return <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400" />;
+      case 'warning':
+        return <AlertTriangle className="h-5 w-5 text-amber-500 dark:text-amber-400" />;
+      case 'maintenance':
+        return <Wrench className="h-5 w-5 text-blue-500 dark:text-blue-400" />;
+      case 'optimization':
+        return <Info className="h-5 w-5 text-green-500 dark:text-green-400" />;
+      default:
+        // Default to different icons based on priority
+        if (priority.toLowerCase() === 'high') {
+          return <AlertCircle className="h-5 w-5 text-red-500 dark:text-red-400" />;
+        } else if (priority.toLowerCase() === 'medium') {
+          return <AlertTriangle className="h-5 w-5 text-amber-500 dark:text-amber-400" />;
+        } else {
+          return <Info className="h-5 w-5 text-blue-500 dark:text-blue-400" />;
+        }
+    }
+  };
+
+  // Get background color based on recommendation type
+  const getRecommendationBgColor = (type: string, priority: string, resolved: boolean) => {
+    if (resolved) {
+      return 'bg-gray-50 dark:bg-gray-800/50';
+    }
+    
+    switch (type.toLowerCase()) {
+      case 'alert':
+        return 'bg-red-50 dark:bg-red-900/20';
+      case 'warning':
+        return 'bg-amber-50 dark:bg-amber-900/20';
+      case 'maintenance':
+        return 'bg-blue-50 dark:bg-blue-900/20';
+      case 'optimization':
+        return 'bg-green-50 dark:bg-green-900/20';
+      default:
+        // Default to different colors based on priority
+        if (priority.toLowerCase() === 'high') {
+          return 'bg-red-50 dark:bg-red-900/20';
+        } else if (priority.toLowerCase() === 'medium') {
+          return 'bg-amber-50 dark:bg-amber-900/20';
+        } else {
+          return 'bg-blue-50 dark:bg-blue-900/20';
+        }
+    }
+  };
+
+  // Get priority badge color
+  const getPriorityBadgeColor = (priority: string) => {
+    switch (priority.toLowerCase()) {
+      case 'high':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300';
+      case 'medium':
+        return 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300';
+      case 'low':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300';
+    }
+  };
+
+  // Sort recommendations: high priority first, then unresolved, then by date
+  const sortedRecommendations = React.useMemo(() => {
+    return [...recommendations].sort((a, b) => {
+      // First by resolved status
+      if (a.resolved !== b.resolved) {
+        return a.resolved ? 1 : -1;
+      }
+      
+      // Then by priority
+      const priorityOrder = { high: 0, medium: 1, low: 2 };
+      const aPriority = (a.priority.toLowerCase() as 'high' | 'medium' | 'low');
+      const bPriority = (b.priority.toLowerCase() as 'high' | 'medium' | 'low');
+      
+      if (priorityOrder[aPriority] !== priorityOrder[bPriority]) {
+        return priorityOrder[aPriority] - priorityOrder[bPriority];
+      }
+      
+      // Finally by date (newest first)
+      return new Date(b.created).getTime() - new Date(a.created).getTime();
+    });
+  }, [recommendations]);
+
+  const unresolvedCount = sortedRecommendations.filter(rec => !rec.resolved).length;
+  const highPriorityCount = sortedRecommendations.filter(rec => 
+    rec.priority.toLowerCase() === 'high' && !rec.resolved
+  ).length;
+
+  if (isLoading) {
+    return (
+      <Card className="shadow-md h-full">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg">Recommendations</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-5 w-40" />
+          <div className="space-y-3">
+            <Skeleton className="h-24 w-full rounded-md" />
+            <Skeleton className="h-24 w-full rounded-md" />
+            <Skeleton className="h-24 w-full rounded-md" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="shadow-md h-full">
+      <CardHeader className="pb-2 flex flex-row items-center justify-between">
+        <div>
+          <CardTitle className="text-lg">Recommendations</CardTitle>
+          {highPriorityCount > 0 && (
+            <div className="text-sm text-red-600 dark:text-red-400 font-medium mt-1">
+              {highPriorityCount} high priority {highPriorityCount === 1 ? 'issue' : 'issues'}
+            </div>
+          )}
+        </div>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setExpanded(!expanded)}
+          className="p-1 h-7"
+        >
+          {expanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+        </Button>
+      </CardHeader>
+      <CardContent className={expanded ? 'space-y-4' : 'hidden'}>
+        {sortedRecommendations.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            <CheckCircle2 className="h-12 w-12 text-green-500 dark:text-green-400 mb-3" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-1">
+              All Clear!
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 max-w-sm">
+              {battery ? `${battery.name} has no recommendations at this time.` : 'No recommendations available.'}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+              {unresolvedCount} unresolved {unresolvedCount === 1 ? 'recommendation' : 'recommendations'}
+            </div>
+            
+            <div className="space-y-3">
+              {sortedRecommendations.map(recommendation => (
+                <div 
+                  key={recommendation.id}
+                  className={`rounded-lg p-4 border ${
+                    recommendation.resolved 
+                      ? 'border-gray-200 dark:border-gray-700' 
+                      : 'border-transparent'
+                  } ${getRecommendationBgColor(
+                    recommendation.type, 
+                    recommendation.priority,
+                    recommendation.resolved
+                  )}`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5">
+                      {recommendation.resolved 
+                        ? <CheckCircle2 className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                        : getRecommendationIcon(recommendation.type, recommendation.priority)
+                      }
+                    </div>
+                    
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                          {recommendation.type}
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                            getPriorityBadgeColor(recommendation.priority)
+                          }`}>
+                            {recommendation.priority}
+                          </span>
+                          {recommendation.resolved && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300">
+                              Resolved
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <p className={`text-sm mb-2 ${
+                        recommendation.resolved 
+                          ? 'text-gray-500 dark:text-gray-400' 
+                          : 'text-gray-700 dark:text-gray-300'
+                      }`}>
+                        {recommendation.description}
+                      </p>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {formatDateTime(recommendation.created)}
+                        </div>
+                        
+                        {!recommendation.resolved && onResolve && (
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="h-7 px-2 text-xs"
+                            onClick={() => onResolve(recommendation.id)}
+                          >
+                            Mark Resolved
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
