@@ -2,121 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --primary: #8b5cf6;
-  --primary-dark: #7c3aed;
-  --primary-light: #a78bfa;
-  --accent: #3b82f6;
-  --accent-dark: #2563eb;
-  --accent-light: #60a5fa;
-  --background: #0f172a;
-  --foreground: #f8fafc;
-  --card: #1e293b;
-  --card-foreground: #f1f5f9;
-  --border: #334155;
-  --input: #1e293b;
-  --ring: #8b5cf6;
-  --success: #22c55e;
-  --warning: #eab308;
-  --danger: #ef4444;
-  --muted: #334155;
-  --muted-foreground: #94a3b8;
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 262.1 83.3% 57.8%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+    --success: 142.1 76.2% 36.3%;
+    --success-foreground: 355.7 100% 97.3%;
+    --warning: 38 92.7% 50.2%;
+    --warning-foreground: 355.7 100% 97.3%;
+    --danger: 0 84.2% 60.2%;
+    --danger-foreground: 210 40% 98%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 262.1 83.3% 57.8%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+    --success: 142.1 70.6% 45.3%;
+    --success-foreground: 144.9 80.4% 10%;
+    --warning: 48 96.5% 53.9%;
+    --warning-foreground: 38 92.7% 12.3%;
+    --danger: 0 62.8% 50.6%;
+    --danger-foreground: 210 40% 98%;
+  }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 
-    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
 }
 
 @layer components {
-  .bg-gradient-dark {
-    @apply bg-gradient-to-br from-gray-900 to-gray-800;
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
   }
   
   .bg-gradient-card {
-    @apply bg-gradient-to-br from-gray-800 to-gray-900;
+    @apply bg-gradient-to-br from-muted/30 via-card/30 to-card/30;
   }
-  
-  .bg-gradient-primary {
-    @apply bg-gradient-to-r from-purple-600 to-blue-600;
-  }
-  
-  .glow {
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
-  }
-  
-  .animate-pulse-slow {
-    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-  
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: var(--card);
-    border-radius: 5px;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: var(--muted);
-    border-radius: 5px;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--border);
-  }
-}
-
-/* Animation for glowing effects */
-@keyframes glow {
-  0%, 100% {
-    box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 25px rgba(139, 92, 246, 0.4);
-  }
-}
-
-.animate-glow {
-  animation: glow 3s ease-in-out infinite;
-}
-
-/* Dashboard-specific styling */
-.battery-card {
-  @apply bg-gradient-card rounded-xl p-6 shadow-lg border border-purple-900/20 transition-all duration-300 hover:border-purple-700/30 animate-glow;
-  position: relative;
-  overflow: hidden;
-}
-
-.battery-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--primary), var(--accent));
-  opacity: 0.7;
-}
-
-/* Battery status colors */
-.status-good {
-  @apply text-green-400 bg-green-900/20;
-}
-
-.status-fair {
-  @apply text-yellow-400 bg-yellow-900/20;
-}
-
-.status-poor {
-  @apply text-orange-400 bg-orange-900/20;
-}
-
-.status-critical {
-  @apply text-red-400 bg-red-900/20;
 }
