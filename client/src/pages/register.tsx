@@ -23,13 +23,19 @@ export default function Register() {
     setError(null);
 
     try {
-      await signUp(email, password, username);
-      toast({
-        title: "Registration successful",
-        description: "Your account has been created. You can now sign in.",
-        variant: "default",
-      });
-      setLocation("/login");
+      const response = await signUp(email, password, username);
+      
+      if (response.user) {
+        toast({
+          title: "Registration successful",
+          description: "Please check your email to verify your account.",
+          variant: "default",
+        });
+        // Redirect to verification page instead of login
+        setLocation("/verify");
+      } else {
+        throw new Error("Registration failed. Please try again.");
+      }
     } catch (err: any) {
       setError(err.message || "Failed to create account. Please try again.");
     } finally {

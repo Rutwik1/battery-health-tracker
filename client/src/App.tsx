@@ -7,6 +7,7 @@ import Dashboard from "@/pages/dashboard";
 import BatteryDetail from "@/pages/battery-detail";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
+import Verify from "@/pages/verify";
 import NotFound from "@/pages/not-found";
 import { ThemeProvider } from "next-themes";
 import { useEffect } from "react";
@@ -48,6 +49,7 @@ function Router() {
       {/* Public routes */}
       <Route path="/login" component={(props) => <PublicRoute component={Login} {...props} />} />
       <Route path="/register" component={(props) => <PublicRoute component={Register} {...props} />} />
+      <Route path="/verify" component={Verify} />
       
       {/* Protected routes */}
       <Route path="/" component={(props) => <ProtectedRoute component={Dashboard} {...props} />} />
