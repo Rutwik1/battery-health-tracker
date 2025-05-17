@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { setupSupabase } from "./setup-supabase";
 
 const app = express();
 app.use(express.json());
@@ -37,6 +38,19 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Initialize Supabase database (create tables and seed with demo data if needed)
+  try {
+    console.log('Setting up Supabase database...');
+    const success = await setupSupabase();
+    if (success) {
+      console.log('✓ Supabase database setup completed successfully!');
+    } else {
+      console.warn('⚠️ Supabase setup encountered issues - will continue anyway');
+    }
+  } catch (error) {
+    console.error('❌ Error during Supabase setup:', error);
+  }
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
