@@ -25,22 +25,9 @@ export async function signUp(email: string, password: string, username: string) 
   
   if (error) throw error;
   
-  // Also create a record in our users table
-  if (data.user) {
-    // Create a user record in our users table with Supabase UUID
-    const { error: userError } = await supabase
-      .from('users')
-      .upsert({
-        id: data.user.id,
-        username: username,
-        password: 'SUPABASE-AUTH' // We don't store actual passwords
-      });
-      
-    if (userError) {
-      console.error("Error creating user record:", userError);
-      throw userError;
-    }
-  }
+  // For now, we'll bypass the custom users table and just use Supabase Auth
+  // This avoids the UUID conversion issues with our database schema
+  console.log("User registered successfully with Supabase Auth:", data.user?.id);
   
   return data;
 }
@@ -54,19 +41,9 @@ export async function signIn(email: string, password: string) {
   
   if (error) throw error;
   
-  // Create a user record if it doesn't exist yet
+  // For now, we'll bypass the custom users table and just use Supabase Auth directly
   if (data.user) {
-    const { error: userError } = await supabase
-      .from('users')
-      .upsert({
-        id: data.user.id,
-        username: data.user.user_metadata?.username || email.split('@')[0],
-        password: 'SUPABASE-AUTH' // We don't store actual passwords
-      });
-      
-    if (userError) {
-      console.error("Error ensuring user record exists:", userError);
-    }
+    console.log("User logged in successfully with Supabase Auth:", data.user.id);
   }
   
   return data;
@@ -82,23 +59,9 @@ export async function signOut() {
 export async function getCurrentUser() {
   const { data: { user } } = await supabase.auth.getUser();
   
-  // If we have a user via social login (Google), ensure they have a record in our users table
+  // If we have a user via social login (Google), just pass it through
   if (user && user.app_metadata.provider === 'google') {
-    try {
-      const { error: userError } = await supabase
-        .from('users')
-        .upsert({
-          id: user.id,
-          username: user.user_metadata?.name || user.email?.split('@')[0] || 'Google User',
-          password: 'GOOGLE-AUTH'
-        });
-        
-      if (userError) {
-        console.error("Error ensuring Google user record exists:", userError);
-      }
-    } catch (err) {
-      console.error("Error processing Google user:", err);
-    }
+    console.log("Google user authenticated:", user.id);
   }
   
   return user;
