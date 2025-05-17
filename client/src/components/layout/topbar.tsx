@@ -19,7 +19,11 @@ export default function Topbar() {
     <div className="relative z-10 flex-shrink-0 flex h-16 bg-gradient-dark border-b border-border/50 backdrop-blur-sm">
       <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
         <SheetTrigger asChild>
-          <Button variant="ghost" className="md:hidden flex items-center justify-center px-5 py-3 text-primary">
+          <Button 
+            variant="ghost" 
+            className="md:hidden flex items-center justify-center my-auto px-5 py-2 text-primary" 
+            style={{ position: 'relative', top: '1px' }}
+          >
             <Menu className="h-9 w-9" />
           </Button>
         </SheetTrigger>
