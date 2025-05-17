@@ -341,7 +341,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const batteryRecommendations = await storage.getRecommendations(id);
       const generalRecommendations = await storage.getRecommendations(0);
       
-      const recommendations = [...batteryRecommendations, ...generalRecommendations];
+      // Combine battery-specific and general recommendations
+      let recommendations = [...batteryRecommendations, ...generalRecommendations];
+      
+      // Sort recommendations with most recent first
+      recommendations = recommendations.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      
+      // Limit to a maximum of 3 recommendations
+      if (recommendations.length > 3) {
+        recommendations = recommendations.slice(0, 3);
+      }
       
       res.json(recommendations);
     } catch (error) {
