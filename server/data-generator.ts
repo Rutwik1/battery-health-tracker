@@ -11,54 +11,54 @@ const demoBatteries = [
   {
     name: "Battery #1",
     serialNumber: "BAT-001",
-    initialCapacity: 5000,
-    currentCapacity: 4850,
-    healthPercentage: 97,
+    initialCapacity: 4000, 
+    currentCapacity: 3800,
+    healthPercentage: 95,
     cycleCount: 112,
     expectedCycles: 1000,
     status: "Excellent",
-    initialDate: new Date(2024, 0, 15).toISOString(),
+    initialDate: "2023-05-12T00:00:00.000Z",
     lastUpdated: new Date().toISOString(),
-    degradationRate: 0.3
+    degradationRate: 0.5
   },
   {
-    name: "Battery #2",
+    name: "Battery #2", 
     serialNumber: "BAT-002",
-    initialCapacity: 5000,
-    currentCapacity: 4100,
-    healthPercentage: 82,
-    cycleCount: 320,
+    initialCapacity: 4000,
+    currentCapacity: 3500,
+    healthPercentage: 87,
+    cycleCount: 320, 
     expectedCycles: 1000,
     status: "Good",
-    initialDate: new Date(2023, 6, 20).toISOString(),
+    initialDate: "2023-03-24T00:00:00.000Z",
     lastUpdated: new Date().toISOString(),
     degradationRate: 0.7
   },
   {
     name: "Battery #3",
-    serialNumber: "BAT-003",
-    initialCapacity: 5000,
-    currentCapacity: 3750,
-    healthPercentage: 75,
+    serialNumber: "BAT-003", 
+    initialCapacity: 4000,
+    currentCapacity: 2900,
+    healthPercentage: 72,
     cycleCount: 520,
     expectedCycles: 1000,
     status: "Fair",
-    initialDate: new Date(2023, 2, 10).toISOString(),
+    initialDate: "2022-10-18T00:00:00.000Z",
     lastUpdated: new Date().toISOString(),
-    degradationRate: 1.1
+    degradationRate: 1.3
   },
   {
     name: "Battery #4",
     serialNumber: "BAT-004",
-    initialCapacity: 5000,
-    currentCapacity: 3000,
-    healthPercentage: 60,
-    cycleCount: 680,
+    initialCapacity: 4000, 
+    currentCapacity: 2300,
+    healthPercentage: 57,
+    cycleCount: 880,
     expectedCycles: 1000,
     status: "Poor",
-    initialDate: new Date(2022, 9, 5).toISOString(),
+    initialDate: "2021-11-05T00:00:00.000Z",
     lastUpdated: new Date().toISOString(),
-    degradationRate: 1.8
+    degradationRate: 2.1
   }
 ];
 
