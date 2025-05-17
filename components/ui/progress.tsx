@@ -10,21 +10,21 @@ const Progress = React.forwardRef<
     max?: number
     indicatorClassName?: string
   }
->(({ className, value, max = 100, indicatorClassName, ...props }, ref) => {
-  const percentage = value !== undefined ? Math.min(Math.max(0, value), max) / max * 100 : 0
-
+>(({ className, value = 0, max = 100, indicatorClassName, ...props }, ref) => {
+  const percentage = (value / max) * 100
+  
   return (
     <div
       ref={ref}
       className={cn(
-        "relative h-4 w-full overflow-hidden rounded-full bg-secondary",
+        "relative h-3 w-full overflow-hidden rounded-full bg-slate-800/50",
         className
       )}
       {...props}
     >
       <div
         className={cn(
-          "h-full w-full flex-1 bg-primary transition-all",
+          "h-full w-full flex-1 transition-all duration-500 ease-in-out",
           indicatorClassName
         )}
         style={{ width: `${percentage}%` }}

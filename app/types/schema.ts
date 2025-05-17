@@ -1,3 +1,4 @@
+// User model
 export interface User {
   id: number;
   username: string;
@@ -5,6 +6,7 @@ export interface User {
   name: string;
 }
 
+// Battery model
 export interface Battery {
   id: number;
   name: string;
@@ -25,6 +27,7 @@ export interface Battery {
   installationLocation?: string;
 }
 
+// Battery History model
 export interface BatteryHistory {
   id: number;
   batteryId: number;
@@ -34,6 +37,7 @@ export interface BatteryHistory {
   cycleCount: number;
 }
 
+// Usage Pattern model
 export interface UsagePattern {
   id: number;
   batteryId: number;
@@ -45,6 +49,7 @@ export interface UsagePattern {
   fastChargingPercentage: number; // % of charges using fast charging
 }
 
+// Recommendation model
 export interface Recommendation {
   id: number;
   batteryId: number;

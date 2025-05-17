@@ -4,35 +4,42 @@
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
     
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --muted: 223 47% 11%;
+    --muted-foreground: 215.4 16.3% 56.9%;
     
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --accent: 216 34% 17%;
+    --accent-foreground: 210 40% 98%;
     
-    --primary: 252 87% 60%;
-    --primary-foreground: 0 0% 98%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 215 20.2% 65.1%;
     
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
     
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --card: 224 71% 4%;
+    --card-foreground: 213 31% 91%;
     
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 1.2%;
     
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --secondary: 222.2 47.4% 11.2%;
+    --secondary-foreground: 210 40% 98%;
     
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --ring: 216 34% 17%;
     
     --radius: 0.5rem;
+
+    /* Custom Brand Colors for Coulomb.ai */
+    --brand-blue: 230 85% 65%;
+    --brand-purple: 265 90% 65%;
+    --brand-indigo: 245 85% 70%;
+    --brand-violet: 280 85% 65%;
   }
 }
 
@@ -42,74 +49,81 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-image: 
-      radial-gradient(at 27% 37%, hsla(256, 88%, 20%, 0.35) 0px, transparent 80%),
-      radial-gradient(at 97% 21%, hsla(270, 80%, 20%, 0.35) 0px, transparent 80%),
-      radial-gradient(at 52% 99%, hsla(220, 70%, 20%, 0.35) 0px, transparent 80%),
-      radial-gradient(at 10% 29%, hsla(242, 90%, 25%, 0.35) 0px, transparent 80%),
-      radial-gradient(at 97% 96%, hsla(285, 90%, 28%, 0.35) 0px, transparent 80%),
-      radial-gradient(at 33% 50%, hsla(230, 90%, 20%, 0.35) 0px, transparent 80%),
-      radial-gradient(at 79% 53%, hsla(260, 90%, 25%, 0.35) 0px, transparent 80%);
-    background-attachment: fixed;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-@layer utilities {
-  .gradient-text {
-    @apply text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600;
+/* Custom Animations */
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 5px rgba(124, 58, 237, 0.5);
   }
-  
-  .gradient-bg {
-    @apply bg-gradient-to-r from-blue-900/40 to-purple-900/40 backdrop-blur-sm;
+  50% {
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.8), 0 0 30px rgba(79, 70, 229, 0.4);
   }
-  
-  .glass-panel {
-    @apply bg-background/60 backdrop-blur-lg border border-border/50 rounded-xl shadow-lg;
+  100% {
+    box-shadow: 0 0 5px rgba(124, 58, 237, 0.5);
   }
-  
-  .glass-button {
-    @apply bg-background/60 hover:bg-background/80 backdrop-blur-lg border border-border/30 rounded-lg shadow-md transition-all;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
   }
-  
-  .animate-glow {
-    animation: glow 2s ease-in-out infinite alternate;
+  100% {
+    background-position: 200% 0;
   }
-  
-  @keyframes glow {
-    from {
-      box-shadow: 0 0 5px rgba(88, 105, 255, 0.2), 0 0 10px rgba(88, 105, 255, 0.1);
-    }
-    to {
-      box-shadow: 0 0 10px rgba(88, 105, 255, 0.3), 0 0 20px rgba(88, 105, 255, 0.2);
-    }
-  }
-  
-  .shimmer {
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .shimmer::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    transform: translateX(-100%);
-    background-image: linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0) 0,
-      rgba(255, 255, 255, 0.05) 20%,
-      rgba(255, 255, 255, 0.1) 60%,
-      rgba(255, 255, 255, 0)
-    );
-    animation: shimmer 3s infinite;
-  }
-  
-  @keyframes shimmer {
-    100% {
-      transform: translateX(100%);
-    }
-  }
+}
+
+/* Custom Utility Classes */
+.glass-card {
+  @apply bg-gray-900/40 backdrop-blur-md border border-gray-800/60 rounded-xl shadow-lg;
+}
+
+.glassmorphism {
+  @apply bg-gray-900/30 backdrop-blur-md border border-indigo-500/20 shadow-lg;
+}
+
+.glow-effect {
+  animation: pulse-glow 3s infinite ease-in-out;
+}
+
+.shimmer-effect {
+  @apply relative overflow-hidden;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(124, 58, 237, 0.2),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-violet-500 to-purple-600;
+}
+
+.bg-grid {
+  background-image: radial-gradient(rgba(124, 58, 237, 0.1) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.bg-dots {
+  background-image: radial-gradient(rgba(124, 58, 237, 0.15) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-indigo-900/50 rounded-full hover:bg-indigo-700/70 transition-colors;
 }
