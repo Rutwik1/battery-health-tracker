@@ -1,6 +1,8 @@
 import { useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
+import { supabase, signOut } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
 
 interface NavItemProps {
   href: string;
@@ -39,12 +41,23 @@ const NavItem = ({ href, icon, children, active, onClick }: NavItemProps) => {
 };
 
 export default function Sidebar({ isMobile, onNavItemClick }: { isMobile?: boolean; onNavItemClick?: () => void }) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [isClient, setIsClient] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   // Prevent hydration mismatch
   useEffect(() => {
     setIsClient(true);
+    
+    // Get the current user data
+    const fetchUserData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    
+    fetchUserData();
   }, []);
 
   const sidebarContent = (
@@ -102,16 +115,55 @@ export default function Sidebar({ isMobile, onNavItemClick }: { isMobile?: boole
         </nav>
       </div>
       <div className="p-4 m-3 border-t border-border/50 rounded-lg bg-muted/50 mt-auto">
-        <div className="flex items-center">
-          <div className="flex-shrink-0">
-            <div className="h-10 w-10 rounded-full bg-gradient-primary flex items-center justify-center text-background shadow-md">
-              <span className="text-sm font-semibold">JS</span>
+        <div className="flex flex-col space-y-3">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <div className="h-10 w-10 rounded-full bg-gradient-primary flex items-center justify-center text-background shadow-md">
+                <span className="text-sm font-semibold">
+                  {user ? (user.user_metadata?.username?.[0] || user.email?.[0] || '?').toUpperCase() : '?'}
+                </span>
+              </div>
+            </div>
+            <div className="ml-3 flex-grow">
+              <p className="text-sm font-medium text-foreground">
+                {user ? (user.user_metadata?.username || user.email?.split('@')[0] || 'User') : 'Loading...'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {user?.email || ''}
+              </p>
             </div>
           </div>
-          <div className="ml-3">
-            <p className="text-sm font-medium text-foreground">John Smith</p>
-            <p className="text-xs text-muted-foreground">Administrator</p>
-          </div>
+          <button
+            onClick={async () => {
+              try {
+                setLoading(true);
+                await signOut();
+                toast({
+                  title: "Success",
+                  description: "You have been logged out.",
+                  variant: "default",
+                });
+                setLocation("/login");
+              } catch (error: any) {
+                toast({
+                  title: "Error",
+                  description: error.message || "Failed to log out. Please try again.",
+                  variant: "destructive",
+                });
+              } finally {
+                setLoading(false);
+              }
+            }}
+            disabled={loading}
+            className="w-full px-3 py-2 text-sm font-medium rounded-md bg-white/5 hover:bg-white/10 text-foreground transition-colors flex items-center justify-center space-x-2"
+          >
+            {loading ? (
+              <span className="animate-spin h-4 w-4 border-2 border-foreground/30 border-t-foreground rounded-full mr-2"></span>
+            ) : (
+              <i className="ri-logout-box-line mr-2"></i>
+            )}
+            <span>{loading ? "Logging out..." : "Logout"}</span>
+          </button>
         </div>
       </div>
     </div>
