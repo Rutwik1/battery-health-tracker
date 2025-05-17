@@ -1,10 +1,12 @@
-'use client';
+"use client"
 
-import React from 'react';
-import { Battery, BatteryIcon, BatteryLow } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getBatteryStatusColor, formatNumber } from "@/lib/utils";
-import { Battery as BatteryType } from "@/app/types/schema";
+import * as React from "react"
+import { Battery, BoltIcon } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { cn, formatDate, formatNumber, getBatteryStatusColor } from "@/lib/utils"
+import { Battery as BatteryType } from "@/app/types/schema"
+import { Progress } from "@/components/ui/progress"
+import { Badge } from "@/components/ui/badge"
 
 interface BatteryStatusCardProps {
   battery: BatteryType | null;
@@ -12,114 +14,176 @@ interface BatteryStatusCardProps {
 }
 
 export default function BatteryStatusCard({ battery, isLoading = false }: BatteryStatusCardProps) {
+  const getStatusColorClass = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'excellent':
+        return 'bg-green-500'
+      case 'good':
+        return 'bg-blue-500'
+      case 'fair':
+        return 'bg-yellow-500'
+      case 'poor':
+        return 'bg-red-500'
+      default:
+        return 'bg-gray-500'
+    }
+  }
+
+  const getBadgeVariant = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'excellent':
+        return 'success'
+      case 'good':
+        return 'info'
+      case 'fair':
+        return 'warning'
+      case 'poor':
+        return 'danger'
+      default:
+        return 'secondary'
+    }
+  }
+
+  const renderBatteryIndicator = (percentage: number) => {
+    const segments = [
+      { threshold: 25, className: "bg-red-500" },
+      { threshold: 50, className: "bg-yellow-500" },
+      { threshold: 75, className: "bg-blue-500" },
+      { threshold: 100, className: "bg-green-500" },
+    ]
+    
+    return (
+      <div className="relative h-4 w-full overflow-hidden rounded-full bg-secondary">
+        {segments.map((segment, i) => {
+          const prevThreshold = i > 0 ? segments[i - 1].threshold : 0
+          const width = Math.max(0, Math.min(percentage - prevThreshold, segment.threshold - prevThreshold))
+          const segmentWidth = `${(width / (segment.threshold - prevThreshold)) * 25}%`
+          
+          return (
+            <div
+              key={i}
+              className={cn(
+                "absolute h-full transition-all duration-500",
+                segment.className
+              )}
+              style={{
+                left: `${i * 25}%`,
+                width: percentage >= prevThreshold ? segmentWidth : '0%',
+              }}
+            />
+          )
+        })}
+      </div>
+    )
+  }
+
   if (isLoading) {
     return (
-      <Card className="h-full">
+      <Card className="animate-pulse">
         <CardHeader className="pb-2">
-          <CardTitle className="text-xl flex items-center">
-            <div className="h-5 w-32 bg-muted/20 animate-pulse rounded"></div>
-          </CardTitle>
+          <CardTitle className="h-7 w-40 rounded-md bg-muted"></CardTitle>
+          <CardDescription className="h-5 w-28 rounded-md bg-muted"></CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            <div className="flex justify-center">
-              <div className="h-32 w-32 bg-muted/20 animate-pulse rounded-full"></div>
-            </div>
-            <div className="space-y-2">
-              <div className="h-4 w-full bg-muted/20 animate-pulse rounded"></div>
-              <div className="h-4 w-2/3 bg-muted/20 animate-pulse rounded"></div>
-              <div className="h-4 w-3/4 bg-muted/20 animate-pulse rounded"></div>
-            </div>
+        <CardContent className="space-y-4">
+          <div className="h-4 w-full rounded-full bg-muted"></div>
+          <div className="space-y-2">
+            <div className="h-4 w-3/4 rounded-md bg-muted"></div>
+            <div className="h-4 w-1/2 rounded-md bg-muted"></div>
+            <div className="h-4 w-2/3 rounded-md bg-muted"></div>
           </div>
         </CardContent>
       </Card>
-    );
+    )
   }
 
   if (!battery) {
     return (
-      <Card className="h-full">
+      <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-xl flex items-center">
-            <BatteryLow className="mr-2 h-5 w-5 text-muted-foreground" />
-            No Battery Selected
-          </CardTitle>
+          <CardTitle>Battery Status</CardTitle>
+          <CardDescription>No battery selected</CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center h-[280px]">
-          <p className="text-muted-foreground text-center">
-            Select a battery to view detailed information.
+        <CardContent className="text-center py-6">
+          <Battery className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+          <p className="text-muted-foreground">
+            Select a battery to view its status
           </p>
         </CardContent>
       </Card>
-    );
+    )
   }
 
-  const statusColor = getBatteryStatusColor(battery.status);
-  const healthPercentage = battery.healthPercentage;
-  
-  // We'll use this to calculate the gradient positions
-  const healthGradient = 
-    healthPercentage > 90 ? "from-success via-success to-success/50" :
-    healthPercentage > 70 ? "from-primary via-primary to-primary/50" :
-    healthPercentage > 50 ? "from-warning via-warning to-warning/50" :
-    "from-danger via-danger to-danger/50";
-
   return (
-    <Card className="h-full">
+    <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-xl flex items-center">
-          <Battery className="mr-2 h-5 w-5 text-primary" />
-          Battery Status
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          <div className="flex justify-center">
-            <div className="relative w-40 h-40 flex items-center justify-center">
-              {/* Background gradient circle */}
-              <div className={`absolute w-full h-full rounded-full opacity-10 bg-gradient-to-tl ${healthGradient}`}></div>
-              
-              {/* Percentage circle with gradient border */}
-              <div className="relative w-32 h-32 rounded-full flex items-center justify-center">
-                <div 
-                  className={`absolute inset-0 rounded-full bg-gradient-to-br ${healthGradient}`} 
-                  style={{
-                    clipPath: `polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% ${100 - healthPercentage}%)`
-                  }}
-                ></div>
-                <div className="absolute inset-1 rounded-full bg-card"></div>
-                <div className="relative">
-                  <span className="text-4xl font-bold">{healthPercentage}</span>
-                  <span className="text-xl">%</span>
-                  <div className={`text-sm ${statusColor}`}>{battery.status}</div>
-                </div>
-              </div>
-            </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>{battery.name}</CardTitle>
+            <CardDescription>
+              S/N: {battery.serialNumber}
+            </CardDescription>
           </div>
-          
-          <div className="space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Capacity:</span>
-              <span className="font-medium">{formatNumber(battery.currentCapacity)} / {formatNumber(battery.initialCapacity)} mAh</span>
-            </div>
-            
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Cycles:</span>
-              <span className="font-medium">{battery.cycleCount} / {battery.expectedCycles}</span>
-            </div>
-            
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Model:</span>
-              <span className="font-medium">{battery.model || "N/A"}</span>
-            </div>
-            
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Chemistry:</span>
-              <span className="font-medium">{battery.chemistry || "Unknown"}</span>
-            </div>
+          <Badge variant={getBadgeVariant(battery.status) as any}>
+            {battery.status}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm">Health</span>
+            <span 
+              className={cn(
+                "text-sm font-medium", 
+                getBatteryStatusColor(battery.status)
+              )}
+            >
+              {battery.healthPercentage.toFixed(1)}%
+            </span>
+          </div>
+          {renderBatteryIndicator(battery.healthPercentage)}
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Current Capacity</p>
+            <p className="text-lg font-semibold">
+              {formatNumber(battery.currentCapacity)} <span className="text-xs">mAh</span>
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Cycle Count</p>
+            <p className="text-lg font-semibold">
+              {battery.cycleCount} <span className="text-xs">cycles</span>
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Degradation Rate</p>
+            <p className="text-lg font-semibold">
+              {battery.degradationRate.toFixed(2)} <span className="text-xs">%/mo</span>
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Last Updated</p>
+            <p className="text-lg font-semibold">
+              {formatDate(battery.lastUpdated)}
+            </p>
+          </div>
+        </div>
+        
+        <div className="pt-2 text-xs text-muted-foreground">
+          <div className="flex items-center">
+            <BoltIcon className="mr-1 h-3 w-3" />
+            <span className="font-medium">Initial Capacity:</span>
+            <span className="ml-1">{formatNumber(battery.initialCapacity)} mAh</span>
+          </div>
+          <div className="flex items-center mt-1">
+            <Battery className="mr-1 h-3 w-3" />
+            <span className="font-medium">Chemistry:</span>
+            <span className="ml-1">{battery.chemistry || "Not specified"}</span>
           </div>
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

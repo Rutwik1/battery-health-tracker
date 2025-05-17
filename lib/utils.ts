@@ -1,72 +1,70 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs))
 }
 
 export function formatNumber(num: number): string {
-  return num.toLocaleString();
+  return num.toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })
 }
 
 export function formatDate(date: Date): string {
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  }).format(date)
 }
 
 export function getBatteryStatusColor(status: string) {
   switch (status.toLowerCase()) {
-    case "excellent":
-      return "bg-success text-success-foreground";
-    case "good":
-      return "bg-primary text-primary-foreground";
-    case "fair":
-      return "bg-warning text-warning-foreground";
-    case "poor":
-      return "bg-destructive text-destructive-foreground";
+    case 'excellent':
+      return 'text-green-500'
+    case 'good':
+      return 'text-blue-500'
+    case 'fair':
+      return 'text-yellow-500'
+    case 'poor':
+      return 'text-red-500'
     default:
-      return "bg-secondary text-secondary-foreground";
+      return 'text-gray-500'
   }
 }
 
 export function getBatteryHealthStatus(percentage: number): string {
-  if (percentage >= 90) return "Excellent";
-  if (percentage >= 75) return "Good";
-  if (percentage >= 60) return "Fair";
-  return "Poor";
+  if (percentage >= 90) return "Excellent"
+  if (percentage >= 75) return "Good"
+  if (percentage >= 60) return "Fair"
+  return "Poor"
 }
 
 export function getProgressColorClass(percentage: number): string {
-  if (percentage >= 90) return "battery-progress-excellent";
-  if (percentage >= 75) return "battery-progress-good";
-  if (percentage >= 60) return "battery-progress-fair";
-  return "battery-progress-poor";
+  if (percentage >= 90) return "bg-green-500"
+  if (percentage >= 75) return "bg-blue-500"
+  if (percentage >= 60) return "bg-yellow-500"
+  return "bg-red-500"
 }
 
 export function getTrendIcon(value: number): string {
-  if (value > 0) return "↑";
-  if (value < 0) return "↓";
-  return "→";
+  if (value > 0) return "↗"
+  if (value < 0) return "↘"
+  return "→"
 }
 
 export function getTrendColorClass(value: number, isPositiveTrend: boolean = true): string {
-  // For metrics where positive changes are good (capacity, health)
   if (isPositiveTrend) {
-    if (value > 0) return "text-success";
-    if (value < 0) return "text-destructive";
-    return "text-muted-foreground";
-  } 
-  // For metrics where negative changes are good (degradation rate)
-  else {
-    if (value < 0) return "text-success";
-    if (value > 0) return "text-destructive";
-    return "text-muted-foreground";
+    // For metrics where higher is better (e.g., capacity)
+    return value >= 0 ? "text-green-500" : "text-red-500"
+  } else {
+    // For metrics where lower is better (e.g., degradation)
+    return value <= 0 ? "text-green-500" : "text-red-500"
   }
 }
 
 export function calculateRemainingCycles(cycleCount: number, expectedCycles: number): number {
-  return Math.max(0, expectedCycles - cycleCount);
+  return Math.max(0, expectedCycles - cycleCount)
 }
