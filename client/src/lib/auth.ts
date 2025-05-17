@@ -60,10 +60,8 @@ export async function signIn(email: string, password: string) {
       .from('users')
       .upsert({
         id: data.user.id,
-        email: email,
-        firstName: data.user.user_metadata?.username || email.split('@')[0],
-        lastName: '',
-        profileImageUrl: ''
+        username: data.user.user_metadata?.username || email.split('@')[0],
+        password: 'SUPABASE-AUTH' // We don't store actual passwords
       });
       
     if (userError) {
@@ -83,6 +81,26 @@ export async function signOut() {
 // Get the current user
 export async function getCurrentUser() {
   const { data: { user } } = await supabase.auth.getUser();
+  
+  // If we have a user via social login (Google), ensure they have a record in our users table
+  if (user && user.app_metadata.provider === 'google') {
+    try {
+      const { error: userError } = await supabase
+        .from('users')
+        .upsert({
+          id: user.id,
+          username: user.user_metadata?.name || user.email?.split('@')[0] || 'Google User',
+          password: 'GOOGLE-AUTH'
+        });
+        
+      if (userError) {
+        console.error("Error ensuring Google user record exists:", userError);
+      }
+    } catch (err) {
+      console.error("Error processing Google user:", err);
+    }
+  }
+  
   return user;
 }
 
