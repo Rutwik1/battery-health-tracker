@@ -1,6 +1,6 @@
 import {
-  users, type User, type InsertUser,
-  batteries, type Battery, type InsertBattery,
+  users, type User, type UpsertUser,
+  batteries, type Battery, type InsertBattery, 
   batteryHistory, type BatteryHistory, type InsertBatteryHistory,
   usagePatterns, type UsagePattern, type InsertUsagePattern,
   recommendations, type Recommendation, type InsertRecommendation
@@ -9,9 +9,9 @@ import {
 // Interface with CRUD methods
 export interface IStorage {
   // User methods (from original template)
-  getUser(id: number): Promise<User | undefined>;
+  getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  createUser(user: UpsertUser): Promise<User>;
 
   // Battery methods
   getBatteries(): Promise<Battery[]>;
@@ -37,13 +37,12 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<number, User>;
+  private users: Map<string, User>;
   private batteries: Map<number, Battery>;
   private batteryHistories: Map<number, BatteryHistory>;
   private usagePatterns: Map<number, UsagePattern>;
   private recommendations: Map<number, Recommendation>;
   
-  private userCurrentId: number;
   private batteryCurrentId: number;
   private historyCurrentId: number;
   private patternCurrentId: number;
@@ -67,7 +66,7 @@ export class MemStorage implements IStorage {
   }
 
   // User methods (from original template)
-  async getUser(id: number): Promise<User | undefined> {
+  async getUser(id: string): Promise<User | undefined> {
     return this.users.get(id);
   }
 

@@ -46,7 +46,7 @@ export const batteries = pgTable("batteries", {
   initialDate: text("initial_date").notNull(), // Store as ISO string for Supabase compatibility
   lastUpdated: text("last_updated").notNull(), // Store as ISO string for Supabase compatibility
   degradationRate: real("degradation_rate").notNull(), // % per month
-  userId: integer("user_id"),
+  userId: text("user_id"), // Changed to text for UUID compatibility with Supabase Auth
 });
 
 export const insertBatterySchema = createInsertSchema(batteries).omit({
