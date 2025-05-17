@@ -171,7 +171,7 @@ export async function generateBatteryUpdate() {
     
     // Update battery status based on health
     let newStatus = "Excellent";
-    if (newHealth < 95) newStatus = "Good";
+    if (newHealth < 90) newStatus = "Good";
     if (newHealth < 80) newStatus = "Fair";
     if (newHealth < 70) newStatus = "Poor";
     
