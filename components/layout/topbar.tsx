@@ -1,119 +1,67 @@
-'use client';
+"use client"
 
-import React, { useState } from 'react';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Sheet, SheetContent, SheetTrigger } from '../../components/ui/sheet';
-import { Bell, Menu, Search, User, Moon, Sun } from 'lucide-react';
-import { AddBatteryDialog } from '../../components/dashboard/add-battery-dialog';
-import Sidebar from './sidebar';
-import { useTheme } from 'next-themes';
+import { useState } from "react"
+import Link from "next/link"
+import { Search, Bell, HelpCircle, Menu, X } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Sidebar } from "./sidebar"
 
-export default function Topbar() {
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-  const { theme, setTheme } = useTheme();
+export function Topbar() {
+  const [showMobileMenu, setShowMobileMenu] = useState(false)
   
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
-
+  const toggleMobileMenu = () => {
+    setShowMobileMenu(!showMobileMenu)
+  }
+  
   return (
-    <header className="sticky top-0 z-30 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
-        <div className="mr-4 hidden md:flex">
-          <a href="/" className="mr-6 flex items-center space-x-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-primary"
-            >
-              <path d="M14 6h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2" />
-              <path d="M6 6h6v10H6z" />
-              <line x1="6" y1="10" x2="12" y2="10" />
-            </svg>
-            <span className="font-bold">Coulomb.ai</span>
-          </a>
+    <>
+      <div className="flex h-14 items-center border-b border-border px-4 lg:px-6">
+        <button
+          className="mr-2 rounded-md p-2 text-muted-foreground hover:bg-secondary md:hidden"
+          onClick={toggleMobileMenu}
+        >
+          {showMobileMenu ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          <span className="sr-only">Toggle menu</span>
+        </button>
+        <div className="relative md:w-80">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <input
+            type="search"
+            placeholder="Search batteries..."
+            className="w-full rounded-md border border-input bg-background py-2 pl-8 pr-4 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
         </div>
-        
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="mr-2 md:hidden">
-              <Menu className="h-4 w-4" />
-              <span className="sr-only">Toggle Menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="pr-0 sm:max-w-xs">
-            <Sidebar isMobile={true} onNavItemClick={() => {}} />
-          </SheetContent>
-        </Sheet>
-        
-        {/* Search */}
-        <div className={`flex items-center ${isSearchExpanded ? 'w-full' : 'w-auto'} md:w-auto`}>
-          <div className={`relative ${isSearchExpanded ? 'w-full' : 'w-auto'} md:w-auto`}>
-            {isSearchExpanded ? (
-              <Input
-                placeholder="Search batteries, reports, users..."
-                className="h-9 md:w-[300px] lg:w-[400px]"
-                autoFocus
-                onBlur={() => setIsSearchExpanded(false)}
-              />
-            ) : (
-              <Button 
-                variant="outline" 
-                size="icon" 
-                onClick={() => setIsSearchExpanded(true)}
-                className="h-9 w-9 md:hidden"
-              >
-                <Search className="h-4 w-4" />
-                <span className="sr-only">Search</span>
-              </Button>
-            )}
-            <div className="hidden md:flex items-center relative">
-              <Search className="absolute left-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search batteries, reports, users..."
-                className="w-[300px] pl-8"
-              />
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex flex-1 items-center justify-end space-x-2">
-          <AddBatteryDialog />
-          
-          <Button
-            variant="outline"
-            size="icon"
-            className="ml-auto hidden h-9 md:flex"
-            onClick={toggleTheme}
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            className="rounded-full p-2 text-muted-foreground hover:bg-secondary"
+            aria-label="Notifications"
           >
-            {theme === 'dark' ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )}
-            <span className="sr-only">Toggle theme</span>
-          </Button>
-          
-          <Button variant="outline" size="icon" className="h-9 w-9 relative">
-            <Bell className="h-4 w-4" />
-            <span className="sr-only">Notifications</span>
-            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-xs leading-4 text-destructive-foreground flex items-center justify-center">2</span>
-          </Button>
-          
-          <Button variant="outline" size="icon" className="h-9 w-9">
-            <User className="h-4 w-4" />
-            <span className="sr-only">User account</span>
-          </Button>
+            <Bell className="h-5 w-5" />
+          </button>
+          <button
+            className="rounded-full p-2 text-muted-foreground hover:bg-secondary"
+            aria-label="Help"
+          >
+            <HelpCircle className="h-5 w-5" />
+          </button>
+          <Link
+            href="/batteries/add"
+            className="ml-2 inline-flex items-center justify-center rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            <span className="mr-1">+</span> Add Battery
+          </Link>
         </div>
       </div>
-    </header>
-  );
+      
+      {/* Mobile sidebar */}
+      {showMobileMenu && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm" onClick={toggleMobileMenu} />
+          <div className="fixed left-0 top-0 h-full w-72 border-r border-border bg-background p-0">
+            <Sidebar isMobile={true} onNavItemClick={toggleMobileMenu} />
+          </div>
+        </div>
+      )}
+    </>
+  )
 }

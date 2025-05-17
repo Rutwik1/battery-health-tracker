@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { Battery, BatteryHistory, UsagePattern, Recommendation } from '@/app/types/schema';
-import { generateDemoData } from '@/app/lib/demoData';
+import { Battery, BatteryHistory, UsagePattern, Recommendation } from '../types/schema';
+import { generateDemoData } from '../lib/demoData';
 
 interface BatteryState {
   batteries: Battery[];
@@ -32,11 +32,10 @@ interface BatteryState {
 }
 
 export const useBatteryStore = create<BatteryState>((set, get) => {
-  // Initial state with demo data
+  // Load demo data
   const demoData = generateDemoData();
   
   return {
-    // State
     batteries: demoData.batteries,
     batteryHistories: demoData.batteryHistories,
     usagePatterns: demoData.usagePatterns,
@@ -46,20 +45,23 @@ export const useBatteryStore = create<BatteryState>((set, get) => {
     
     // Battery operations
     fetchBatteries: async () => {
+      // Simulating API request
       set({ isLoading: true, error: null });
+      
       try {
-        // In a real app, we would fetch from an API
-        // For now, we'll just use our demo data
-        const data = generateDemoData();
+        // In a real app, we would make an API call here
+        // For demo purposes, we'll just use the demo data
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+        
         set({ 
-          batteries: data.batteries,
-          batteryHistories: data.batteryHistories,
-          usagePatterns: data.usagePatterns,
-          recommendations: data.recommendations,
-          isLoading: false 
+          batteries: demoData.batteries,
+          isLoading: false
         });
       } catch (error) {
-        set({ error: (error as Error).message, isLoading: false });
+        set({ 
+          error: "Failed to fetch batteries",
+          isLoading: false
+        });
       }
     },
     
@@ -69,18 +71,20 @@ export const useBatteryStore = create<BatteryState>((set, get) => {
     
     addBattery: async (batteryData: Omit<Battery, 'id'>) => {
       set({ isLoading: true, error: null });
+      
       try {
-        // Generate a new ID (in a real app, the backend would do this)
-        const maxId = Math.max(0, ...get().batteries.map(b => b.id));
-        const id = maxId + 1;
+        // Simulate API request
+        await new Promise(resolve => setTimeout(resolve, 500));
         
+        const nextId = Math.max(...get().batteries.map(b => b.id)) + 1;
         const newBattery: Battery = {
-          id,
           ...batteryData,
+          id: nextId,
+          status: batteryData.status || 'Excellent',
+          initialDate: batteryData.initialDate || new Date(),
           lastUpdated: new Date()
         };
         
-        // Add to state
         set(state => ({
           batteries: [...state.batteries, newBattery],
           isLoading: false
@@ -88,55 +92,75 @@ export const useBatteryStore = create<BatteryState>((set, get) => {
         
         return newBattery;
       } catch (error) {
-        set({ error: (error as Error).message, isLoading: false });
+        set({ 
+          error: "Failed to add battery",
+          isLoading: false
+        });
         throw error;
       }
     },
     
     updateBattery: async (id: number, batteryUpdate: Partial<Battery>) => {
       set({ isLoading: true, error: null });
+      
       try {
-        const batteries = get().batteries;
-        const batteryIndex = batteries.findIndex(b => b.id === id);
+        await new Promise(resolve => setTimeout(resolve, 500));
         
+        const batteryIndex = get().batteries.findIndex(b => b.id === id);
         if (batteryIndex === -1) {
           set({ isLoading: false });
           return undefined;
         }
         
         const updatedBattery = {
-          ...batteries[batteryIndex],
+          ...get().batteries[batteryIndex],
           ...batteryUpdate,
           lastUpdated: new Date()
         };
         
-        const updatedBatteries = [...batteries];
+        const updatedBatteries = [...get().batteries];
         updatedBatteries[batteryIndex] = updatedBattery;
         
-        set({ batteries: updatedBatteries, isLoading: false });
+        set({
+          batteries: updatedBatteries,
+          isLoading: false
+        });
+        
         return updatedBattery;
       } catch (error) {
-        set({ error: (error as Error).message, isLoading: false });
+        set({ 
+          error: "Failed to update battery",
+          isLoading: false
+        });
         throw error;
       }
     },
     
     deleteBattery: async (id: number) => {
       set({ isLoading: true, error: null });
+      
       try {
-        const batteries = get().batteries;
-        const updatedBatteries = batteries.filter(b => b.id !== id);
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        // If the array length is the same, the battery wasn't found
-        if (updatedBatteries.length === batteries.length) {
+        const batteryIndex = get().batteries.findIndex(b => b.id === id);
+        if (batteryIndex === -1) {
           set({ isLoading: false });
           return false;
         }
         
-        set({ batteries: updatedBatteries, isLoading: false });
+        const updatedBatteries = get().batteries.filter(b => b.id !== id);
+        
+        set({
+          batteries: updatedBatteries,
+          isLoading: false
+        });
+        
         return true;
       } catch (error) {
-        set({ error: (error as Error).message, isLoading: false });
+        set({ 
+          error: "Failed to delete battery",
+          isLoading: false
+        });
         throw error;
       }
     },
@@ -144,60 +168,78 @@ export const useBatteryStore = create<BatteryState>((set, get) => {
     // Battery history operations
     fetchBatteryHistory: async (batteryId: number) => {
       set({ isLoading: true, error: null });
+      
       try {
-        const batteryHistories = get().batteryHistories;
-        const history = batteryHistories.get(batteryId) || [];
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const histories = get().batteryHistories.get(batteryId) || [];
+        
         set({ isLoading: false });
-        return history;
+        return histories;
       } catch (error) {
-        set({ error: (error as Error).message, isLoading: false });
+        set({ 
+          error: "Failed to fetch battery history",
+          isLoading: false
+        });
         throw error;
       }
     },
     
     fetchBatteryHistoryFiltered: async (batteryId: number, startDate: Date, endDate: Date) => {
       set({ isLoading: true, error: null });
+      
       try {
-        const batteryHistories = get().batteryHistories;
-        const history = batteryHistories.get(batteryId) || [];
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        const filteredHistory = history.filter(entry => {
-          const entryDate = new Date(entry.date);
-          return entryDate >= startDate && entryDate <= endDate;
-        });
+        const histories = get().batteryHistories.get(batteryId) || [];
+        const filteredHistories = histories.filter(
+          h => h.date >= startDate && h.date <= endDate
+        );
         
         set({ isLoading: false });
-        return filteredHistory;
+        return filteredHistories;
       } catch (error) {
-        set({ error: (error as Error).message, isLoading: false });
+        set({ 
+          error: "Failed to fetch battery history with filter",
+          isLoading: false
+        });
         throw error;
       }
     },
     
     addBatteryHistory: async (historyData: Omit<BatteryHistory, 'id'>) => {
       set({ isLoading: true, error: null });
+      
       try {
-        const batteryHistories = get().batteryHistories;
-        const batteryHistory = batteryHistories.get(historyData.batteryId) || [];
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Generate a new ID
-        const maxId = Math.max(0, ...batteryHistory.map(h => h.id));
-        const id = maxId + 1;
-        
+        const histories = get().batteryHistories.get(historyData.batteryId) || [];
+        const nextId = histories.length > 0 
+          ? Math.max(...histories.map(h => h.id)) + 1 
+          : 1;
+          
         const newHistory: BatteryHistory = {
-          id,
           ...historyData,
+          id: nextId
         };
         
-        // Add to state
-        const updatedHistory = [...batteryHistory, newHistory];
-        const updatedHistories = new Map(batteryHistories);
-        updatedHistories.set(historyData.batteryId, updatedHistory);
+        const updatedHistories = new Map(get().batteryHistories);
+        updatedHistories.set(
+          historyData.batteryId, 
+          [...histories, newHistory]
+        );
         
-        set({ batteryHistories: updatedHistories, isLoading: false });
+        set({
+          batteryHistories: updatedHistories,
+          isLoading: false
+        });
+        
         return newHistory;
       } catch (error) {
-        set({ error: (error as Error).message, isLoading: false });
+        set({ 
+          error: "Failed to add history entry",
+          isLoading: false
+        });
         throw error;
       }
     },
@@ -205,23 +247,30 @@ export const useBatteryStore = create<BatteryState>((set, get) => {
     // Usage pattern operations
     getUsagePattern: async (batteryId: number) => {
       set({ isLoading: true, error: null });
+      
       try {
-        const usagePatterns = get().usagePatterns;
-        const pattern = usagePatterns.get(batteryId);
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const pattern = get().usagePatterns.get(batteryId);
+        
         set({ isLoading: false });
         return pattern;
       } catch (error) {
-        set({ error: (error as Error).message, isLoading: false });
+        set({ 
+          error: "Failed to get usage pattern",
+          isLoading: false
+        });
         throw error;
       }
     },
     
     updateUsagePattern: async (id: number, patternUpdate: Partial<UsagePattern>) => {
       set({ isLoading: true, error: null });
+      
       try {
-        const usagePatterns = get().usagePatterns;
-        const pattern = usagePatterns.get(id);
+        await new Promise(resolve => setTimeout(resolve, 500));
         
+        const pattern = get().usagePatterns.get(id);
         if (!pattern) {
           set({ isLoading: false });
           return undefined;
@@ -232,73 +281,93 @@ export const useBatteryStore = create<BatteryState>((set, get) => {
           ...patternUpdate
         };
         
-        const updatedPatterns = new Map(usagePatterns);
+        const updatedPatterns = new Map(get().usagePatterns);
         updatedPatterns.set(id, updatedPattern);
         
-        set({ usagePatterns: updatedPatterns, isLoading: false });
+        set({
+          usagePatterns: updatedPatterns,
+          isLoading: false
+        });
+        
         return updatedPattern;
       } catch (error) {
-        set({ error: (error as Error).message, isLoading: false });
+        set({ 
+          error: "Failed to update usage pattern",
+          isLoading: false
+        });
         throw error;
       }
     },
     
-    // Recommendations operations
+    // Recommendation operations
     getRecommendations: async (batteryId: number) => {
       set({ isLoading: true, error: null });
+      
       try {
-        const recommendations = get().recommendations;
-        const batteryRecommendations = recommendations.get(batteryId) || [];
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const recs = get().recommendations.get(batteryId) || [];
+        
         set({ isLoading: false });
-        return batteryRecommendations;
+        return recs;
       } catch (error) {
-        set({ error: (error as Error).message, isLoading: false });
+        set({ 
+          error: "Failed to get recommendations",
+          isLoading: false
+        });
         throw error;
       }
     },
     
     updateRecommendation: async (id: number, resolved: boolean) => {
       set({ isLoading: true, error: null });
+      
       try {
-        const recommendations = get().recommendations;
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Find the recommendation in any of the batteries
-        let foundRecommendation: Recommendation | undefined;
-        let foundBatteryId: number | undefined;
+        // Find which battery has this recommendation
+        let foundBatteryId: number | null = null;
+        let foundRec: Recommendation | undefined;
         
-        recommendations.forEach((batteryRecommendations, batteryId) => {
-          const recommendation = batteryRecommendations.find(r => r.id === id);
-          if (recommendation) {
-            foundRecommendation = recommendation;
+        get().recommendations.forEach((recs, batteryId) => {
+          const rec = recs.find(r => r.id === id);
+          if (rec) {
             foundBatteryId = batteryId;
+            foundRec = rec;
           }
         });
         
-        if (!foundRecommendation || foundBatteryId === undefined) {
+        if (!foundBatteryId || !foundRec) {
           set({ isLoading: false });
           return undefined;
         }
         
-        const updatedRecommendation = {
-          ...foundRecommendation,
+        const updatedRec = {
+          ...foundRec,
           resolved
         };
         
-        // Update the recommendation in the state
-        const batteryRecommendations = recommendations.get(foundBatteryId) || [];
-        const updatedBatteryRecommendations = batteryRecommendations.map(r => 
-          r.id === id ? updatedRecommendation : r
+        const batteryRecs = get().recommendations.get(foundBatteryId) || [];
+        const updatedBatteryRecs = batteryRecs.map(r => 
+          r.id === id ? updatedRec : r
         );
         
-        const updatedRecommendations = new Map(recommendations);
-        updatedRecommendations.set(foundBatteryId, updatedBatteryRecommendations);
+        const updatedRecommendations = new Map(get().recommendations);
+        updatedRecommendations.set(foundBatteryId, updatedBatteryRecs);
         
-        set({ recommendations: updatedRecommendations, isLoading: false });
-        return updatedRecommendation;
+        set({
+          recommendations: updatedRecommendations,
+          isLoading: false
+        });
+        
+        return updatedRec;
       } catch (error) {
-        set({ error: (error as Error).message, isLoading: false });
+        set({ 
+          error: "Failed to update recommendation",
+          isLoading: false
+        });
         throw error;
       }
-    },
+    }
   };
 });

@@ -1,180 +1,266 @@
-import { Battery, BatteryHistory, UsagePattern, Recommendation } from '@/app/types/schema';
+import { Battery, BatteryHistory, UsagePattern, Recommendation } from "../types/schema";
 
 export function generateDemoData() {
   const batteries: Battery[] = [
     {
       id: 1,
-      name: "Server Backup Battery",
-      serialNumber: "SBB-2023-001",
-      initialCapacity: 10000,
-      currentCapacity: 9500,
-      healthPercentage: 95,
-      cycleCount: 120,
-      expectedCycles: 1000,
+      name: "EV Battery Pack 1",
+      serialNumber: "BP-2023-001",
+      initialCapacity: 75000,
+      currentCapacity: 72000,
+      healthPercentage: 96,
+      cycleCount: 124,
+      expectedCycles: 2000,
       status: "Excellent",
-      initialDate: new Date(2023, 0, 15),
-      lastUpdated: new Date(),
-      degradationRate: 0.4,
+      initialDate: new Date("2023-01-15"),
+      lastUpdated: new Date("2025-05-15"),
+      degradationRate: 0.21,
       manufacturer: "PowerTech",
-      model: "PT-10K-LI",
-      chemistry: "Lithium Ion",
-      voltage: 12.8,
-      installationLocation: "Server Room A"
+      model: "EV-75-X",
+      chemistry: "Lithium-Ion",
+      voltage: 400,
+      installationLocation: "Vehicle ID: EV-001"
     },
     {
       id: 2,
-      name: "UPS Battery Pack",
-      serialNumber: "UPS-2022-542",
-      initialCapacity: 20000,
-      currentCapacity: 17200,
-      healthPercentage: 86,
-      cycleCount: 310,
-      expectedCycles: 800,
+      name: "Solar Storage Unit",
+      serialNumber: "SS-2022-045",
+      initialCapacity: 100000,
+      currentCapacity: 85000,
+      healthPercentage: 85,
+      cycleCount: 312,
+      expectedCycles: 1500,
       status: "Good",
-      initialDate: new Date(2022, 5, 3),
-      lastUpdated: new Date(),
-      degradationRate: 0.7,
-      manufacturer: "BackupPower",
-      model: "BP-20K-UPS",
-      chemistry: "Lithium Iron Phosphate",
-      voltage: 24.5,
-      installationLocation: "Data Center B"
+      initialDate: new Date("2022-06-20"),
+      lastUpdated: new Date("2025-05-10"),
+      degradationRate: 0.5,
+      manufacturer: "SolarCell",
+      model: "Home-100",
+      chemistry: "LiFePO4",
+      voltage: 48,
+      installationLocation: "Residential Building A"
     },
     {
       id: 3,
-      name: "Portable Power Station",
-      serialNumber: "PPS-2023-789",
-      initialCapacity: 5000,
-      currentCapacity: 3500,
-      healthPercentage: 70,
-      cycleCount: 450,
-      expectedCycles: 800,
+      name: "Industrial UPS",
+      serialNumber: "UPS-2021-178",
+      initialCapacity: 200000,
+      currentCapacity: 126000,
+      healthPercentage: 63,
+      cycleCount: 856,
+      expectedCycles: 1200,
       status: "Fair",
-      initialDate: new Date(2021, 3, 22),
-      lastUpdated: new Date(),
-      degradationRate: 1.2,
-      manufacturer: "MobilePower",
-      model: "MP-5K-Portable",
-      chemistry: "Lithium Polymer",
-      voltage: 5.2,
-      installationLocation: "Mobile Unit 3"
+      initialDate: new Date("2021-03-10"),
+      lastUpdated: new Date("2025-05-12"),
+      degradationRate: 1.15,
+      manufacturer: "PowerGuard",
+      model: "IND-UPS-200",
+      chemistry: "Lithium-Ion",
+      voltage: 220,
+      installationLocation: "Data Center B"
     },
     {
       id: 4,
-      name: "Emergency Lighting Battery",
-      serialNumber: "ELB-2021-456",
-      initialCapacity: 3000,
-      currentCapacity: 1380,
-      healthPercentage: 46,
-      cycleCount: 720,
+      name: "Portable Power Bank",
+      serialNumber: "PPB-2024-321",
+      initialCapacity: 10000,
+      currentCapacity: 9800,
+      healthPercentage: 98,
+      cycleCount: 15,
+      expectedCycles: 500,
+      status: "Excellent",
+      initialDate: new Date("2024-02-01"),
+      lastUpdated: new Date("2025-05-14"),
+      degradationRate: 0.12,
+      manufacturer: "MobilePower",
+      model: "Ultra-10K",
+      chemistry: "Li-Polymer",
+      voltage: 5,
+      installationLocation: "Mobile Device Support"
+    },
+    {
+      id: 5,
+      name: "Telecom Backup Battery",
+      serialNumber: "TBB-2020-112",
+      initialCapacity: 150000,
+      currentCapacity: 72000,
+      healthPercentage: 48,
+      cycleCount: 921,
       expectedCycles: 1000,
       status: "Poor",
-      initialDate: new Date(2020, 8, 10),
-      lastUpdated: new Date(),
-      degradationRate: 1.8,
-      manufacturer: "SafeLight",
-      model: "SL-3K-Emergency",
-      chemistry: "Sealed Lead Acid",
-      voltage: 6,
-      installationLocation: "Exit Hallway C"
+      initialDate: new Date("2020-05-20"),
+      lastUpdated: new Date("2025-05-13"),
+      degradationRate: 1.55,
+      manufacturer: "CommPower",
+      model: "TB-150",
+      chemistry: "Lead-Acid",
+      voltage: 24,
+      installationLocation: "Cell Tower #45"
     }
   ];
 
-  const batteryHistories: Map<number, BatteryHistory[]> = new Map();
-  const usagePatterns: Map<number, UsagePattern> = new Map();
-  const recommendations: Map<number, Recommendation[]> = new Map();
-
-  // Generate history data for each battery
+  // Generate history for each battery
+  const batteryHistories = new Map<number, BatteryHistory[]>();
+  
   batteries.forEach(battery => {
-    // Generate 30 data points for each battery, one for each day going back from today
-    const batteryHistory: BatteryHistory[] = [];
-    for (let i = 30; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
+    const histories: BatteryHistory[] = [];
+    const monthsSinceInstallation = monthDiff(battery.initialDate, new Date());
+    
+    for (let i = 0; i <= monthsSinceInstallation; i++) {
+      const date = new Date(battery.initialDate);
+      date.setMonth(date.getMonth() + i);
       
-      // Calculate a slightly decreasing capacity over time
-      const daysPassed = Math.floor((new Date().getTime() - battery.initialDate.getTime()) / (1000 * 3600 * 24));
-      const totalDegradation = daysPassed * (battery.degradationRate / 30); // convert monthly rate to daily
-      const healthPercentage = Math.max(100 - totalDegradation, battery.healthPercentage);
+      // Calculate degradation based on the battery's degradation rate
+      const healthPercentage = 100 - (battery.degradationRate * i);
+      const capacity = battery.initialCapacity * (healthPercentage / 100);
       
-      // Cycles increase by approximately 10-20 per month
-      const cyclesPerDay = battery.cycleCount / daysPassed;
-      const cycleCount = Math.round(cyclesPerDay * (daysPassed - i));
+      // Calculate cycles - assuming linear cycle usage
+      const cycleCount = Math.floor((battery.cycleCount / monthsSinceInstallation) * i);
       
-      // Calculate capacity based on health percentage
-      const capacity = Math.round((battery.initialCapacity * healthPercentage) / 100);
-      
-      batteryHistory.push({
+      histories.push({
         id: i + 1,
         batteryId: battery.id,
-        date,
-        capacity,
-        healthPercentage,
-        cycleCount
-      });
-    }
-    batteryHistories.set(battery.id, batteryHistory);
-    
-    // Generate usage pattern for each battery
-    const usagePattern: UsagePattern = {
-      id: battery.id,
-      batteryId: battery.id,
-      chargingFrequency: battery.id === 3 ? 14 : battery.id === 4 ? 2 : 7, // charges per week
-      dischargeDepth: battery.id === 1 ? 20 : battery.id === 2 ? 30 : battery.id === 3 ? 80 : 50, // %
-      temperatureExposure: battery.id === 1 ? 22 : battery.id === 2 ? 24 : battery.id === 3 ? 28 : 21, // °C
-      usageType: battery.id === 1 ? "Light" : battery.id === 2 ? "Moderate" : battery.id === 3 ? "Heavy" : "Moderate",
-      environmentalConditions: battery.id === 3 ? "Mixed" : "Indoor",
-      fastChargingPercentage: battery.id === 3 ? 75 : battery.id === 4 ? 0 : 25 // %
-    };
-    usagePatterns.set(battery.id, usagePattern);
-    
-    // Generate recommendations for each battery
-    const batteryRecommendations: Recommendation[] = [];
-    
-    if (battery.healthPercentage < 50) {
-      batteryRecommendations.push({
-        id: batteryRecommendations.length + 1,
-        batteryId: battery.id,
-        type: "Replacement",
-        message: "Battery health below 50%. Schedule replacement within the next 30 days.",
-        createdAt: new Date(new Date().setDate(new Date().getDate() - 5)),
-        resolved: false
+        date: date,
+        capacity: Math.round(capacity),
+        healthPercentage: Math.round(healthPercentage * 10) / 10,
+        cycleCount: cycleCount
       });
     }
     
-    if (battery.cycleCount > battery.expectedCycles * 0.7) {
-      batteryRecommendations.push({
-        id: batteryRecommendations.length + 1,
-        batteryId: battery.id,
-        type: "Maintenance",
-        message: "Battery approaching end of cycle life. Consider testing under load to verify capacity.",
-        createdAt: new Date(new Date().setDate(new Date().getDate() - 15)),
-        resolved: battery.id !== 3
-      });
-    }
-    
-    if (
-      usagePattern.dischargeDepth > 70 && 
-      usagePattern.usageType === "Heavy" && 
-      usagePattern.fastChargingPercentage > 50
-    ) {
-      batteryRecommendations.push({
-        id: batteryRecommendations.length + 1,
-        batteryId: battery.id,
-        type: "Usage",
-        message: "Heavy usage with deep discharge and frequent fast charging. Consider adjusting usage pattern to prolong battery life.",
-        createdAt: new Date(new Date().setDate(new Date().getDate() - 20)),
-        resolved: false
-      });
-    }
-    
-    recommendations.set(battery.id, batteryRecommendations);
+    batteryHistories.set(battery.id, histories);
   });
 
-  return { 
-    batteries, 
-    batteryHistories, 
-    usagePatterns, 
-    recommendations 
+  // Generate usage patterns
+  const usagePatterns = new Map<number, UsagePattern>();
+  
+  usagePatterns.set(1, {
+    id: 1,
+    batteryId: 1,
+    chargingFrequency: 3,
+    dischargeDepth: 60,
+    temperatureExposure: 25,
+    usageType: "Moderate",
+    environmentalConditions: "Mixed",
+    fastChargingPercentage: 20
+  });
+  
+  usagePatterns.set(2, {
+    id: 2,
+    batteryId: 2,
+    chargingFrequency: 7,
+    dischargeDepth: 75,
+    temperatureExposure: 22,
+    usageType: "Heavy",
+    environmentalConditions: "Indoor",
+    fastChargingPercentage: 0
+  });
+  
+  usagePatterns.set(3, {
+    id: 3,
+    batteryId: 3,
+    chargingFrequency: 2,
+    dischargeDepth: 40,
+    temperatureExposure: 28,
+    usageType: "Moderate",
+    environmentalConditions: "Indoor",
+    fastChargingPercentage: 0
+  });
+  
+  usagePatterns.set(4, {
+    id: 4,
+    batteryId: 4,
+    chargingFrequency: 5,
+    dischargeDepth: 85,
+    temperatureExposure: 23,
+    usageType: "Light",
+    environmentalConditions: "Mixed",
+    fastChargingPercentage: 40
+  });
+  
+  usagePatterns.set(5, {
+    id: 5,
+    batteryId: 5,
+    chargingFrequency: 1,
+    dischargeDepth: 30,
+    temperatureExposure: 32,
+    usageType: "Heavy",
+    environmentalConditions: "Outdoor",
+    fastChargingPercentage: 0
+  });
+
+  // Generate recommendations
+  const recommendations = new Map<number, Recommendation[]>();
+  
+  recommendations.set(1, [
+    {
+      id: 1,
+      batteryId: 1,
+      type: "Maintenance",
+      message: "Schedule routine inspection to verify thermal management system efficacy",
+      createdAt: new Date("2025-04-20"),
+      resolved: false
+    }
+  ]);
+  
+  recommendations.set(2, [
+    {
+      id: 2,
+      batteryId: 2,
+      type: "Usage",
+      message: "Consider reducing discharge depth to extend lifespan",
+      createdAt: new Date("2025-03-15"),
+      resolved: true
+    },
+    {
+      id: 3,
+      batteryId: 2,
+      type: "Maintenance",
+      message: "Cell balancing recommended within next 2 months",
+      createdAt: new Date("2025-05-01"),
+      resolved: false
+    }
+  ]);
+  
+  recommendations.set(3, [
+    {
+      id: 4,
+      batteryId: 3,
+      type: "Replacement",
+      message: "Battery approaching end of life, plan replacement within 3 months",
+      createdAt: new Date("2025-04-10"),
+      resolved: false
+    },
+    {
+      id: 5,
+      batteryId: 3,
+      type: "Maintenance",
+      message: "Check for unusual temperature variations across cells",
+      createdAt: new Date("2025-01-25"),
+      resolved: true
+    }
+  ]);
+  
+  recommendations.set(5, [
+    {
+      id: 6,
+      batteryId: 5,
+      type: "Replacement",
+      message: "Immediate replacement required - battery health critical",
+      createdAt: new Date("2025-05-05"),
+      resolved: false
+    }
+  ]);
+
+  return {
+    batteries,
+    batteryHistories,
+    usagePatterns,
+    recommendations
   };
+}
+
+// Helper function to calculate months difference between two dates
+function monthDiff(dateFrom: Date, dateTo: Date) {
+  return dateTo.getMonth() - dateFrom.getMonth() + 
+    (12 * (dateTo.getFullYear() - dateFrom.getFullYear()));
 }
