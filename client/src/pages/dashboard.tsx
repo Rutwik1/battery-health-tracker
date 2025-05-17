@@ -119,15 +119,41 @@ export default function Dashboard() {
                 </div>
                 
                 {/* Export Button */}
-                <Button 
-                  onClick={handleExport} 
-                  disabled={isLoading || !batteries}
-                  className="relative overflow-hidden bg-gradient-to-r from-primary to-accent hover:opacity-90 text-background shadow-md shadow-primary/20 group"
-                >
-                  <span className="absolute inset-0 bg-white/10 group-hover:opacity-0 transition-opacity"></span>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export Battery Data
-                </Button>
+                <div className="flex gap-3">
+                  <Button 
+                    onClick={handleExport} 
+                    disabled={isLoading || !batteries}
+                    className="relative overflow-hidden bg-gradient-to-r from-primary to-accent hover:opacity-90 text-background shadow-md shadow-primary/20 group"
+                  >
+                    <span className="absolute inset-0 bg-white/10 group-hover:opacity-0 transition-opacity"></span>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export Battery Data
+                  </Button>
+                  
+                  {/* Demo Data Generator Button */}
+                  {(!batteries || batteries.length === 0) && (
+                    <Button 
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/api/generate-demo-data');
+                          if (response.ok) {
+                            // Refresh data after generation
+                            refetch();
+                          } else {
+                            console.error('Failed to generate demo data');
+                          }
+                        } catch (error) {
+                          console.error('Error generating demo data:', error);
+                        }
+                      }}
+                      className="relative overflow-hidden bg-gradient-to-r from-success to-success/80 hover:opacity-90 text-background shadow-md shadow-success/20 group"
+                    >
+                      <span className="absolute inset-0 bg-white/10 group-hover:opacity-0 transition-opacity"></span>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Generate Demo Batteries
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
             
