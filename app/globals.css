@@ -4,40 +4,34 @@
 
 @layer base {
   :root {
-    --background: 230 30% 10%;
-    --foreground: 210 40% 98%;
-
-    --card: 230 25% 13%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 230 25% 13%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 250 75% 60%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 230 25% 16%;
-    --secondary-foreground: 210 40% 90%;
-
-    --muted: 230 25% 16%;
-    --muted-foreground: 215 20% 65%;
-
-    --accent: 250 55% 55%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 210 40% 98%;
-
-    --success: 142 72% 50%;
-    --success-foreground: 210 40% 98%;
-
-    --warning: 35 100% 50%;
-    --warning-foreground: 210 40% 98%;
-
-    --border: 230 25% 20%;
-    --input: 230 25% 16%;
-    --ring: 250 75% 60%;
-
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    
+    --primary: 252 87% 60%;
+    --primary-foreground: 0 0% 98%;
+    
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+    
     --radius: 0.5rem;
   }
 }
@@ -48,45 +42,74 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    background-image: 
+      radial-gradient(at 27% 37%, hsla(256, 88%, 20%, 0.35) 0px, transparent 80%),
+      radial-gradient(at 97% 21%, hsla(270, 80%, 20%, 0.35) 0px, transparent 80%),
+      radial-gradient(at 52% 99%, hsla(220, 70%, 20%, 0.35) 0px, transparent 80%),
+      radial-gradient(at 10% 29%, hsla(242, 90%, 25%, 0.35) 0px, transparent 80%),
+      radial-gradient(at 97% 96%, hsla(285, 90%, 28%, 0.35) 0px, transparent 80%),
+      radial-gradient(at 33% 50%, hsla(230, 90%, 20%, 0.35) 0px, transparent 80%),
+      radial-gradient(at 79% 53%, hsla(260, 90%, 25%, 0.35) 0px, transparent 80%);
+    background-attachment: fixed;
   }
 }
 
-@layer components {
+@layer utilities {
   .gradient-text {
-    @apply bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 text-transparent bg-clip-text;
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600;
   }
   
-  .glassmorphism {
-    @apply bg-secondary/60 backdrop-blur-lg border border-white/10 shadow-lg;
+  .gradient-bg {
+    @apply bg-gradient-to-r from-blue-900/40 to-purple-900/40 backdrop-blur-sm;
   }
   
-  .battery-glow {
-    text-shadow: 0 0 10px rgba(99, 102, 241, 0.5), 0 0 20px rgba(99, 102, 241, 0.3);
+  .glass-panel {
+    @apply bg-background/60 backdrop-blur-lg border border-border/50 rounded-xl shadow-lg;
   }
   
-  .shimmer-effect {
-    @apply relative overflow-hidden;
+  .glass-button {
+    @apply bg-background/60 hover:bg-background/80 backdrop-blur-lg border border-border/30 rounded-lg shadow-md transition-all;
   }
   
-  .shimmer-effect::after {
-    @apply absolute top-0 -right-[100%] bottom-0 left-0 bg-gradient-shimmer animate-shimmer content-[''];
-    width: 200%;
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
   }
   
-  .battery-progress-excellent {
-    @apply bg-success;
+  @keyframes glow {
+    from {
+      box-shadow: 0 0 5px rgba(88, 105, 255, 0.2), 0 0 10px rgba(88, 105, 255, 0.1);
+    }
+    to {
+      box-shadow: 0 0 10px rgba(88, 105, 255, 0.3), 0 0 20px rgba(88, 105, 255, 0.2);
+    }
   }
   
-  .battery-progress-good {
-    @apply bg-primary;
+  .shimmer {
+    position: relative;
+    overflow: hidden;
   }
   
-  .battery-progress-fair {
-    @apply bg-warning;
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0,
+      rgba(255, 255, 255, 0.05) 20%,
+      rgba(255, 255, 255, 0.1) 60%,
+      rgba(255, 255, 255, 0)
+    );
+    animation: shimmer 3s infinite;
   }
   
-  .battery-progress-poor {
-    @apply bg-destructive;
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
   }
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Battery, BoltIcon } from "lucide-react"
+import { Battery, Zap } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn, formatDate, formatNumber, getBatteryStatusColor } from "@/lib/utils"
 import { Battery as BatteryType } from "@/app/types/schema"
@@ -173,7 +173,7 @@ export default function BatteryStatusCard({ battery, isLoading = false }: Batter
         
         <div className="pt-2 text-xs text-muted-foreground">
           <div className="flex items-center">
-            <BoltIcon className="mr-1 h-3 w-3" />
+            <Zap className="mr-1 h-3 w-3" />
             <span className="font-medium">Initial Capacity:</span>
             <span className="ml-1">{formatNumber(battery.initialCapacity)} mAh</span>
           </div>

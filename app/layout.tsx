@@ -1,12 +1,11 @@
-import * as React from "react"
+import "./globals.css"
 import type { Metadata } from "next"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Topbar } from "@/components/layout/topbar"
-import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Coulomb.ai | Battery Health Monitoring",
-  description: "Advanced battery health monitoring dashboard",
+  title: "Battery Health Dashboard | Coulomb.ai",
+  description: "Advanced battery monitoring and health tracking dashboard",
 }
 
 export default function RootLayout({
@@ -15,17 +14,17 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen">
-        <div className="flex h-screen overflow-hidden">
-          <div className="hidden md:block">
-            <Sidebar />
-          </div>
-          <div className="flex w-full flex-1 flex-col">
-            <Topbar />
-            <main className="flex-1 overflow-auto p-4 md:p-6">
-              {children}
-            </main>
+    <html lang="en" suppressHydrationWarning>
+      <body className="min-h-screen bg-background font-sans antialiased">
+        <div className="relative flex min-h-screen flex-col">
+          <div className="flex h-full flex-1">
+            <div className="hidden md:flex">
+              <Sidebar />
+            </div>
+            <div className="flex flex-1 flex-col">
+              <Topbar />
+              <main className="flex-1 p-6">{children}</main>
+            </div>
           </div>
         </div>
       </body>
