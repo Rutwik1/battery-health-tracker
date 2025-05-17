@@ -45,7 +45,7 @@ export type Battery = typeof batteries.$inferSelect;
 export const batteryHistory = pgTable("battery_history", {
   id: serial("id").primaryKey(),
   batteryId: integer("battery_id").notNull(),
-  date: timestamp("date").notNull(),
+  date: text("date").notNull(), // Store as ISO string for Supabase compatibility
   capacity: integer("capacity").notNull(), // mAh
   healthPercentage: real("health_percentage").notNull(), // %
   cycleCount: integer("cycle_count").notNull(),
@@ -66,7 +66,7 @@ export const usagePatterns = pgTable("usage_patterns", {
   dischargeDepth: real("discharge_depth").notNull(), // %
   chargeDuration: integer("charge_duration").notNull(), // minutes
   operatingTemperature: real("operating_temperature").notNull(), // °C
-  lastUpdated: timestamp("last_updated").notNull(),
+  lastUpdated: text("last_updated").notNull(), // Store as ISO string for Supabase compatibility
 });
 
 export const insertUsagePatternSchema = createInsertSchema(usagePatterns).omit({
@@ -82,7 +82,7 @@ export const recommendations = pgTable("recommendations", {
   batteryId: integer("battery_id").notNull(),
   type: text("type").notNull(), // "info", "warning", "error", "success"
   message: text("message").notNull(),
-  createdAt: timestamp("created_at").notNull(),
+  createdAt: text("created_at").notNull(), // Store as ISO string for Supabase compatibility
   resolved: boolean("resolved").notNull().default(false),
 });
 
