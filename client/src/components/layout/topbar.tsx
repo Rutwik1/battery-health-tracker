@@ -36,7 +36,7 @@ export default function Topbar() {
       </Sheet>
 
       <div className="flex-1 px-4 md:px-6 flex justify-between">
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-start">
           <div className="w-full max-w-md flex">
             <div className="relative w-full text-muted-foreground">
               <div className="absolute left-0 top-0 bottom-0 pl-3 flex items-center justify-center pointer-events-none">
