@@ -1,6 +1,5 @@
 {
   "/api/batteries/route": "app/api/batteries/route.js",
   "/page": "app/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
   "/dashboard/batteries/page": "app/dashboard/batteries/page.js"
 }

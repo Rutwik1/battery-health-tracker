@@ -1,78 +1,78 @@
-"use client"
+"use client";
 
-import React from "react"
-import { cn } from "@/lib/utils"
+import { getHealthColor } from "@/lib/utils";
 
 interface BatteryIconProps {
-  percentage: number
-  status: string
-  className?: string
+  percentage: number;
+  status: string;
+  className?: string;
 }
 
-export default function BatteryIcon({ percentage, status, className }: BatteryIconProps) {
-  // Calculate width based on percentage
-  const fillWidth = `${Math.max(0, Math.min(percentage, 100))}%`
+export default function BatteryIcon({ percentage, status, className = "" }: BatteryIconProps) {
+  // Get color based on health percentage
+  const healthColor = status === 'good' ? 'hsl(var(--success))' :
+                      status === 'warning' ? 'hsl(var(--warning))' :
+                      'hsl(var(--danger))';
   
-  // Determine color based on status
-  const getStatusColor = () => {
-    switch (status.toLowerCase()) {
-      case 'good': 
-        return 'bg-success';
-      case 'warning': 
-        return 'bg-warning';
-      case 'critical': 
-        return 'bg-danger';
-      default: 
-        return 'bg-muted';
-    }
-  }
-  
-  // Get glow color based on status
-  const getGlowColor = () => {
-    switch (status.toLowerCase()) {
-      case 'good': 
-        return 'from-success/40 to-success/0';
-      case 'warning': 
-        return 'from-warning/40 to-warning/0';
-      case 'critical': 
-        return 'from-danger/40 to-danger/0';
-      default: 
-        return 'from-muted/40 to-muted/0';
-    }
-  }
+  // Calculate the fill level based on percentage
+  const fillLevel = Math.max(0, Math.min(100, percentage)) / 100;
   
   return (
-    <div className={cn("relative flex items-center", className)}>
-      {/* Battery body */}
-      <div className="relative w-14 h-7 border-2 border-foreground/60 rounded-md overflow-hidden">
-        <div className="absolute inset-0 bg-muted/20"></div>
+    <div className={`relative h-6 w-10 ${className}`}>
+      <svg
+        viewBox="0 0 24 12"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-full h-full"
+      >
+        {/* Battery outline */}
+        <rect
+          x="1"
+          y="1"
+          width="20"
+          height="10"
+          rx="2"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeOpacity="0.5"
+          fill="transparent"
+        />
         
-        {/* Fill level with animation */}
-        <div 
-          className={cn(
-            "h-full transition-all duration-1000 ease-out", 
-            getStatusColor()
-          )}
-          style={{ width: fillWidth }}
-        >
-          {/* Shimmer effect */}
-          <div className="absolute inset-0 shimmer"></div>
-        </div>
+        {/* Battery nub */}
+        <rect
+          x="21"
+          y="4"
+          width="2"
+          height="4"
+          rx="1"
+          fill="currentColor"
+          fillOpacity="0.5"
+        />
         
-        {/* Glow effect */}
-        <div 
-          className={cn(
-            "absolute inset-0 bg-gradient-to-r opacity-70",
-            getGlowColor()
-          )}
-        ></div>
-      </div>
-      
-      {/* Battery nub */}
-      <div className="h-3 w-1 bg-foreground/60 rounded-r-sm"></div>
-      
-      {/* Percentage text */}
-      <span className="ml-2 text-sm font-medium">{Math.round(percentage)}%</span>
+        {/* Battery fill based on percentage */}
+        <rect
+          x="2"
+          y="2"
+          width={18 * fillLevel}
+          height="8"
+          rx="1"
+          fill={healthColor}
+          className="transition-all duration-300 ease-in-out"
+        />
+        
+        {/* Add a glow effect for better visual appeal */}
+        <rect
+          x="2"
+          y="2"
+          width={18 * fillLevel}
+          height="8"
+          rx="1"
+          fill={healthColor}
+          filter="blur(2px)"
+          opacity="0.4"
+          className="transition-all duration-300 ease-in-out"
+        />
+      </svg>
     </div>
-  )
+  );
 }
