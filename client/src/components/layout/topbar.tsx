@@ -19,8 +19,8 @@ export default function Topbar() {
     <div className="relative z-10 flex-shrink-0 flex h-16 bg-gradient-dark border-b border-border/50 backdrop-blur-sm">
       <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
         <SheetTrigger asChild>
-          <Button variant="ghost" className="md:hidden px-4 text-primary">
-            <Menu className="h-6 w-6" />
+          <Button variant="ghost" className="md:hidden flex items-center justify-center h-16 px-4 text-primary">
+            <Menu className="h-8 w-8" />
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="p-0 bg-gradient-dark border-r border-border/50" onCloseAutoFocus={(e) => e.preventDefault()}>
