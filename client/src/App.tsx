@@ -2,7 +2,6 @@ import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from './components/ui/toaster';
-// import { Toaster } from './components/ui/toaster';
 import { TooltipProvider } from './components/ui/tooltip';
 import Dashboard from './pages/dashboard';
 import BatteryDetail from './pages/battery-detail';
@@ -13,6 +12,9 @@ import NotFound from './pages/not-found';
 import { ThemeProvider } from "next-themes";
 import { useEffect } from "react";
 import { useAuthCheck } from './hooks/useAuthCheck';
+
+// ✅ Import apiFetch
+import { apiFetch } from './lib/api';
 
 // Protected route component that checks authentication
 function ProtectedRoute({ component: Component, ...rest }: { component: React.ComponentType<any>, path?: string }) {
@@ -70,6 +72,11 @@ function App() {
   // Ensure the dark theme is applied immediately to avoid flicker
   useEffect(() => {
     document.documentElement.classList.add('dark');
+
+    // ✅ Call the API once when the app loads
+    apiFetch('/api/batteries')
+      .then(data => console.log('Fetched batteries:', data))
+      .catch(console.error);
   }, []);
 
   return (

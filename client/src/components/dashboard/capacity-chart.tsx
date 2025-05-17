@@ -4,6 +4,7 @@ import { useQuery, useQueries } from "@tanstack/react-query";
 import { Battery, BatteryHistory } from "@shared/schema";
 import { getBatteryStatusColor } from "@/lib/utils/battery";
 import { format, subDays } from "date-fns";
+import { apiFetch } from '../lib/api'; // Import apiFetch
 
 interface CapacityChartProps {
   batteries: Battery[];
@@ -18,9 +19,9 @@ export default function CapacityChart({ batteries, timeRange, isLoading, detaile
     queries: batteries.map(battery => ({
       queryKey: [`/api/batteries/${battery.id}/history`],
       queryFn: async () => {
-        const response = await fetch(`/api/batteries/${battery.id}/history`);
-        if (!response.ok) throw new Error('Failed to fetch battery history');
-        return response.json() as Promise<BatteryHistory[]>;
+        // Replace fetch with apiFetch
+        const response = await apiFetch(`/api/batteries/${battery.id}/history`);
+        return response as BatteryHistory[]; // Ensure proper typing
       },
       enabled: batteries.length > 0
     }))
@@ -39,7 +40,7 @@ export default function CapacityChart({ batteries, timeRange, isLoading, detaile
     // Generate dates for x-axis
     const dates = [];
     const today = new Date();
-    
+
     // For monthly data (12 months)
     if (timeRange >= 365 || detailed) {
       for (let i = 11; i >= 0; i--) {
@@ -47,7 +48,7 @@ export default function CapacityChart({ batteries, timeRange, isLoading, detaile
         date.setMonth(today.getMonth() - i);
         dates.push(format(date, 'MMM'));
       }
-    } 
+    }
     // For daily data
     else {
       const interval = Math.ceil(timeRange / 12); // Show ~12 labels
@@ -60,16 +61,16 @@ export default function CapacityChart({ batteries, timeRange, isLoading, detaile
     // Combine all data
     return dates.map((date, index) => {
       const dataPoint: any = { date };
-      
+
       batteries.forEach((battery, batteryIndex) => {
         // Get battery history data
         const historyData = batteryHistoryQueries[batteryIndex].data;
         if (!historyData) return;
-        
+
         // Use the actual historical data point or extrapolate
         const normalizedIndex = Math.floor((index / (dates.length - 1)) * (historyData.length - 1));
         const historyPoint = historyData[normalizedIndex];
-        
+
         if (historyPoint) {
           dataPoint[battery.name] = historyPoint.healthPercentage;
         } else {
@@ -77,7 +78,7 @@ export default function CapacityChart({ batteries, timeRange, isLoading, detaile
           dataPoint[battery.name] = battery.healthPercentage;
         }
       });
-      
+
       return dataPoint;
     });
   };
@@ -87,7 +88,7 @@ export default function CapacityChart({ batteries, timeRange, isLoading, detaile
   // Convert status colors to CSS variables
   const getLineColors = (battery: Battery) => {
     const statusColor = getBatteryStatusColor(battery.status);
-    switch(statusColor) {
+    switch (statusColor) {
       case 'text-success': return 'hsl(var(--success))';
       case 'text-warning': return 'hsl(var(--warning))';
       case 'text-danger': return 'hsl(var(--danger))';
@@ -141,25 +142,25 @@ export default function CapacityChart({ batteries, timeRange, isLoading, detaile
             }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-            <XAxis 
-              dataKey="date" 
-              stroke="hsl(var(--muted-foreground))" 
+            <XAxis
+              dataKey="date"
+              stroke="hsl(var(--muted-foreground))"
               fontSize={12}
               tickLine={false}
             />
-            <YAxis 
-              domain={[50, 100]} 
-              stroke="hsl(var(--muted-foreground))" 
+            <YAxis
+              domain={[50, 100]}
+              stroke="hsl(var(--muted-foreground))"
               fontSize={12}
               tickLine={false}
               axisLine={false}
               tickFormatter={(value) => `${value}%`}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Legend 
-              wrapperStyle={{ 
-                fontSize: "12px", 
-                color: "hsl(var(--muted-foreground))" 
+            <Legend
+              wrapperStyle={{
+                fontSize: "12px",
+                color: "hsl(var(--muted-foreground))"
               }}
             />
             {batteries.map((battery) => (

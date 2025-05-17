@@ -1,34 +1,34 @@
 import { Button } from "@/components/ui/button";
-import { Battery } from "@shared/schema";
+import { Battery, UsagePattern } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
-import { UsagePattern } from "@shared/schema";
 import { Activity, BatteryLow, Timer, Thermometer, BarChart2 } from "lucide-react";
+import { apiFetch } from "@/lib/api";
 
-interface UsagePatternCardProps {
-  batteries: Battery[];
-  isLoading: boolean;
-}
+export default function UsagePatternCard() {
+  // Fetch batteries first
+  const { data: batteries = [], isLoading: batteriesLoading } = useQuery<Battery[]>({
+    queryKey: ['/api/batteries'],
+    queryFn: () => apiFetch('/api/batteries'),
+  });
 
-export default function UsagePatternCard({ batteries, isLoading }: UsagePatternCardProps) {
-  // Get usage pattern for the first battery
   const batteryId = batteries.length > 0 ? batteries[0].id : 0;
-  
+
+  // Fetch usage pattern for first battery
   const { data: usagePattern, isLoading: patternLoading } = useQuery<UsagePattern>({
     queryKey: [`/api/batteries/${batteryId}/usage`],
-    enabled: batteryId > 0
+    queryFn: () => apiFetch(`/api/batteries/${batteryId}/usage`),
+    enabled: batteryId > 0,
   });
-  
-  const loading = isLoading || patternLoading || !usagePattern;
+
+  const loading = batteriesLoading || patternLoading || !usagePattern;
 
   return (
     <div className="p-6">
       <div className="mb-6 flex items-center">
         <Activity className="h-5 w-5 mr-2 text-success" />
-        <h2 className="text-lg font-heading font-semibold">
-          Usage Analytics
-        </h2>
+        <h2 className="text-lg font-heading font-semibold">Usage Analytics</h2>
       </div>
-      
+
       {loading ? (
         <div className="space-y-4">
           {[...Array(4)].map((_, i) => (
@@ -49,7 +49,7 @@ export default function UsagePatternCard({ batteries, isLoading }: UsagePatternC
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center group">
             <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-accent/20 to-accent/5 backdrop-blur-sm flex items-center justify-center text-accent border border-accent/10 transition-colors duration-300 group-hover:border-accent/30">
               <BatteryLow className="h-5 w-5" />
@@ -62,7 +62,7 @@ export default function UsagePatternCard({ batteries, isLoading }: UsagePatternC
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center group">
             <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-success/20 to-success/5 backdrop-blur-sm flex items-center justify-center text-success border border-success/10 transition-colors duration-300 group-hover:border-success/30">
               <Timer className="h-5 w-5" />
@@ -77,7 +77,7 @@ export default function UsagePatternCard({ batteries, isLoading }: UsagePatternC
               </p>
             </div>
           </div>
-          
+
           <div className="flex items-center group">
             <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-warning/20 to-warning/5 backdrop-blur-sm flex items-center justify-center text-warning border border-warning/10 transition-colors duration-300 group-hover:border-warning/30">
               <Thermometer className="h-5 w-5" />
@@ -92,11 +92,11 @@ export default function UsagePatternCard({ batteries, isLoading }: UsagePatternC
           </div>
         </div>
       )}
-      
+
       <div className="mt-6 pt-4 border-t border-border/30">
-        <Button 
-          variant="outline" 
-          className="w-full bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 backdrop-blur-sm transition-all duration-300 text-foreground border-border/50" 
+        <Button
+          variant="outline"
+          className="w-full bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 backdrop-blur-sm transition-all duration-300 text-foreground border-border/50"
           disabled={loading}
         >
           View Detailed Analytics
