@@ -42,10 +42,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new battery
   app.post("/api/batteries", async (req: Request, res: Response) => {
     try {
-      const validatedData = insertBatterySchema.parse(req.body);
+      // Convert ISO date strings to Date objects before validation
+      const requestData = {
+        ...req.body,
+        initialDate: req.body.initialDate ? new Date(req.body.initialDate) : undefined,
+        lastUpdated: req.body.lastUpdated ? new Date(req.body.lastUpdated) : new Date()
+      };
+      
+      console.log('Processing battery data:', requestData);
+      
+      // Validate the processed data
+      const validatedData = insertBatterySchema.parse(requestData);
       const battery = await storage.createBattery(validatedData);
       res.status(201).json(battery);
     } catch (error) {
+      console.error('Error creating battery:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid battery data", errors: error.errors });
       }
