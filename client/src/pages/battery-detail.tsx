@@ -1,27 +1,27 @@
 import { useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import Sidebar from "@/components/layout/sidebar";
-import Topbar from "@/components/layout/topbar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
+import { useToast } from "../hooks/use-toast";
+import Sidebar from "../components/layout/sidebar";
+import Topbar from "../components/layout/topbar";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { Progress } from "../components/ui/progress";
+import { Separator } from "../components/ui/separator";
 import { ArrowLeft, Download, AlertCircle } from "lucide-react";
 import { Link } from "wouter";
 import { format } from "date-fns";
-import { Battery } from "@shared/schema";
-import CapacityChart from "@/components/dashboard/capacity-chart";
-import { exportBatteryData } from "@/lib/utils/export";
-import { getBatteryStatusColor } from "@/lib/utils/battery";
+import { Battery } from '../shared/schema';
+import CapacityChart from "../components/dashboard/capacity-chart";
+import { exportBatteryData } from "../lib/utils/export";
+import { getBatteryStatusColor } from "../lib/utils/battery";
 
 export default function BatteryDetail() {
   const [, params] = useRoute<{ id: string }>("/battery/:id");
   const { toast } = useToast();
-  
+
   const batteryId = params?.id ? parseInt(params.id) : null;
-  
+
   const { data: battery, isLoading, error } = useQuery<Battery>({
     queryKey: [`/api/batteries/${batteryId}`],
     enabled: !!batteryId,
@@ -64,10 +64,10 @@ export default function BatteryDetail() {
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      
+
       <div className="flex flex-col flex-1 overflow-hidden">
         <Topbar />
-        
+
         <main className="flex-1 relative overflow-y-auto focus:outline-none bg-gray-50">
           <div className="py-6 px-4 sm:px-6 lg:px-8">
             {/* Back button and actions */}
@@ -78,13 +78,13 @@ export default function BatteryDetail() {
                   Back to Dashboard
                 </Button>
               </Link>
-              
+
               <Button onClick={handleExport} disabled={isLoading || !battery}>
                 <Download className="mr-2 h-4 w-4" />
                 Export Data
               </Button>
             </div>
-            
+
             {isLoading ? (
               <div className="h-[200px] bg-white animate-pulse rounded-lg mb-8"></div>
             ) : error ? (
@@ -112,12 +112,12 @@ export default function BatteryDetail() {
                       <div>
                         <h3 className="text-sm font-medium text-neutral-lighter mb-1">Health</h3>
                         <div className="text-3xl font-semibold">{battery.healthPercentage}%</div>
-                        <Progress 
-                          value={battery.healthPercentage} 
-                          className={`h-2 mt-2 ${statusColor.replace('text-', 'bg-')}`} 
+                        <Progress
+                          value={battery.healthPercentage}
+                          className={`h-2 mt-2 ${statusColor.replace('text-', 'bg-')}`}
                         />
                       </div>
-                      
+
                       <div>
                         <h3 className="text-sm font-medium text-neutral-lighter mb-1">Capacity</h3>
                         <div className="text-3xl font-semibold">{battery.currentCapacity} mAh</div>
@@ -125,7 +125,7 @@ export default function BatteryDetail() {
                           Out of {battery.initialCapacity} mAh initial
                         </div>
                       </div>
-                      
+
                       <div>
                         <h3 className="text-sm font-medium text-neutral-lighter mb-1">Cycle Count</h3>
                         <div className="text-3xl font-semibold">{battery.cycleCount}</div>
@@ -133,7 +133,7 @@ export default function BatteryDetail() {
                           Out of {battery.expectedCycles} expected
                         </div>
                       </div>
-                      
+
                       <div>
                         <h3 className="text-sm font-medium text-neutral-lighter mb-1">Degradation Rate</h3>
                         <div className={`text-3xl font-semibold ${getBatteryStatusColor(battery.status)}`}>
@@ -141,9 +141,9 @@ export default function BatteryDetail() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <Separator className="my-6" />
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <h3 className="text-sm font-medium text-neutral-lighter mb-2">Battery Information</h3>
@@ -166,7 +166,7 @@ export default function BatteryDetail() {
                           </li>
                         </ul>
                       </div>
-                      
+
                       <div>
                         <h3 className="text-sm font-medium text-neutral-lighter mb-2">Performance Metrics</h3>
                         <ul className="space-y-2">
@@ -193,7 +193,7 @@ export default function BatteryDetail() {
                     </div>
                   </CardContent>
                 </Card>
-                
+
                 {/* Battery Data Tabs */}
                 <Tabs defaultValue="history" className="mb-8">
                   <TabsList className="grid w-full grid-cols-3 mb-6">
@@ -201,7 +201,7 @@ export default function BatteryDetail() {
                     <TabsTrigger value="usage">Usage Patterns</TabsTrigger>
                     <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
                   </TabsList>
-                  
+
                   <TabsContent value="history">
                     <Card>
                       <CardHeader>
@@ -209,17 +209,17 @@ export default function BatteryDetail() {
                       </CardHeader>
                       <CardContent>
                         <div className="h-[400px]">
-                          <CapacityChart 
-                            batteries={[battery]} 
-                            timeRange={365} 
-                            isLoading={false} 
-                            detailed={true} 
+                          <CapacityChart
+                            batteries={[battery]}
+                            timeRange={365}
+                            isLoading={false}
+                            detailed={true}
                           />
                         </div>
                       </CardContent>
                     </Card>
                   </TabsContent>
-                  
+
                   <TabsContent value="usage">
                     <Card>
                       <CardHeader>
@@ -265,7 +265,7 @@ export default function BatteryDetail() {
                               </div>
                             </div>
                           </div>
-                          
+
                           <div className="mt-8">
                             <h3 className="text-base font-medium mb-4">Optimization Suggestions</h3>
                             <ul className="space-y-4">
@@ -311,7 +311,7 @@ export default function BatteryDetail() {
                       </CardContent>
                     </Card>
                   </TabsContent>
-                  
+
                   <TabsContent value="recommendations">
                     <Card>
                       <CardHeader>
@@ -331,7 +331,7 @@ export default function BatteryDetail() {
                               </p>
                             </div>
                           </li>
-                          
+
                           {battery.status === "Poor" && (
                             <li className="flex">
                               <div className="flex-shrink-0">
@@ -346,7 +346,7 @@ export default function BatteryDetail() {
                               </div>
                             </li>
                           )}
-                          
+
                           {battery.status === "Fair" && (
                             <li className="flex">
                               <div className="flex-shrink-0">
@@ -361,7 +361,7 @@ export default function BatteryDetail() {
                               </div>
                             </li>
                           )}
-                          
+
                           <li className="flex">
                             <div className="flex-shrink-0">
                               <div className="flex items-center justify-center h-8 w-8 rounded-full bg-blue-100 text-primary">
