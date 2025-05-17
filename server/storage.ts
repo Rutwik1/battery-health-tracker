@@ -55,7 +55,6 @@ export class MemStorage implements IStorage {
     this.usagePatterns = new Map();
     this.recommendations = new Map();
     
-    this.userCurrentId = 1;
     this.batteryCurrentId = 1;
     this.historyCurrentId = 1;
     this.patternCurrentId = 1;
@@ -72,15 +71,14 @@ export class MemStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(
-      (user) => user.username === username,
+      (user) => user.email === username
     );
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.userCurrentId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async createUser(userData: UpsertUser): Promise<User> {
+    // Store with the UUID from Supabase auth
+    this.users.set(userData.id, userData as User);
+    return userData as User;
   }
 
   // Battery methods
