@@ -389,8 +389,8 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Import PostgreSQL storage
-import { PostgresStorage } from './postgres-storage';
+// Import Supabase storage
+import { SupabaseStorage } from './supabase-storage';
 
-// Export PostgreSQL storage instance to use with Supabase
-export const storage = new PostgresStorage();
+// Export Supabase storage instance
+export const storage = new SupabaseStorage();
