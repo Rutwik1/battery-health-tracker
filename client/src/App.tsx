@@ -1,7 +1,8 @@
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
+// import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from './components/ui/toaster';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Dashboard from "@/pages/dashboard";
 import BatteryDetail from "@/pages/battery-detail";
@@ -16,7 +17,7 @@ import { useAuthCheck } from "@/hooks/useAuthCheck";
 // Protected route component that checks authentication
 function ProtectedRoute({ component: Component, ...rest }: { component: React.ComponentType<any>, path?: string }) {
   const { isLoading } = useAuthCheck();
-  
+
   if (isLoading) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-background">
@@ -24,14 +25,14 @@ function ProtectedRoute({ component: Component, ...rest }: { component: React.Co
       </div>
     );
   }
-  
+
   return <Component {...rest} />;
 }
 
 // Public route component that redirects to dashboard if already authenticated
 function PublicRoute({ component: Component, ...rest }: { component: React.ComponentType<any>, path?: string }) {
   const { isLoading } = useAuthCheck('/', true);
-  
+
   if (isLoading) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-background">
@@ -39,7 +40,7 @@ function PublicRoute({ component: Component, ...rest }: { component: React.Compo
       </div>
     );
   }
-  
+
   return <Component {...rest} />;
 }
 
@@ -50,7 +51,7 @@ function Router() {
       <Route path="/login" component={(props) => <PublicRoute component={Login} {...props} />} />
       <Route path="/register" component={(props) => <PublicRoute component={Register} {...props} />} />
       <Route path="/verify" component={Verify} />
-      
+
       {/* Protected routes */}
       <Route path="/" component={(props) => <ProtectedRoute component={Dashboard} {...props} />} />
       <Route path="/battery/:id" component={(props) => <ProtectedRoute component={BatteryDetail} {...props} />} />
@@ -58,7 +59,7 @@ function Router() {
       <Route path="/history" component={(props) => <ProtectedRoute component={Dashboard} {...props} />} />
       <Route path="/settings" component={(props) => <ProtectedRoute component={Dashboard} {...props} />} />
       <Route path="/notifications" component={(props) => <ProtectedRoute component={Dashboard} {...props} />} />
-      
+
       {/* 404 route */}
       <Route component={NotFound} />
     </Switch>
