@@ -89,20 +89,15 @@ async function migrateDatabase() {
 // Export the migration function
 export { migrateDatabase };
 
-// Run migration if this file is executed directly
-if (require.main === module) {
-  migrateDatabase()
-    .then(success => {
-      if (success) {
-        console.log('Migration completed successfully!');
-        process.exit(0);
-      } else {
-        console.error('Migration failed!');
-        process.exit(1);
-      }
-    })
-    .catch(error => {
-      console.error('Unexpected error during migration:', error);
-      process.exit(1);
-    });
-}
+// Run migration immediately
+migrateDatabase()
+  .then(success => {
+    if (success) {
+      console.log('Migration completed successfully!');
+    } else {
+      console.error('Migration failed!');
+    }
+  })
+  .catch(error => {
+    console.error('Unexpected error during migration:', error);
+  });
