@@ -1,24 +1,29 @@
-import './globals.css';
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-
-const inter = Inter({ subsets: ['latin'] });
+import './globals.css'
+import type { Metadata } from 'next'
+import { Sidebar } from '@/components/layout/sidebar'
 
 export const metadata: Metadata = {
-  title: 'Battery Health Dashboard',
-  description: 'A cutting-edge Battery Health Visualization Dashboard that transforms complex battery performance data into intuitive, actionable insights',
-};
+  title: 'Coulomb.ai Battery Health Dashboard',
+  description: 'Real-time battery health monitoring and analytics dashboard',
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        {children}
+    <html lang="en">
+      <body className="bg-background text-foreground">
+        <div className="flex h-screen overflow-hidden">
+          <div className="hidden md:flex md:w-64 md:flex-col">
+            <Sidebar />
+          </div>
+          <div className="flex flex-1 flex-col overflow-hidden">
+            {children}
+          </div>
+        </div>
       </body>
     </html>
-  );
+  )
 }
