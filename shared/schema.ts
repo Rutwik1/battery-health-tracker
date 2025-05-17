@@ -28,9 +28,10 @@ export const batteries = pgTable("batteries", {
   cycleCount: integer("cycle_count").notNull(),
   expectedCycles: integer("expected_cycles").notNull(),
   status: text("status").notNull(), // "Excellent", "Good", "Fair", "Poor"
-  initialDate: timestamp("initial_date").notNull(),
-  lastUpdated: timestamp("last_updated").notNull(),
+  initialDate: text("initial_date").notNull(), // Store as ISO string for Supabase compatibility
+  lastUpdated: text("last_updated").notNull(), // Store as ISO string for Supabase compatibility
   degradationRate: real("degradation_rate").notNull(), // % per month
+  userId: integer("user_id"),
 });
 
 export const insertBatterySchema = createInsertSchema(batteries).omit({

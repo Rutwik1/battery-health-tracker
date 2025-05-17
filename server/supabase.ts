@@ -1,36 +1,27 @@
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from './database.types';
+import type { Database } from '../shared/database.types';
 
-// These environment variables are expected to be set
-// SUPABASE_URL: Your Supabase project URL
-// SUPABASE_KEY: Your Supabase anon/service key
+// Initialize the Supabase client using environment variables
+const supabaseUrl = process.env.SUPABASE_URL as string;
+const supabaseKey = process.env.SUPABASE_KEY as string;
 
-// Check for required environment variables
-if (!process.env.SUPABASE_URL || !process.env.SUPABASE_KEY) {
-  console.error('Missing required environment variables for Supabase');
-  console.error('Please set SUPABASE_URL and SUPABASE_KEY');
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Missing Supabase environment variables!');
 }
 
-// Initialize the Supabase client
 export const supabase = createClient<Database>(
-  process.env.SUPABASE_URL || '',
-  process.env.SUPABASE_KEY || ''
+  supabaseUrl,
+  supabaseKey
 );
 
-// Helper function to check if Supabase connection is working
+// Test the Supabase connection
 export async function checkSupabaseConnection() {
   try {
-    const { data, error } = await supabase.from('batteries').select('count').limit(1);
-    
-    if (error) {
-      console.error('Supabase connection error:', error.message);
-      return false;
-    }
-    
-    console.log('Supabase connection successful!');
+    const { data, error } = await supabase.from('batteries').select('count');
+    if (error) throw error;
     return true;
-  } catch (err) {
-    console.error('Failed to connect to Supabase:', err);
+  } catch (error) {
+    console.error('Failed to connect to Supabase:', error);
     return false;
   }
 }
