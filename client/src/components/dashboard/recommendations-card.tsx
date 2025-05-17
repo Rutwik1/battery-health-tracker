@@ -1,7 +1,6 @@
 import { Battery, Recommendation } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { LightbulbIcon, ArrowRightIcon, CheckCircle2, AlertCircle, AlertTriangle, Info } from "lucide-react";
-import { useState, useEffect } from "react";
 
 interface RecommendationsCardProps {
   batteries: Battery[];
@@ -12,47 +11,10 @@ export default function RecommendationsCard({ batteries, isLoading }: Recommenda
   // Get recommendations for the first battery
   const batteryId = batteries.length > 0 ? batteries[0].id : 0;
   
-  // State for fixed recommendations
-  const [fixedRecommendations, setFixedRecommendations] = useState<Recommendation[]>([]);
-  // State for the dynamic recommendation
-  const [dynamicRecommendation, setDynamicRecommendation] = useState<Recommendation | null>(null);
-  
   const { data: recommendations, isLoading: recommendationsLoading } = useQuery<Recommendation[]>({
     queryKey: [`/api/batteries/${batteryId}/recommendations`],
     enabled: batteryId > 0
   });
-  
-  // Setup fixed and dynamic recommendations
-  useEffect(() => {
-    if (recommendations && recommendations.length > 0) {
-      // Create our fixed recommendations with specific messages
-      const fixedRecs = [
-        {
-          id: -1, // Use negative IDs to ensure they don't conflict with real recommendations
-          batteryId: batteryId,
-          type: "success", // Changed to success to get the green styling
-          message: "Avoid charging Battery #1 beyond 90% to extend lifespan.",
-          createdAt: new Date().toISOString(),
-          resolved: false
-        },
-        {
-          id: -2,
-          batteryId: batteryId,
-          type: "success", // Changed to success to get the green styling
-          message: "Optimal charging practice: keep all batteries between 20% and 80%.",
-          createdAt: new Date().toISOString(),
-          resolved: false
-        }
-      ];
-      
-      setFixedRecommendations(fixedRecs);
-      
-      // Get the latest recommendation as the dynamic one that changes
-      if (recommendations.length > 0) {
-        setDynamicRecommendation(recommendations[recommendations.length - 1]);
-      }
-    }
-  }, [recommendations, batteryId]);
   
   const loading = isLoading || recommendationsLoading || !recommendations;
 
@@ -102,20 +64,22 @@ export default function RecommendationsCard({ batteries, isLoading }: Recommenda
       
       {loading ? (
         <ul className="space-y-4">
-          {[...Array(3)].map((_, i) => (
+          {[...Array(4)].map((_, i) => (
             <li key={i} className="h-12 bg-muted/20 animate-pulse rounded-lg"></li>
           ))}
         </ul>
       ) : (
         <ul className="space-y-3">
-          {/* Fixed recommendations that don't change */}
-          {fixedRecommendations.map((recommendation) => {
+          {/* Dynamic recommendations from API only - removed hardcoded recommendations */}
+          
+          {/* Dynamic recommendations from API */}
+          {recommendations.map((recommendation) => {
             const { icon, bgColor, textColor, borderColor } = getRecommendationStyle(recommendation.type);
             
             return (
               <li 
                 key={recommendation.id} 
-                className={`flex p-3 rounded-lg ${bgColor} border ${borderColor} backdrop-blur-sm cursor-pointer`}
+                className={`flex p-3 rounded-lg ${bgColor} border ${borderColor} backdrop-blur-sm transition-transform duration-200 hover:scale-[1.02] cursor-pointer`}
               >
                 <div className="flex-shrink-0">
                   <div className={`flex items-center justify-center h-7 w-7 rounded-full bg-card/50 ${textColor}`}>
@@ -128,27 +92,6 @@ export default function RecommendationsCard({ batteries, isLoading }: Recommenda
               </li>
             );
           })}
-          
-          {/* Single dynamic recommendation that updates in real-time */}
-          {dynamicRecommendation && (
-            <li 
-              key={dynamicRecommendation.id} 
-              className={`flex p-3 rounded-lg ${getRecommendationStyle(dynamicRecommendation.type).bgColor} 
-                border ${getRecommendationStyle(dynamicRecommendation.type).borderColor} 
-                backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] 
-                animate-pulse-subtle cursor-pointer relative overflow-hidden`}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer pointer-events-none"></div>
-              <div className="flex-shrink-0">
-                <div className={`flex items-center justify-center h-7 w-7 rounded-full bg-card/50 ${getRecommendationStyle(dynamicRecommendation.type).textColor}`}>
-                  {getRecommendationStyle(dynamicRecommendation.type).icon}
-                </div>
-              </div>
-              <div className="ml-3 flex-1">
-                <p className="text-sm">{dynamicRecommendation.message}</p>
-              </div>
-            </li>
-          )}
         </ul>
       )}
       
