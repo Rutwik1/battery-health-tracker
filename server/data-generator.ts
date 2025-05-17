@@ -65,20 +65,12 @@ const demoBatteries = [
 // Smart recommendations templates
 const recommendationTemplates = [
   { 
-    type: "info", 
-    message: "Avoid charging Battery {ID} beyond 90% to extend lifespan." 
-  },
-  { 
-    type: "warning", 
-    message: "Battery {ID} discharge depth detected beyond optimal range. Consider shallower cycles." 
-  },
-  { 
     type: "success", 
     message: "Battery {ID} is maintaining excellent health. Continue current usage patterns."
   },
   { 
-    type: "info", 
-    message: "Optimal charging practice: keep all batteries between 20% and 80%."
+    type: "warning", 
+    message: "Battery {ID} discharge depth detected beyond optimal range. Consider shallower cycles." 
   },
   { 
     type: "warning", 
@@ -87,6 +79,14 @@ const recommendationTemplates = [
   { 
     type: "error", 
     message: "Battery {ID} nearing end of life with {HEALTH}% health. Plan for replacement."
+  },
+  { 
+    type: "info", 
+    message: "Scheduled maintenance due for Battery {ID} within 30 days."
+  },
+  { 
+    type: "info", 
+    message: "Battery {ID} performance optimized for current workload."
   }
 ];
 
