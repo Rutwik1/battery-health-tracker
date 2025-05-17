@@ -36,10 +36,10 @@ export default function Topbar() {
       </Sheet>
 
       <div className="flex-1 px-4 md:px-6 flex justify-between">
-        <div className="flex-1 flex">
-          <div className="w-full max-w-md flex md:ml-0 mt-3 md:mt-0">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-full max-w-md flex">
             <div className="relative w-full text-muted-foreground">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <div className="absolute left-0 top-0 bottom-0 pl-3 flex items-center justify-center pointer-events-none">
                 <i className="ri-search-line text-xl"></i>
               </div>
               <Input
