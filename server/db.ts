@@ -1,12 +1,15 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
-// Create Postgres client with database URL from environment
+// Create a PostgreSQL client with the connection string from Supabase
 const connectionString = process.env.DATABASE_URL!;
-// For Supabase, use the connection string from the Supabase dashboard
 
-// Create SQL client
-const client = postgres(connectionString);
+// For better connection handling in different environments
+const sql = postgres(connectionString, {
+  max: 10, // Maximum number of connections
+  idle_timeout: 20, // Timeout in seconds
+  connect_timeout: 10, // Connect timeout in seconds
+});
 
-// Create database connection with Drizzle
-export const db = drizzle(client);
+// Create database connection with Drizzle ORM
+export const db = drizzle(sql);

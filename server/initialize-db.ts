@@ -128,11 +128,11 @@ async function initializeDatabase() {
           // Insert history records for the battery
           for (const historyItem of historyItems) {
             await db.insert(batteryHistory).values({
-              batteryId: insertedBattery.id,
+              battery_id: insertedBattery.id,
               date: historyItem.date,
               capacity: historyItem.capacity,
-              healthPercentage: historyItem.healthPercentage,
-              cycleCount: historyItem.cycleCount
+              health_percentage: historyItem.healthPercentage,
+              cycle_count: historyItem.cycleCount
             });
           }
           console.log(`Inserted ${historyItems.length} history records for battery ${insertedBattery.id}`);

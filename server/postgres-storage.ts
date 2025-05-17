@@ -4,6 +4,7 @@ import { db } from "./db";
 import { users, batteries, batteryHistory, usagePatterns, recommendations } from "@shared/schema";
 import { eq, and, between, desc } from "drizzle-orm";
 import { IStorage } from "./storage";
+import { sql } from "drizzle-orm";
 
 // Implement PostgreSQL storage using Drizzle ORM
 export class PostgresStorage implements IStorage {
