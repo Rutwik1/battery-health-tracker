@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupSupabase } from "./setup-supabase";
+import { startDataGeneration } from "./data-generator";
 
 const app = express();
 app.use(express.json());
@@ -44,6 +45,10 @@ app.use((req, res, next) => {
     const success = await setupSupabase();
     if (success) {
       console.log('✓ Supabase database setup completed successfully!');
+      
+      // Start data generation after database is set up
+      console.log('Starting data generator for battery simulations...');
+      startDataGeneration();
     } else {
       console.warn('⚠️ Supabase setup encountered issues - will continue anyway');
     }

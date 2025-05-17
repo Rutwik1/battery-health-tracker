@@ -1,6 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { WebSocketServer, WebSocket } from 'ws';
 import { z } from "zod";
 import { 
   insertBatterySchema, 
@@ -314,5 +315,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+  
+  // Set up WebSocket server for realtime updates
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Keep track of connected clients
+  const clients = new Set<WebSocket>();
+  
+  wss.on('connection', (ws) => {
+    console.log('WebSocket client connected');
+    clients.add(ws);
+    
+    // Send initial data to the client
+    storage.getBatteries()
+      .then(batteries => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({
+            type: 'batteries',
+            data: batteries
+          }));
+        }
+      })
+      .catch(err => console.error('Error sending initial battery data:', err));
+    
+    // Handle client disconnect
+    ws.on('close', () => {
+      console.log('WebSocket client disconnected');
+      clients.delete(ws);
+    });
+    
+    // Handle messages from client
+    ws.on('message', (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        console.log('Received message:', data);
+        
+        // Handle subscription requests
+        if (data.type === 'subscribe' && data.entity) {
+          console.log(`Client subscribed to ${data.entity} updates`);
+          // Additional subscription logic can be added here
+        }
+      } catch (error) {
+        console.error('Error processing WebSocket message:', error);
+      }
+    });
+  });
+  
+  // Setup broadcast function to update all connected clients
+  // This will be called from the data generator
+  (global as any).broadcastBatteryUpdate = (data: any) => {
+    const message = JSON.stringify({
+      type: 'battery_update',
+      data
+    });
+    
+    clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
+  };
+  
   return httpServer;
 }
