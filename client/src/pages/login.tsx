@@ -36,19 +36,7 @@ export default function Login() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      const { supabase } = await import("@/lib/auth");
-      await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: window.location.origin,
-        },
-      });
-    } catch (err: any) {
-      setError(err.message || "Failed to login with Google");
-    }
-  };
+  // Google login removed as it's not enabled in Supabase
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-gradient-to-br from-background via-primary/5 to-accent/5">
@@ -123,6 +111,18 @@ export default function Login() {
                 required
                 className="bg-white/10 backdrop-blur-md border-border/50"
               />
+            </div>
+            
+            {error && (
+              <div className="bg-red-500/10 text-red-500 p-3 rounded-md text-sm">
+                {error}
+              </div>
+            )}
+            
+            <div className="text-center text-sm text-amber-300 mb-2 p-2 bg-amber-950/20 rounded-md">
+              <p className="font-medium">Demo account:</p>
+              <p>Email: demo@coulomb.ai</p>
+              <p>Password: batteryhealth</p>
             </div>
             
             <Button
