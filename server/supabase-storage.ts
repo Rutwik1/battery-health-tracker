@@ -131,10 +131,11 @@ export class SupabaseStorage implements IStorage {
       cycleCount: data.cycle_count,
       expectedCycles: data.expected_cycles,
       status: data.status,
-      initialDate: new Date(data.initial_date).toISOString(),
-      lastUpdated: new Date(data.last_updated).toISOString(),
-      degradationRate: data.degradation_rate
-    } as Battery;
+      initialDate: data.initial_date,
+      lastUpdated: data.last_updated,
+      degradationRate: data.degradation_rate,
+      userId: data.user_id || null
+    } as unknown as Battery;
   }
 
   /**
