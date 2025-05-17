@@ -32,10 +32,8 @@ export async function signUp(email: string, password: string, username: string) 
       .from('users')
       .upsert({
         id: data.user.id,
-        email: email,
-        firstName: username,
-        lastName: '',
-        profileImageUrl: ''
+        username: username,
+        password: 'SUPABASE-AUTH' // We don't store actual passwords
       });
       
     if (userError) {
