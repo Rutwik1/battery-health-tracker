@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import Sidebar from "./sidebar";
 import { AddBatteryDialog } from "@/components/dashboard/add-battery-dialog";
-import { Menu } from "lucide-react";
 
 export default function Topbar() {
   const [search, setSearch] = useState("");
@@ -24,7 +23,11 @@ export default function Topbar() {
             className="md:hidden flex items-center justify-center my-auto px-5 py-2 text-primary" 
             style={{ position: 'relative', top: '1px' }}
           >
-            <Menu className="h-9 w-9" />
+            <div className="flex flex-col justify-center items-center w-9 h-9">
+              <span className="h-[3px] w-7 bg-primary rounded-full mb-[6px]"></span>
+              <span className="h-[3px] w-7 bg-primary rounded-full mb-[6px]"></span>
+              <span className="h-[3px] w-7 bg-primary rounded-full"></span>
+            </div>
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="p-0 bg-gradient-dark border-r border-border/50" onCloseAutoFocus={(e) => e.preventDefault()}>
