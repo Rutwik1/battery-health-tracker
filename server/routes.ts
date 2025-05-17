@@ -12,9 +12,18 @@ import {
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Helper function to determine battery status based on health percentage
+  function getHealthStatus(healthPercentage: number): string {
+    if (healthPercentage >= 90) return "Excellent";
+    if (healthPercentage >= 80) return "Good";
+    if (healthPercentage >= 70) return "Fair";
+    return "Poor";
+  }
+  
   // Get all batteries
   app.get("/api/batteries", async (req: Request, res: Response) => {
     try {
+      
       // HARDCODED RESPONSE - Force all 4 batteries to appear on dashboard
       const batteries = [
         {
@@ -97,8 +106,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               matchingBattery.currentCapacity = dbBattery.current_capacity;
               matchingBattery.healthPercentage = dbBattery.health_percentage;
               matchingBattery.cycleCount = dbBattery.cycle_count;
-              matchingBattery.status = dbBattery.status;
               matchingBattery.lastUpdated = dbBattery.last_updated;
+              
+              // Update status based on health percentage using our helper function
+              matchingBattery.status = getHealthStatus(matchingBattery.healthPercentage);
             }
           });
         }
