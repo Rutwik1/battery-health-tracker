@@ -7,7 +7,17 @@ import { setupSupabase } from "./setup-supabase";
 import { startDataGeneration } from "./data-generator";
 
 
+import cors from 'cors';
+
 const app = express();
+
+const FRONTEND_URL = 'https://battery-health-tracker-frontend.onrender.com';
+
+app.use(cors({
+  origin: FRONTEND_URL,
+  credentials: true,  // if you want to allow cookies/auth headers
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
