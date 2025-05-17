@@ -1,4 +1,3 @@
-// User type definitions
 export interface User {
   id: number;
   username: string;
@@ -6,7 +5,6 @@ export interface User {
   name: string;
 }
 
-// Battery type definitions
 export interface Battery {
   id: number;
   name: string;
@@ -27,7 +25,6 @@ export interface Battery {
   installationLocation?: string;
 }
 
-// Battery historical data
 export interface BatteryHistory {
   id: number;
   batteryId: number;
@@ -37,7 +34,6 @@ export interface BatteryHistory {
   cycleCount: number;
 }
 
-// Usage pattern data
 export interface UsagePattern {
   id: number;
   batteryId: number;
@@ -49,7 +45,6 @@ export interface UsagePattern {
   fastChargingPercentage: number; // % of charges using fast charging
 }
 
-// Recommendation data
 export interface Recommendation {
   id: number;
   batteryId: number;
