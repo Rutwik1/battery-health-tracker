@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueries } from "@tanstack/react-query";
 import { Battery, BatteryHistory } from "@shared/schema";
 import { getBatteryStatusColor } from "@/lib/utils/battery";
 import { format, subDays } from "date-fns";
@@ -13,13 +13,18 @@ interface CapacityChartProps {
 }
 
 export default function CapacityChart({ batteries, timeRange, isLoading, detailed = false }: CapacityChartProps) {
-  // Get all battery histories
-  const batteryHistoryQueries = batteries.map(battery => 
-    useQuery<BatteryHistory[]>({
+  // Use useQueries instead of mapping over useQuery to avoid breaking Rules of Hooks
+  const batteryHistoryQueries = useQueries({
+    queries: batteries.map(battery => ({
       queryKey: [`/api/batteries/${battery.id}/history`],
+      queryFn: async () => {
+        const response = await fetch(`/api/batteries/${battery.id}/history`);
+        if (!response.ok) throw new Error('Failed to fetch battery history');
+        return response.json() as Promise<BatteryHistory[]>;
+      },
       enabled: batteries.length > 0
-    })
-  );
+    }))
+  });
 
   // Check if all queries are loaded
   const isHistoryLoading = batteryHistoryQueries.some(query => query.isLoading);
