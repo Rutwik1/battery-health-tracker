@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { storage } from '@/lib/store';
+import { storage } from '../../../lib/store';
 
 // GET /api/batteries - Get all batteries
 export async function GET(req: NextRequest) {

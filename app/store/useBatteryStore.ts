@@ -4,7 +4,7 @@ import {
   BatteryHistory, 
   UsagePattern, 
   Recommendation 
-} from '@/app/types/schema';
+} from '../types/schema';
 
 interface BatteryState {
   batteries: Battery[];

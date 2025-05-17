@@ -4,7 +4,7 @@ import {
   UsagePattern, 
   Recommendation,
   User
-} from '@/app/types/schema';
+} from '../app/types/schema';
 
 class MemStorage {
   private users: Map<number, User>;
