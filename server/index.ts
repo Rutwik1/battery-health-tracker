@@ -1,8 +1,11 @@
+import 'dotenv/config';
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupSupabase } from "./setup-supabase";
 import { startDataGeneration } from "./data-generator";
+
 
 const app = express();
 app.use(express.json());
@@ -45,7 +48,7 @@ app.use((req, res, next) => {
     const success = await setupSupabase();
     if (success) {
       console.log('✓ Supabase database setup completed successfully!');
-      
+
       // Start data generation after database is set up
       console.log('Starting data generator for battery simulations...');
       startDataGeneration();
@@ -55,7 +58,7 @@ app.use((req, res, next) => {
   } catch (error) {
     console.error('❌ Error during Supabase setup:', error);
   }
-  
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -78,12 +81,10 @@ app.use((req, res, next) => {
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
+  const PORT = process.env.PORT ? Number(process.env.PORT) : 5000;
+
+  server.listen(PORT, '127.0.0.1', () => {
+    log(`✅ Server running at http://127.0.0.1:${PORT}`);
   });
 })();
+

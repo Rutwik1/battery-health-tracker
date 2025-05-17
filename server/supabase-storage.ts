@@ -1,17 +1,21 @@
 import { supabase } from './supabase';
-import { 
-  Battery, 
-  InsertBattery, 
-  BatteryHistory, 
-  InsertBatteryHistory, 
-  UsagePattern, 
-  InsertUsagePattern, 
-  Recommendation, 
+import dotenv from 'dotenv';
+
+dotenv.config();
+import {
+  Battery,
+  InsertBattery,
+  BatteryHistory,
+  InsertBatteryHistory,
+  UsagePattern,
+  InsertUsagePattern,
+  Recommendation,
   InsertRecommendation,
   User,
   InsertUser
 } from '../shared/schema';
 import { IStorage } from './storage';
+
 
 /**
  * Implementation of the IStorage interface using Supabase
@@ -26,12 +30,12 @@ export class SupabaseStorage implements IStorage {
       .select('*')
       .eq('id', id)
       .single();
-    
+
     if (error) {
       console.error('Error fetching user:', error);
       return undefined;
     }
-    
+
     return data as User;
   }
 
@@ -44,12 +48,12 @@ export class SupabaseStorage implements IStorage {
       .select('*')
       .eq('username', username)
       .single();
-    
+
     if (error) {
       console.error('Error fetching user by username:', error);
       return undefined;
     }
-    
+
     return data as User;
   }
 
@@ -62,12 +66,12 @@ export class SupabaseStorage implements IStorage {
       .insert(user)
       .select()
       .single();
-    
+
     if (error) {
       console.error('Error creating user:', error);
       throw new Error(`Failed to create user: ${error.message}`);
     }
-    
+
     return data as User;
   }
 
@@ -79,12 +83,12 @@ export class SupabaseStorage implements IStorage {
       .from('batteries')
       .select('*')
       .order('last_updated', { ascending: false });
-    
+
     if (error) {
       console.error('Error fetching batteries:', error);
       throw new Error(`Failed to fetch batteries: ${error.message}`);
     }
-    
+
     // Convert snake_case to camelCase
     return data.map(battery => {
       return {
@@ -114,12 +118,12 @@ export class SupabaseStorage implements IStorage {
       .select('*')
       .eq('id', id)
       .single();
-    
+
     if (error) {
       console.error(`Error fetching battery with ID ${id}:`, error);
       return undefined;
     }
-    
+
     // Convert snake_case to camelCase
     return {
       id: data.id,
@@ -160,12 +164,12 @@ export class SupabaseStorage implements IStorage {
       })
       .select()
       .single();
-    
+
     if (error) {
       console.error('Error creating battery:', error);
       throw new Error(`Failed to create battery: ${error.message}`);
     }
-    
+
     // Convert back to camelCase for our application
     return {
       id: data.id,
@@ -189,7 +193,7 @@ export class SupabaseStorage implements IStorage {
   async updateBattery(id: number, battery: Partial<InsertBattery>): Promise<Battery | undefined> {
     // Create an object with snake_case keys for Supabase
     const updateData: Record<string, any> = {};
-    
+
     if (battery.name !== undefined) updateData.name = battery.name;
     if (battery.serialNumber !== undefined) updateData.serial_number = battery.serialNumber;
     if (battery.initialCapacity !== undefined) updateData.initial_capacity = battery.initialCapacity;
@@ -201,19 +205,19 @@ export class SupabaseStorage implements IStorage {
     if (battery.initialDate !== undefined) updateData.initial_date = battery.initialDate;
     if (battery.lastUpdated !== undefined) updateData.last_updated = battery.lastUpdated;
     if (battery.degradationRate !== undefined) updateData.degradation_rate = battery.degradationRate;
-    
+
     const { data, error } = await supabase
       .from('batteries')
       .update(updateData)
       .eq('id', id)
       .select()
       .single();
-    
+
     if (error) {
       console.error(`Error updating battery with ID ${id}:`, error);
       return undefined;
     }
-    
+
     // Convert back to camelCase for our application
     return {
       id: data.id,
@@ -239,12 +243,12 @@ export class SupabaseStorage implements IStorage {
       .from('batteries')
       .delete()
       .eq('id', id);
-    
+
     if (error) {
       console.error(`Error deleting battery with ID ${id}:`, error);
       return false;
     }
-    
+
     return true;
   }
 
@@ -257,12 +261,12 @@ export class SupabaseStorage implements IStorage {
       .select('*')
       .eq('battery_id', batteryId)
       .order('date', { ascending: true });
-    
+
     if (error) {
       console.error(`Error fetching history for battery ${batteryId}:`, error);
       throw new Error(`Failed to fetch battery history: ${error.message}`);
     }
-    
+
     // Convert snake_case to camelCase
     return data.map(history => {
       return {
@@ -287,12 +291,12 @@ export class SupabaseStorage implements IStorage {
       .gte('date', startDate.toISOString())
       .lte('date', endDate.toISOString())
       .order('date', { ascending: true });
-    
+
     if (error) {
       console.error(`Error fetching filtered history for battery ${batteryId}:`, error);
       throw new Error(`Failed to fetch filtered battery history: ${error.message}`);
     }
-    
+
     // Convert snake_case to camelCase
     return data.map(history => {
       return {
@@ -321,12 +325,12 @@ export class SupabaseStorage implements IStorage {
       })
       .select()
       .single();
-    
+
     if (error) {
       console.error('Error creating battery history entry:', error);
       throw new Error(`Failed to create battery history: ${error.message}`);
     }
-    
+
     // Convert back to camelCase for our application
     return {
       id: data.id,
@@ -347,7 +351,7 @@ export class SupabaseStorage implements IStorage {
       .select('*')
       .eq('battery_id', batteryId)
       .single();
-    
+
     if (error) {
       if (error.code === 'PGRST116') { // Code for "no rows returned"
         return undefined;
@@ -355,7 +359,7 @@ export class SupabaseStorage implements IStorage {
       console.error(`Error fetching usage pattern for battery ${batteryId}:`, error);
       return undefined;
     }
-    
+
     // Convert snake_case to camelCase
     return {
       id: data.id,
@@ -384,12 +388,12 @@ export class SupabaseStorage implements IStorage {
       })
       .select()
       .single();
-    
+
     if (error) {
       console.error('Error creating usage pattern:', error);
       throw new Error(`Failed to create usage pattern: ${error.message}`);
     }
-    
+
     // Convert back to camelCase for our application
     return {
       id: data.id,
@@ -408,26 +412,26 @@ export class SupabaseStorage implements IStorage {
   async updateUsagePattern(id: number, pattern: Partial<InsertUsagePattern>): Promise<UsagePattern | undefined> {
     // Create an object with snake_case keys for Supabase
     const updateData: Record<string, any> = {};
-    
+
     if (pattern.batteryId !== undefined) updateData.battery_id = pattern.batteryId;
     if (pattern.chargingFrequency !== undefined) updateData.charging_frequency = pattern.chargingFrequency;
     if (pattern.dischargeDepth !== undefined) updateData.discharge_depth = pattern.dischargeDepth;
     if (pattern.chargeDuration !== undefined) updateData.charge_duration = pattern.chargeDuration;
     if (pattern.operatingTemperature !== undefined) updateData.operating_temperature = pattern.operatingTemperature;
     if (pattern.lastUpdated !== undefined) updateData.last_updated = pattern.lastUpdated;
-    
+
     const { data, error } = await supabase
       .from('usage_patterns')
       .update(updateData)
       .eq('id', id)
       .select()
       .single();
-    
+
     if (error) {
       console.error(`Error updating usage pattern with ID ${id}:`, error);
       return undefined;
     }
-    
+
     // Convert back to camelCase for our application
     return {
       id: data.id,
@@ -449,12 +453,12 @@ export class SupabaseStorage implements IStorage {
       .select('*')
       .eq('battery_id', batteryId)
       .order('created_at', { ascending: false });
-    
+
     if (error) {
       console.error(`Error fetching recommendations for battery ${batteryId}:`, error);
       throw new Error(`Failed to fetch recommendations: ${error.message}`);
     }
-    
+
     // Convert snake_case to camelCase
     return data.map(rec => {
       return {
@@ -483,12 +487,12 @@ export class SupabaseStorage implements IStorage {
       })
       .select()
       .single();
-    
+
     if (error) {
       console.error('Error creating recommendation:', error);
       throw new Error(`Failed to create recommendation: ${error.message}`);
     }
-    
+
     // Convert back to camelCase for our application
     return {
       id: data.id,
@@ -510,12 +514,12 @@ export class SupabaseStorage implements IStorage {
       .eq('id', id)
       .select()
       .single();
-    
+
     if (error) {
       console.error(`Error updating recommendation with ID ${id}:`, error);
       return undefined;
     }
-    
+
     // Convert back to camelCase for our application
     return {
       id: data.id,
