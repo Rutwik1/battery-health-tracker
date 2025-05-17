@@ -73,7 +73,7 @@ export default function RecommendationsCard({ batteries, isLoading }: Recommenda
           {/* Dynamic recommendations from API only - removed hardcoded recommendations */}
           
           {/* Dynamic recommendations from API */}
-          {recommendations.slice(0, 3).map((recommendation) => {
+          {recommendations.map((recommendation) => {
             const { icon, bgColor, textColor, borderColor } = getRecommendationStyle(recommendation.type);
             
             return (
