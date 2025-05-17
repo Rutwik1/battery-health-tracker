@@ -30,7 +30,7 @@ export default function RecommendationsCard({ batteries, isLoading }: Recommenda
         {
           id: -1, // Use negative IDs to ensure they don't conflict with real recommendations
           batteryId: batteryId,
-          type: "warning",
+          type: "success", // Changed to success to get the green styling
           message: "Avoid charging Battery #1 beyond 90% to extend lifespan.",
           createdAt: new Date().toISOString(),
           resolved: false
@@ -38,7 +38,7 @@ export default function RecommendationsCard({ batteries, isLoading }: Recommenda
         {
           id: -2,
           batteryId: batteryId,
-          type: "info",
+          type: "success", // Changed to success to get the green styling
           message: "Optimal charging practice: keep all batteries between 20% and 80%.",
           createdAt: new Date().toISOString(),
           resolved: false
