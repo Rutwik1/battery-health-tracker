@@ -6,7 +6,9 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatNumber(num: number): string {
-  return new Intl.NumberFormat('en-US').format(num)
+  return num.toLocaleString('en-US', {
+    maximumFractionDigits: 0
+  })
 }
 
 export function formatDate(date: Date): string {
@@ -18,49 +20,49 @@ export function formatDate(date: Date): string {
 }
 
 export function getBatteryStatusColor(status: string) {
-  const statusColors = {
-    'Excellent': 'bg-green-500 text-green-50',
-    'Good': 'bg-blue-500 text-blue-50',
-    'Fair': 'bg-yellow-500 text-yellow-50',
-    'Poor': 'bg-red-500 text-red-50',
-    'Critical': 'bg-red-700 text-red-50',
+  switch (status.toLowerCase()) {
+    case 'excellent':
+      return 'text-green-500'
+    case 'good':
+      return 'text-emerald-500'
+    case 'fair':
+      return 'text-amber-500'
+    case 'poor':
+      return 'text-red-500'
+    default:
+      return 'text-gray-500'
   }
-  
-  return statusColors[status as keyof typeof statusColors] || 'bg-gray-500 text-gray-50'
 }
 
 export function getBatteryHealthStatus(percentage: number): string {
   if (percentage >= 85) return 'Excellent'
   if (percentage >= 70) return 'Good'
   if (percentage >= 50) return 'Fair'
-  if (percentage >= 30) return 'Poor'
-  return 'Critical'
+  return 'Poor'
 }
 
 export function getProgressColorClass(percentage: number): string {
-  if (percentage >= 85) return 'bg-gradient-to-r from-green-500 to-green-400'
-  if (percentage >= 70) return 'bg-gradient-to-r from-blue-500 to-blue-400'
-  if (percentage >= 50) return 'bg-gradient-to-r from-yellow-500 to-yellow-400'
-  if (percentage >= 30) return 'bg-gradient-to-r from-orange-500 to-orange-400'
-  return 'bg-gradient-to-r from-red-500 to-red-400'
+  if (percentage >= 85) return 'bg-green-500'
+  if (percentage >= 70) return 'bg-emerald-500'
+  if (percentage >= 50) return 'bg-amber-500'
+  return 'bg-red-500'
 }
 
 export function getTrendIcon(value: number): string {
-  if (value > 0) return '↑'
-  if (value < 0) return '↓'
+  if (value > 0) return '↗'
+  if (value < 0) return '↘'
   return '→'
 }
 
 export function getTrendColorClass(value: number, isPositiveTrend: boolean = true): string {
-  // For metrics like degradation rate, lower is better (isPositiveTrend = false)
-  // For metrics like capacity, higher is better (isPositiveTrend = true)
-  if ((value > 0 && isPositiveTrend) || (value < 0 && !isPositiveTrend)) {
-    return 'text-green-500'
+  if (isPositiveTrend) {
+    if (value > 0) return 'text-green-500'
+    if (value < 0) return 'text-red-500'
+  } else {
+    if (value > 0) return 'text-red-500' 
+    if (value < 0) return 'text-green-500'
   }
-  if ((value < 0 && isPositiveTrend) || (value > 0 && !isPositiveTrend)) {
-    return 'text-red-500'
-  }
-  return 'text-blue-500'
+  return 'text-gray-500'
 }
 
 export function calculateRemainingCycles(cycleCount: number, expectedCycles: number): number {
