@@ -37,16 +37,26 @@ export default function Login() {
   };
 
   const handleGoogleLogin = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const { supabase } = await import("@/lib/auth");
-      await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: `${window.location.origin}/dashboard`,
         },
       });
+      
+      if (error) {
+        throw error;
+      }
+      
+      // The redirect will happen automatically, but we'll set loading state
+      // so the button shows as loading
     } catch (err: any) {
       setError(err.message || "Failed to login with Google");
+      setLoading(false);
     }
   };
 
