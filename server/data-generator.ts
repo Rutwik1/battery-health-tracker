@@ -206,16 +206,44 @@ export async function generateBatteryUpdate() {
       
       // Randomly generate a recommendation (10% chance)
       if (Math.random() < 0.1) {
-        const randomRec = recommendationTemplates[Math.floor(Math.random() * recommendationTemplates.length)];
-        await storage.createRecommendation({
-          batteryId: battery.id,
-          type: randomRec.type,
-          message: randomRec.message.replace('{ID}', battery.name).replace('{HEALTH}', updatedBattery.healthPercentage.toString()),
-          createdAt: new Date().toISOString(),
-          resolved: false
-        } as InsertRecommendation);
+        // First, get existing recommendations for this battery
+        const existingRecommendations = await storage.getRecommendations(battery.id);
         
-        console.log(`Generated recommendation for ${battery.name}`);
+        // Choose a recommendation template that hasn't been used yet for this battery
+        let availableTemplates = [...recommendationTemplates];
+        
+        // Filter out templates that already have active (unresolved) recommendations
+        if (existingRecommendations.length > 0) {
+          const existingMessages = existingRecommendations
+            .filter(rec => !rec.resolved)
+            .map(rec => {
+              // Remove battery name and health values for comparison
+              return rec.message
+                .replace(battery.name, '{ID}')
+                .replace(/\d+(\.\d+)?%/g, '{HEALTH}%');
+            });
+          
+          // Only keep templates that aren't already active
+          availableTemplates = availableTemplates.filter(template => {
+            return !existingMessages.some(msg => {
+              return msg.includes(template.message.replace('{ID}', '').replace('{HEALTH}%', ''));
+            });
+          });
+        }
+        
+        // Only create a new recommendation if we have available templates
+        if (availableTemplates.length > 0) {
+          const randomRec = availableTemplates[Math.floor(Math.random() * availableTemplates.length)];
+          await storage.createRecommendation({
+            batteryId: battery.id,
+            type: randomRec.type,
+            message: randomRec.message.replace('{ID}', battery.name).replace('{HEALTH}', updatedBattery.healthPercentage.toString()),
+            createdAt: new Date().toISOString(),
+            resolved: false
+          } as InsertRecommendation);
+          
+          console.log(`Generated recommendation for ${battery.name}`);
+        }
       }
     }
   } catch (error) {
