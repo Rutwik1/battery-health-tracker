@@ -14,9 +14,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all batteries
   app.get("/api/batteries", async (req: Request, res: Response) => {
     try {
-      const batteries = await storage.getBatteries();
+      // Bypass the storage layer to get all batteries directly
+      const { data, error } = await supabase
+        .from('batteries')
+        .select('*')
+        .order('id', { ascending: true });
+        
+      if (error) {
+        console.error('Error fetching batteries:', error);
+        return res.status(500).json({ message: "Failed to fetch batteries" });
+      }
+      
+      // Convert snake_case to camelCase
+      const batteries = data.map(b => ({
+        id: b.id,
+        name: b.name,
+        serialNumber: b.serial_number,
+        initialCapacity: b.initial_capacity,
+        currentCapacity: b.current_capacity,
+        healthPercentage: b.health_percentage,
+        cycleCount: b.cycle_count,
+        expectedCycles: b.expected_cycles,
+        status: b.status,
+        initialDate: b.initial_date,
+        lastUpdated: b.last_updated,
+        degradationRate: b.degradation_rate,
+        userId: b.user_id
+      }));
+      
       res.json(batteries);
     } catch (error) {
+      console.error('Error in GET /api/batteries:', error);
       res.status(500).json({ message: "Failed to fetch batteries" });
     }
   });
