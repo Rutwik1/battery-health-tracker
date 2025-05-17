@@ -1,7 +1,7 @@
 import * as React from 'react'
 import type { Metadata } from 'next'
-import { Sidebar } from '@/components/layout/sidebar'
-import { Topbar } from '@/components/layout/topbar'
+import { Sidebar } from '../components/layout/sidebar'
+import { Topbar } from '../components/layout/topbar'
 import './globals.css'
 
 export const metadata: Metadata = {
