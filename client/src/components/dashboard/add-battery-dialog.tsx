@@ -172,7 +172,7 @@ export function AddBatteryDialog() {
           Add Battery
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] bg-gradient-dark border border-zinc-700/50 backdrop-blur-md shadow-xl shadow-primary/10 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] bg-gradient-dark border border-border/50 backdrop-blur-md shadow-xl shadow-primary/10 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center text-xl">
             <Battery className="mr-2 h-5 w-5 text-primary" />
@@ -198,7 +198,7 @@ export function AddBatteryDialog() {
                     <FormItem>
                       <FormLabel>Battery Name *</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Battery #5" {...field} className="bg-muted/30 border-zinc-700/50" />
+                        <Input placeholder="e.g., Battery #5" {...field} className="bg-muted/30 border-border/50" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
