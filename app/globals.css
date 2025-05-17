@@ -2,6 +2,47 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Coulomb.ai Color Scheme */
+  --background: 265 60% 5%;
+  --foreground: 213 31% 95%;
+  --muted: 260 35% 12%;
+  --muted-foreground: 214 20% 75%;
+  --popover: 265 60% 5%;
+  --popover-foreground: 213 31% 95%;
+  --card: 260 45% 8%;
+  --card-foreground: 213 31% 95%;
+  --border: 260 30% 18%;
+  --input: 260 30% 18%;
+  
+  /* Primary Colors */
+  --primary: 260 100% 65%;
+  --primary-foreground: 213 31% 95%;
+  
+  /* Secondary Colors */
+  --secondary: 260 35% 12%;
+  --secondary-foreground: 213 31% 95%;
+  
+  /* Status Colors */
+  --success: 140 100% 45%;
+  --warning: 35 100% 50%;
+  --danger: 0 100% 60%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-[#101025] text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-medium tracking-tight;
+  }
+}
+
 @layer base {
   :root {
     --background: 224 71% 4%;
