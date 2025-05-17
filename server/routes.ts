@@ -309,31 +309,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         "POST /api/batteries/:id/usage",
         "GET /api/batteries/:id/recommendations",
         "POST /api/recommendations",
-        "PATCH /api/recommendations/:id",
-        "GET /api/generate-demo-data"
+        "PATCH /api/recommendations/:id"
       ]
     });
-  });
-  
-  // Special endpoint to manually generate demo data
-  app.get("/api/generate-demo-data", async (_req, res) => {
-    try {
-      // Import function directly to avoid circular dependency
-      const { ensureDemoBatteries } = require('./data-generator');
-      await ensureDemoBatteries();
-      
-      // Get the updated list of batteries
-      const batteries = await storage.getBatteries();
-      
-      res.json({
-        message: "Demo data generated successfully",
-        batteryCount: batteries.length,
-        batteries
-      });
-    } catch (error) {
-      console.error("Error generating demo data:", error);
-      res.status(500).json({ message: "Failed to generate demo data", error: String(error) });
-    }
   });
 
   const httpServer = createServer(app);
