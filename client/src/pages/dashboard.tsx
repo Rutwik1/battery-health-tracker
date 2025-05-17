@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useWebSocket } from "@/hooks/use-websocket";
 import Sidebar from "@/components/layout/sidebar";
 import Topbar from "@/components/layout/topbar";
 import BatteryStatusCard from "@/components/dashboard/battery-status-card";
@@ -24,6 +25,40 @@ import { type Battery } from "@shared/schema";
 
 export default function Dashboard() {
   const [timeRange, setTimeRange] = useState("30");
+  const queryClient = useQueryClient();
+  const { lastMessage, status: wsStatus } = useWebSocket();
+  
+  // Handle realtime updates via WebSocket
+  useEffect(() => {
+    if (lastMessage) {
+      if (lastMessage.type === 'batteries') {
+        // Initial full data load
+        queryClient.setQueryData(['/api/batteries'], lastMessage.data);
+      } else if (lastMessage.type === 'battery_update') {
+        // Update a single battery
+        const updatedBattery = lastMessage.data.battery;
+        
+        queryClient.setQueryData(['/api/batteries'], (oldData: Battery[] | undefined) => {
+          if (!oldData) return [updatedBattery];
+          
+          return oldData.map(battery => 
+            battery.id === updatedBattery.id ? updatedBattery : battery
+          );
+        });
+        
+        // Update history data if we have it loaded
+        if (lastMessage.data.history) {
+          queryClient.setQueryData(
+            ['/api/batteries', updatedBattery.id, 'history'], 
+            (oldData: any[] | undefined) => {
+              if (!oldData) return [lastMessage.data.history];
+              return [...oldData, lastMessage.data.history];
+            }
+          );
+        }
+      }
+    }
+  }, [lastMessage, queryClient]);
 
   const { data: batteries, isLoading, error, refetch } = useQuery<Battery[]>({
     queryKey: ["/api/batteries"],

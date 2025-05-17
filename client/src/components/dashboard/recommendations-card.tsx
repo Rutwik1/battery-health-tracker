@@ -70,6 +70,34 @@ export default function RecommendationsCard({ batteries, isLoading }: Recommenda
         </ul>
       ) : (
         <ul className="space-y-3">
+          {/* Special recommendations always visible at top */}
+          {batteries.length > 0 && (
+            <>
+              <li className="flex p-3 rounded-lg bg-primary/10 border border-primary/20 backdrop-blur-sm transition-transform duration-200 hover:scale-[1.02] cursor-pointer">
+                <div className="flex-shrink-0">
+                  <div className="flex items-center justify-center h-7 w-7 rounded-full bg-card/50 text-primary">
+                    <Info className="h-4 w-4" />
+                  </div>
+                </div>
+                <div className="ml-3 flex-1">
+                  <p className="text-sm">Avoid charging {batteries[0].name} beyond 90% to extend lifespan.</p>
+                </div>
+              </li>
+              
+              <li className="flex p-3 rounded-lg bg-accent/10 border border-accent/20 backdrop-blur-sm transition-transform duration-200 hover:scale-[1.02] cursor-pointer">
+                <div className="flex-shrink-0">
+                  <div className="flex items-center justify-center h-7 w-7 rounded-full bg-card/50 text-accent">
+                    <Info className="h-4 w-4" />
+                  </div>
+                </div>
+                <div className="ml-3 flex-1">
+                  <p className="text-sm">Optimal charging practice: keep all batteries between 20% and 80%.</p>
+                </div>
+              </li>
+            </>
+          )}
+          
+          {/* Dynamic recommendations from API */}
           {recommendations.map((recommendation) => {
             const { icon, bgColor, textColor, borderColor } = getRecommendationStyle(recommendation.type);
             
