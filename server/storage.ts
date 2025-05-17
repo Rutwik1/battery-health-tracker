@@ -395,4 +395,4 @@ import { SupabaseStorage } from './supabase-storage';
 // Export Supabase storage instance
 // Initialize storage with SupabaseStorage
 // This connects to your Supabase database using the credentials in your environment variables
-export const storage = new SupabaseStorage();
+export const storage = new MemStorage();
