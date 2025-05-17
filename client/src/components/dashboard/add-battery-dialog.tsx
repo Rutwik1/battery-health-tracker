@@ -99,14 +99,19 @@ export function AddBatteryDialog() {
 
   const mutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log("Sending data to server:", data);
       const response = await fetch("/api/batteries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
+      
       if (!response.ok) {
-        throw new Error("Failed to add battery");
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Server response error:", errorData);
+        throw new Error(errorData.message || "Failed to add battery");
       }
+      
       return response.json();
     },
     onSuccess: () => {
@@ -133,31 +138,29 @@ export function AddBatteryDialog() {
     },
   });
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
-    // Calculate current capacity based on health percentage if it wasn't already set
-    if (data.currentCapacity === data.initialCapacity && data.healthPercentage < 100) {
-      data.currentCapacity = Math.round((data.initialCapacity * data.healthPercentage) / 100);
-    }
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    // Calculate current capacity based on health percentage
+    const currentCapacity = Math.round((Number(values.initialCapacity) * Number(values.healthPercentage)) / 100);
     
-    // Add required fields that aren't in the form
-    const batteryData = {
-      name: data.name,
-      serialNumber: data.serialNumber,
-      initialCapacity: data.initialCapacity,
-      currentCapacity: data.currentCapacity,
-      healthPercentage: data.healthPercentage,
-      cycleCount: data.cycleCount,
-      expectedCycles: data.expectedCycles,
-      status: data.status,
-      initialDate: new Date(data.initialDate),
+    // Create a complete battery object with all required fields
+    const battery = {
+      name: values.name,
+      serialNumber: values.serialNumber,
+      initialCapacity: Number(values.initialCapacity),
+      currentCapacity: currentCapacity,
+      healthPercentage: Number(values.healthPercentage),
+      cycleCount: Number(values.cycleCount),
+      expectedCycles: Number(values.expectedCycles),
+      status: values.status,
+      initialDate: new Date(values.initialDate),
       lastUpdated: new Date(),
-      degradationRate: 0.5, // Default degradation rate (% per month)
+      degradationRate: 0.5
     };
     
-    console.log('Submitting battery data:', batteryData);
+    console.log('Submitting battery:', battery);
     
     // Submit the data
-    mutation.mutate(batteryData);
+    mutation.mutate(battery);
   }
 
   return (
