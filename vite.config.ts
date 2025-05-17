@@ -3,17 +3,10 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
-  root: './client', // Point to the directory containing index.html
-  plugins: [react()],
+  root: './client', // This points to where your index.html is
   build: {
-    outDir: '../dist', // Output to the dist folder in the project root
+    outDir: '../dist', // Output to dist folder in project root
     emptyOutDir: true
   },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './client/src'),
-      '@shared': path.resolve(__dirname, './shared'),
-      '@assets': path.resolve(__dirname, './attached_assets')
-    }
-  }
+  plugins: [react()]
 });

@@ -1,19 +1,29 @@
 #!/bin/bash
-# Debug: Show directory structure
-echo "Current directory structure:"
-find . -type f -name "index.html" | sort
+# Show current directory and files
+echo "Current directory: $(pwd)"
+ls -la
 
 # Install dependencies
 npm install
 
-# Build the client
-echo "Building client..."
-npm run build:client
+# Run the build
+npm run build
 
-# Build the server
-echo "Building server..."
-npm run build:server
+# Debug: Show where files were output
+echo "After build - checking for dist directory:"
+ls -la
+find . -name "dist" -type d
 
-# Debug: Show output directory
-echo "Output directory structure:"
-ls -la dist
+# If dist directory exists but is in the wrong place, copy it
+if [ -d "./client/dist" ] && [ ! -d "./dist" ]; then
+  echo "Found dist in client folder, copying to root"
+  cp -r ./client/dist ./dist
+fi
+
+if [ -d "./dist" ]; then
+  echo "dist directory contents:"
+  ls -la ./dist
+else
+  echo "dist directory not found!"
+  exit 1
+fi
