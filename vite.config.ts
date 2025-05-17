@@ -1,13 +1,50 @@
+// import { defineConfig } from 'vite';
+// import react from '@vitejs/plugin-react';
+// import path from 'path';
+
+// export default defineConfig({
+//     root: './client',  // Set root folder here
+//     plugins: [react()],
+//     resolve: {
+//         alias: {
+//             '@': path.resolve(__dirname, './client/src'),
+//         },
+//     },
+// });
+
+// vite.config.ts
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export default defineConfig({
-    root: './client',  // Set root folder here
-    plugins: [react()],
+    root: './client',
     resolve: {
         alias: {
-            '@': path.resolve(__dirname, './client/src'),
+            '@': resolve(__dirname, './client/src'),
         },
     },
+    plugins: [react()],
 });
+
+
+// import { fileURLToPath } from 'url';
+// import { dirname, resolve } from 'path';
+
+// // Emulate __dirname
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = dirname(__filename);
+
+// export default {
+//     // Example of resolving paths with the fixed __dirname
+//     resolve: {
+//         alias: {
+//             '@': resolve(__dirname, './client/src'),
+//         },
+//     },
+// };
+

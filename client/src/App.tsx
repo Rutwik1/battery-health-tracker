@@ -1,18 +1,18 @@
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from './components/ui/toaster';
 // import { Toaster } from './components/ui/toaster';
-import { TooltipProvider } from "@/components/ui/tooltip";
-import Dashboard from "@/pages/dashboard";
-import BatteryDetail from "@/pages/battery-detail";
-import Login from "@/pages/login";
-import Register from "@/pages/register";
-import Verify from "@/pages/verify";
-import NotFound from "@/pages/not-found";
+import { TooltipProvider } from './components/ui/tooltip';
+import Dashboard from './pages/dashboard';
+import BatteryDetail from './pages/battery-detail';
+import Login from './pages/login';
+import Register from './pages/register';
+import Verify from './pages/verify';
+import NotFound from './pages/not-found';
 import { ThemeProvider } from "next-themes";
 import { useEffect } from "react";
-import { useAuthCheck } from "@/hooks/useAuthCheck";
+import { useAuthCheck } from './hooks/useAuthCheck';
 
 // Protected route component that checks authentication
 function ProtectedRoute({ component: Component, ...rest }: { component: React.ComponentType<any>, path?: string }) {

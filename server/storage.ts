@@ -1,10 +1,10 @@
 import {
   users, type User, type UpsertUser,
-  batteries, type Battery, type InsertBattery, 
+  batteries, type Battery, type InsertBattery,
   batteryHistory, type BatteryHistory, type InsertBatteryHistory,
   usagePatterns, type UsagePattern, type InsertUsagePattern,
   recommendations, type Recommendation, type InsertRecommendation
-} from "@shared/schema";
+} from "../shared/schema";
 
 // Interface with CRUD methods
 export interface IStorage {
@@ -42,7 +42,7 @@ export class MemStorage implements IStorage {
   private batteryHistories: Map<number, BatteryHistory>;
   private usagePatterns: Map<number, UsagePattern>;
   private recommendations: Map<number, Recommendation>;
-  
+
   private batteryCurrentId: number;
   private historyCurrentId: number;
   private patternCurrentId: number;
@@ -54,7 +54,7 @@ export class MemStorage implements IStorage {
     this.batteryHistories = new Map();
     this.usagePatterns = new Map();
     this.recommendations = new Map();
-    
+
     this.batteryCurrentId = 1;
     this.historyCurrentId = 1;
     this.patternCurrentId = 1;
@@ -119,9 +119,9 @@ export class MemStorage implements IStorage {
 
   async getBatteryHistoryFiltered(batteryId: number, startDate: Date, endDate: Date): Promise<BatteryHistory[]> {
     return Array.from(this.batteryHistories.values())
-      .filter(history => 
-        history.batteryId === batteryId && 
-        new Date(history.date) >= startDate && 
+      .filter(history =>
+        history.batteryId === batteryId &&
+        new Date(history.date) >= startDate &&
         new Date(history.date) <= endDate
       )
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -352,17 +352,17 @@ export class MemStorage implements IStorage {
     for (let i = 0; i < months; i++) {
       const historyDate = new Date(currentDate);
       historyDate.setMonth(currentDate.getMonth() - (months - 1 - i));
-      
+
       // Calculate health percentage based on current health and degradation rate
       const monthsElapsed = months - 1 - i;
       const healthPercentage = Math.max(
         initialHealth - (battery.degradationRate * monthsElapsed),
         battery.healthPercentage
       );
-      
+
       // Calculate capacity based on health percentage
       const capacity = Math.round((battery.initialCapacity * healthPercentage) / 100);
-      
+
       // Calculate cycle count (simplified linear model)
       const cycleCount = Math.min(
         Math.round(battery.cycleCount * (i + 1) / months),
@@ -377,11 +377,11 @@ export class MemStorage implements IStorage {
         healthPercentage: healthPercentage,
         cycleCount: cycleCount
       };
-      
+
       this.batteryHistories.set(historyEntry.id, historyEntry);
       monthlyData.push(historyEntry);
     }
-    
+
     return monthlyData;
   }
 }

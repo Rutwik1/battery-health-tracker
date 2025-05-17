@@ -4,12 +4,12 @@ import { storage } from "./storage";
 import { WebSocketServer, WebSocket } from 'ws';
 import { z } from "zod";
 import { supabase } from "./supabase";
-import { 
-  insertBatterySchema, 
+import {
+  insertBatterySchema,
   insertBatteryHistorySchema,
   insertUsagePatternSchema,
-  insertRecommendationSchema 
-} from "@shared/schema";
+  insertRecommendationSchema
+} from '../shared/schema';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Helper function to determine battery status based on health percentage
@@ -19,11 +19,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (healthPercentage >= 70) return "Fair";
     return "Poor";
   }
-  
+
   // Get all batteries
   app.get("/api/batteries", async (req: Request, res: Response) => {
     try {
-      
+
       // HARDCODED RESPONSE - Force all 4 batteries to appear on dashboard
       const batteries = [
         {
@@ -87,17 +87,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: null
         }
       ];
-      
+
       // Still update the database for consistency
       try {
         const { data, error } = await supabase
           .from('batteries')
           .select('*')
           .order('id', { ascending: true });
-          
+
         if (!error && data && data.length > 0) {
           console.log(`Found ${data.length} batteries in database`);
-          
+
           // Merge any realtime data with our fixed response
           data.forEach((dbBattery: any) => {
             const matchingBattery = batteries.find(b => b.id === dbBattery.id);
@@ -107,7 +107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               matchingBattery.healthPercentage = dbBattery.health_percentage;
               matchingBattery.cycleCount = dbBattery.cycle_count;
               matchingBattery.lastUpdated = dbBattery.last_updated;
-              
+
               // Update status based on health percentage using our helper function
               matchingBattery.status = getHealthStatus(matchingBattery.healthPercentage);
             }
@@ -116,7 +116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (dbError) {
         console.log('Error getting DB data, using hardcoded values only');
       }
-      
+
       res.json(batteries);
     } catch (error) {
       console.error('Error in GET /api/batteries:', error);
@@ -152,9 +152,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         initialDate: req.body.initialDate ? new Date(req.body.initialDate) : undefined,
         lastUpdated: req.body.lastUpdated ? new Date(req.body.lastUpdated) : new Date()
       };
-      
+
       console.log('Processing battery data:', requestData);
-      
+
       // Validate the processed data
       const validatedData = insertBatterySchema.parse(requestData);
       const battery = await storage.createBattery(validatedData);
@@ -178,7 +178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Partial validation of the update data
       const validatedData = insertBatterySchema.partial().parse(req.body);
-      
+
       const updatedBattery = await storage.updateBattery(id, validatedData);
       if (!updatedBattery) {
         return res.status(404).json({ message: "Battery not found" });
@@ -221,16 +221,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { startDate, endDate } = req.query;
-      
+
       let batteryHistory;
       if (startDate && endDate) {
         const start = new Date(startDate as string);
         const end = new Date(endDate as string);
-        
+
         if (isNaN(start.getTime()) || isNaN(end.getTime())) {
           return res.status(400).json({ message: "Invalid date format" });
         }
-        
+
         batteryHistory = await storage.getBatteryHistoryFiltered(id, start, end);
       } else {
         batteryHistory = await storage.getBatteryHistory(id);
@@ -258,10 +258,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Ensure the batteryId in the body matches the URL parameter
       const data = { ...req.body, batteryId };
-      
+
       const validatedData = insertBatteryHistorySchema.parse(data);
       const history = await storage.createBatteryHistory(validatedData);
-      
+
       res.status(201).json(history);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -306,10 +306,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if usage pattern already exists
       const existingPattern = await storage.getUsagePattern(batteryId);
-      
+
       // Ensure the batteryId in the body matches the URL parameter
       const data = { ...req.body, batteryId };
-      
+
       if (existingPattern) {
         // Update existing pattern
         const validatedData = insertUsagePatternSchema.partial().parse(data);
@@ -340,20 +340,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get recommendations specific to this battery and general recommendations (batteryId = 0)
       const batteryRecommendations = await storage.getRecommendations(id);
       const generalRecommendations = await storage.getRecommendations(0);
-      
+
       // Combine battery-specific and general recommendations
       let recommendations = [...batteryRecommendations, ...generalRecommendations];
-      
+
       // Sort recommendations with most recent first
-      recommendations = recommendations.sort((a, b) => 
+      recommendations = recommendations.sort((a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
-      
+
       // Limit to a maximum of 3 recommendations
       if (recommendations.length > 3) {
         recommendations = recommendations.slice(0, 3);
       }
-      
+
       res.json(recommendations);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch recommendations" });
@@ -364,7 +364,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/recommendations", async (req: Request, res: Response) => {
     try {
       const validatedData = insertRecommendationSchema.parse(req.body);
-      
+
       // If batteryId is provided, check if the battery exists
       if (validatedData.batteryId !== 0) {
         const battery = await storage.getBattery(validatedData.batteryId);
@@ -372,7 +372,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Battery not found" });
         }
       }
-      
+
       const recommendation = await storage.createRecommendation(validatedData);
       res.status(201).json(recommendation);
     } catch (error) {
@@ -429,17 +429,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
-  
+
   // Set up WebSocket server for realtime updates
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  
+
   // Keep track of connected clients
   const clients = new Set<WebSocket>();
-  
+
   wss.on('connection', (ws) => {
     console.log('WebSocket client connected');
     clients.add(ws);
-    
+
     // Send initial data to the client
     storage.getBatteries()
       .then(batteries => {
@@ -451,19 +451,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       })
       .catch(err => console.error('Error sending initial battery data:', err));
-    
+
     // Handle client disconnect
     ws.on('close', () => {
       console.log('WebSocket client disconnected');
       clients.delete(ws);
     });
-    
+
     // Handle messages from client
     ws.on('message', (message) => {
       try {
         const data = JSON.parse(message.toString());
         console.log('Received message:', data);
-        
+
         // Handle subscription requests
         if (data.type === 'subscribe' && data.entity) {
           console.log(`Client subscribed to ${data.entity} updates`);
@@ -474,7 +474,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
   });
-  
+
   // Setup broadcast function to update all connected clients
   // This will be called from the data generator
   (global as any).broadcastBatteryUpdate = (data: any) => {
@@ -482,13 +482,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       type: 'battery_update',
       data
     });
-    
+
     clients.forEach(client => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(message);
       }
     });
   };
-  
+
   return httpServer;
 }
