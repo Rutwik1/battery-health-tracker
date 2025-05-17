@@ -27,15 +27,21 @@ export async function signUp(email: string, password: string, username: string) 
   
   // Also create a record in our users table
   if (data.user) {
+    // Create a user record in our users table with Supabase UUID
     const { error: userError } = await supabase
       .from('users')
-      .insert({
+      .upsert({
         id: data.user.id,
-        username,
-        password: 'SUPABASE-AUTH' // We don't store actual passwords
+        email: email,
+        firstName: username,
+        lastName: '',
+        profileImageUrl: ''
       });
       
-    if (userError) throw userError;
+    if (userError) {
+      console.error("Error creating user record:", userError);
+      throw userError;
+    }
   }
   
   return data;
@@ -49,6 +55,24 @@ export async function signIn(email: string, password: string) {
   });
   
   if (error) throw error;
+  
+  // Create a user record if it doesn't exist yet
+  if (data.user) {
+    const { error: userError } = await supabase
+      .from('users')
+      .upsert({
+        id: data.user.id,
+        email: email,
+        firstName: data.user.user_metadata?.username || email.split('@')[0],
+        lastName: '',
+        profileImageUrl: ''
+      });
+      
+    if (userError) {
+      console.error("Error ensuring user record exists:", userError);
+    }
+  }
+  
   return data;
 }
 
