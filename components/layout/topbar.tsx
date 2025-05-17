@@ -1,77 +1,109 @@
 "use client"
 
-import * as React from "react"
-import { useEffect, useState } from "react"
-import { Menu, Bell, Search, Battery } from "lucide-react"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { cn } from "@/lib/utils"
-import { Sidebar } from "./sidebar"
+import * as React from 'react'
+import { useEffect, useState } from 'react'
+import { Menu, Search, Bell } from 'lucide-react'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { cn } from '@/lib/utils'
+import { Sidebar } from './sidebar'
+import { Button } from '@/components/ui/button'
 
 export function Topbar() {
-  const [mounted, setMounted] = useState(false)
-
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  
   useEffect(() => {
-    setMounted(true)
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10)
+    }
+    
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+  
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const mobileMenu = document.querySelector('#mobile-menu')
+      if (isOpen && mobileMenu && !mobileMenu.contains(event.target as Element)) {
+        setIsOpen(false)
+      }
+    }
+    
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [isOpen])
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-20 flex h-16 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:static md:h-14">
+    <header className={cn(
+      "sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur transition-all",
+      isScrolled ? "border-border shadow-sm" : "border-transparent"
+    )}>
       <div className="md:hidden">
         <Sheet>
           <SheetTrigger asChild>
-            <button className="flex h-9 w-9 items-center justify-center rounded-md border">
+            <Button variant="ghost" size="icon" className="md:hidden">
               <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle Menu</span>
-            </button>
+              <span className="sr-only">Toggle menu</span>
+            </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0">
-            <Sidebar isMobile onNavItemClick={() => document.querySelector('button[aria-controls]')?.click()} />
+            <Sidebar isMobile onNavItemClick={() => {}} />
           </SheetContent>
         </Sheet>
       </div>
-      
+
       <div className="flex-1">
-        <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search batteries, devices..."
-            className="w-full rounded-md border border-input bg-background pl-8 md:w-[300px] lg:w-[400px]"
-          />
-        </div>
+        <form className="hidden md:block">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search batteries, alerts..."
+              className="w-full max-w-sm rounded-md border border-input bg-background pl-8 shadow-sm focus-visible:ring-1"
+            />
+          </div>
+        </form>
       </div>
-      
+
       <div className="flex items-center gap-2">
-        <button className="flex h-9 w-9 items-center justify-center rounded-md border">
+        <Button variant="ghost" size="icon" className="rounded-full">
           <Bell className="h-5 w-5" />
           <span className="sr-only">Notifications</span>
-        </button>
-        
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex sm:flex-col sm:items-end">
-            <span className="text-sm font-medium">Admin User</span>
-            <span className="text-xs text-muted-foreground">admin@coulomb.ai</span>
-          </div>
-          
-          <div className="relative flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-            <span className="text-sm font-medium">A</span>
-          </div>
-        </div>
+        </Button>
+        <Button variant="gradient" size="sm" className="hidden md:flex">
+          Add Battery
+        </Button>
       </div>
-    </div>
+    </header>
   )
 }
 
 function Button({
+  variant = "default",
+  size = "default",
   className,
   ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: "default" | "outline" | "ghost" | "gradient"
+  size?: "default" | "sm" | "lg" | "icon"
+}) {
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background",
-        "h-10 py-2 px-4",
-        "border border-input hover:bg-accent hover:text-accent-foreground",
+        "inline-flex items-center justify-center rounded-md font-medium transition-colors",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+        "disabled:pointer-events-none disabled:opacity-50",
+        {
+          "bg-primary text-primary-foreground hover:bg-primary/90": variant === "default",
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground": variant === "outline",
+          "hover:bg-accent hover:text-accent-foreground": variant === "ghost",
+          "bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:opacity-90": variant === "gradient",
+          "h-10 px-4 py-2": size === "default",
+          "h-9 rounded-md px-3": size === "sm",
+          "h-11 rounded-md px-8": size === "lg",
+          "h-10 w-10 p-0": size === "icon",
+        },
         className
       )}
       {...props}
@@ -83,8 +115,8 @@ function Input({ className, ...props }: React.InputHTMLAttributes<HTMLInputEleme
   return (
     <input
       className={cn(
-        "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background",
-        "file:border-0 file:bg-transparent file:text-sm file:font-medium",
+        "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
+        "ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium",
         "placeholder:text-muted-foreground",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         "disabled:cursor-not-allowed disabled:opacity-50",

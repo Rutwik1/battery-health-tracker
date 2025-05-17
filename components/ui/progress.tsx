@@ -10,28 +10,24 @@ const Progress = React.forwardRef<
     max?: number
     indicatorClassName?: string
   }
->(({ className, value = 0, max = 100, indicatorClassName, ...props }, ref) => {
-  const percentage = (value / max) * 100
-  
-  return (
+>(({ className, value, max = 100, indicatorClassName, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "relative h-4 w-full overflow-hidden rounded-full bg-secondary",
+      className
+    )}
+    {...props}
+  >
     <div
-      ref={ref}
       className={cn(
-        "relative h-3 w-full overflow-hidden rounded-full bg-slate-800/50",
-        className
+        "h-full w-full flex-1 bg-primary transition-all",
+        indicatorClassName
       )}
-      {...props}
-    >
-      <div
-        className={cn(
-          "h-full w-full flex-1 transition-all duration-500 ease-in-out",
-          indicatorClassName
-        )}
-        style={{ width: `${percentage}%` }}
-      />
-    </div>
-  )
-})
+      style={{ transform: `translateX(-${100 - (value || 0) / max * 100}%)` }}
+    />
+  </div>
+))
 Progress.displayName = "Progress"
 
 export { Progress }
