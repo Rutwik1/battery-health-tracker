@@ -3,10 +3,10 @@
 import * as React from 'react'
 import { useEffect, useState } from 'react'
 import { Menu, Search, Bell } from 'lucide-react'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
-import { cn } from '@/lib/utils'
+import { Sheet, SheetContent, SheetTrigger } from '../../components/ui/sheet'
+import { cn } from '../../lib/utils'
 import { Sidebar } from './sidebar'
-import { Button } from '@/components/ui/button'
+import { Button } from '../../components/ui/button'
 
 export function Topbar() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -79,37 +79,7 @@ export function Topbar() {
   )
 }
 
-function Button({
-  variant = "default",
-  size = "default",
-  className,
-  ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "default" | "outline" | "ghost" | "gradient"
-  size?: "default" | "sm" | "lg" | "icon"
-}) {
-  return (
-    <button
-      className={cn(
-        "inline-flex items-center justify-center rounded-md font-medium transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-        "disabled:pointer-events-none disabled:opacity-50",
-        {
-          "bg-primary text-primary-foreground hover:bg-primary/90": variant === "default",
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground": variant === "outline",
-          "hover:bg-accent hover:text-accent-foreground": variant === "ghost",
-          "bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:opacity-90": variant === "gradient",
-          "h-10 px-4 py-2": size === "default",
-          "h-9 rounded-md px-3": size === "sm",
-          "h-11 rounded-md px-8": size === "lg",
-          "h-10 w-10 p-0": size === "icon",
-        },
-        className
-      )}
-      {...props}
-    />
-  )
-}
+// Custom Button component removed to prevent conflict with shadcn UI Button
 
 function Input({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
