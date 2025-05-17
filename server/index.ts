@@ -83,13 +83,26 @@ app.use((req, res, next) => {
   // It is the only port that is not firewalled.
   // const PORT = process.env.PORT ? Number(process.env.PORT) : 5000;
 
+  // Method 1
   // server.listen(PORT, '127.0.0.1', () => {
   //   log(`✅ Server running at http://127.0.0.1:${PORT}`);
   // });
 
+  // Method 2
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
     console.log(`✅ Server running on http://localhost:${PORT}`);
   });
+
+  // Method 3
+  // import http from 'http';
+
+  // const PORT = process.env.PORT || 5000;
+  // const server = http.createServer(app);
+
+  // server.listen(PORT, '127.0.0.1', () => {
+  //   log(`✅ Server running at http://127.0.0.1:${PORT}`);
+  // });
+
 })();
 
