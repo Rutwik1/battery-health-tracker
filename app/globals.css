@@ -2,109 +2,91 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: 240 10% 4%;
-  --foreground: 0 0% 98%;
-  --card: 240 10% 6%;
-  --card-foreground: 0 0% 98%;
-  --popover: 240 10% 4%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 252 100% 70%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 240 3.7% 15.9%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  --accent: 240 3.7% 15.9%;
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 50.6%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --ring: 240 4.9% 83.9%;
-  --success: 142 76% 36%;
-  --success-foreground: 0 0% 98%;
-  --warning: 38 92% 50%;
-  --warning-foreground: 0 0% 12%;
-}
+@layer base {
+  :root {
+    --background: 230 30% 10%;
+    --foreground: 210 40% 98%;
 
-* {
-  @apply border-border;
-}
+    --card: 230 25% 13%;
+    --card-foreground: 210 40% 98%;
 
-body {
-  @apply bg-background text-foreground;
-  font-feature-settings: "rlig" 1, "calt" 1;
-}
+    --popover: 230 25% 13%;
+    --popover-foreground: 210 40% 98%;
 
-/* Custom scroll bar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
+    --primary: 250 75% 60%;
+    --primary-foreground: 210 40% 98%;
 
-::-webkit-scrollbar-track {
-  background: hsl(240 10% 4% / 0.1);
-}
+    --secondary: 230 25% 16%;
+    --secondary-foreground: 210 40% 90%;
 
-::-webkit-scrollbar-thumb {
-  background: hsl(240 3.7% 15.9%);
-  border-radius: 3px;
-}
+    --muted: 230 25% 16%;
+    --muted-foreground: 215 20% 65%;
 
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(240 5% 25%);
-}
+    --accent: 250 55% 55%;
+    --accent-foreground: 210 40% 98%;
 
-/* Custom animations */
-@keyframes glow {
-  0%, 100% { 
-    filter: brightness(1);
-  }
-  50% { 
-    filter: brightness(1.2);
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 210 40% 98%;
+
+    --success: 142 72% 50%;
+    --success-foreground: 210 40% 98%;
+
+    --warning: 35 100% 50%;
+    --warning-foreground: 210 40% 98%;
+
+    --border: 230 25% 20%;
+    --input: 230 25% 16%;
+    --ring: 250 75% 60%;
+
+    --radius: 0.5rem;
   }
 }
 
-.glow-effect {
-  animation: glow 2s ease-in-out infinite;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
 }
 
-/* Status colors */
-.status-excellent {
-  @apply text-success;
-}
-
-.status-good {
-  @apply text-primary;
-}
-
-.status-fair {
-  @apply text-warning;
-}
-
-.status-poor {
-  @apply text-destructive;
-}
-
-/* Battery progress bars */
-.battery-progress-excellent {
-  @apply bg-success;
-}
-
-.battery-progress-good {
-  @apply bg-primary;
-}
-
-.battery-progress-fair {
-  @apply bg-warning;
-}
-
-.battery-progress-poor {
-  @apply bg-destructive;
-}
-
-/* Battery background gradients */
-.bg-gradient-dark {
-  background: linear-gradient(to bottom right, #131524, #070817);
+@layer components {
+  .gradient-text {
+    @apply bg-gradient-to-r from-indigo-400 via-purple-400 to-blue-400 text-transparent bg-clip-text;
+  }
+  
+  .glassmorphism {
+    @apply bg-secondary/60 backdrop-blur-lg border border-white/10 shadow-lg;
+  }
+  
+  .battery-glow {
+    text-shadow: 0 0 10px rgba(99, 102, 241, 0.5), 0 0 20px rgba(99, 102, 241, 0.3);
+  }
+  
+  .shimmer-effect {
+    @apply relative overflow-hidden;
+  }
+  
+  .shimmer-effect::after {
+    @apply absolute top-0 -right-[100%] bottom-0 left-0 bg-gradient-shimmer animate-shimmer content-[''];
+    width: 200%;
+  }
+  
+  .battery-progress-excellent {
+    @apply bg-success;
+  }
+  
+  .battery-progress-good {
+    @apply bg-primary;
+  }
+  
+  .battery-progress-fair {
+    @apply bg-warning;
+  }
+  
+  .battery-progress-poor {
+    @apply bg-destructive;
+  }
 }

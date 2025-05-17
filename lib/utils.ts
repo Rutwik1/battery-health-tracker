@@ -66,3 +66,7 @@ export function getTrendColorClass(value: number, isPositiveTrend: boolean = tru
     return "text-muted-foreground";
   }
 }
+
+export function calculateRemainingCycles(cycleCount: number, expectedCycles: number): number {
+  return Math.max(0, expectedCycles - cycleCount);
+}

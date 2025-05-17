@@ -2,9 +2,10 @@
 module.exports = {
   darkMode: ["class"],
   content: [
-    './pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
   ],
   theme: {
     container: {
@@ -16,53 +17,52 @@ module.exports = {
     },
     extend: {
       colors: {
-        border: "hsl(240 3.7% 15.9%)",
-        input: "hsl(240 3.7% 15.9%)",
-        ring: "hsl(240 4.9% 83.9%)",
-        background: "hsl(240 10% 4%)",
-        foreground: "hsl(0 0% 98%)",
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "hsl(252 100% 70%)",
-          foreground: "hsl(0 0% 98%)",
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
-          DEFAULT: "hsl(240 3.7% 15.9%)",
-          foreground: "hsl(0 0% 98%)",
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
         },
         destructive: {
-          DEFAULT: "hsl(0 62.8% 50.6%)",
-          foreground: "hsl(0 0% 98%)",
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
         },
-        muted: {
-          DEFAULT: "hsl(240 3.7% 15.9%)",
-          foreground: "hsl(240 5% 64.9%)",
-        },
-        accent: {
-          DEFAULT: "hsl(240 3.7% 15.9%)",
-          foreground: "hsl(0 0% 98%)",
-        },
-        popover: {
-          DEFAULT: "hsl(240 10% 4%)",
-          foreground: "hsl(0 0% 98%)",
-        },
-        card: {
-          DEFAULT: "hsl(240 10% 6%)",
-          foreground: "hsl(0 0% 98%)",
-        },
-        // Custom colors for battery status
         success: {
-          DEFAULT: "hsl(142 76% 36%)",
-          foreground: "hsl(0 0% 98%)",
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
         },
         warning: {
-          DEFAULT: "hsl(38 92% 50%)",
-          foreground: "hsl(0 0% 12%)",
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
         },
       },
       borderRadius: {
-        lg: "0.5rem",
-        md: "calc(0.5rem - 2px)",
-        sm: "calc(0.5rem - 4px)",
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
         "accordion-down": {
@@ -73,17 +73,27 @@ module.exports = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: 0 },
         },
+        shimmer: {
+          "0%, 100%": { backgroundPosition: "0 0" },
+          "50%": { backgroundPosition: "100% 100%" },
+        },
         pulse: {
-          '0%, 100%': { opacity: 1 },
-          '50%': { opacity: 0.5 },
+          "0%, 100%": { opacity: 1 },
+          "50%": { opacity: 0.7 },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        shimmer: "shimmer 3s linear infinite",
+        pulse: "pulse 2s infinite",
+      },
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+        'gradient-shimmer': 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 20%, rgba(255,255,255,0.1) 40%, rgba(255,255,255,0.05) 60%, rgba(255,255,255,0) 100%)',
       },
     },
   },
-  plugins: [],
+  plugins: [require("tailwindcss-animate")],
 }
