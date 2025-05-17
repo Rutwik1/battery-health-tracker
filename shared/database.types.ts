@@ -23,7 +23,7 @@ export interface Database {
           initial_date: string
           last_updated: string
           degradation_rate: number
-          user_id?: number | null
+          user_id: number | null
         }
         Insert: {
           id?: number
@@ -142,22 +142,16 @@ export interface Database {
           id: number
           username: string
           password: string
-          email?: string | null
-          created_at?: string | null
         }
         Insert: {
           id?: number
           username: string
           password: string
-          email?: string | null
-          created_at?: string | null
         }
         Update: {
           id?: number
           username?: string
           password?: string
-          email?: string | null
-          created_at?: string | null
         }
       }
     }
