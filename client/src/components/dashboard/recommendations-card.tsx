@@ -25,16 +25,34 @@ export default function RecommendationsCard({ batteries, isLoading }: Recommenda
   // Setup fixed and dynamic recommendations
   useEffect(() => {
     if (recommendations && recommendations.length > 0) {
-      // Set two fixed recommendations that don't change
-      const fixedRecs = recommendations.slice(0, 2);
+      // Create our fixed recommendations with specific messages
+      const fixedRecs = [
+        {
+          id: -1, // Use negative IDs to ensure they don't conflict with real recommendations
+          batteryId: batteryId,
+          type: "warning",
+          message: "Avoid charging Battery #1 beyond 90% to extend lifespan.",
+          createdAt: new Date().toISOString(),
+          resolved: false
+        },
+        {
+          id: -2,
+          batteryId: batteryId,
+          type: "info",
+          message: "Optimal charging practice: keep all batteries between 20% and 80%.",
+          createdAt: new Date().toISOString(),
+          resolved: false
+        }
+      ];
+      
       setFixedRecommendations(fixedRecs);
       
       // Get the latest recommendation as the dynamic one that changes
-      if (recommendations.length > 2) {
+      if (recommendations.length > 0) {
         setDynamicRecommendation(recommendations[recommendations.length - 1]);
       }
     }
-  }, [recommendations]);
+  }, [recommendations, batteryId]);
   
   const loading = isLoading || recommendationsLoading || !recommendations;
 
