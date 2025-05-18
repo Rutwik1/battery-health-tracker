@@ -1,20 +1,20 @@
 import { useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { useToast } from "../hooks/use-toast";
-import Sidebar from "../components/layout/sidebar";
-import Topbar from "../components/layout/topbar";
-import { Button } from "../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { Progress } from "../components/ui/progress";
-import { Separator } from "../components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
+import Sidebar from "@/components/layout/sidebar";
+import Topbar from "@/components/layout/topbar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Download, AlertCircle } from "lucide-react";
 import { Link } from "wouter";
 import { format } from "date-fns";
-import { Battery } from '../shared/schema';
-import CapacityChart from "../components/dashboard/capacity-chart";
-import { exportBatteryData } from "../lib/utils/export";
-import { getBatteryStatusColor } from "../lib/utils/battery";
+import { Battery } from "@shared/schema";
+import CapacityChart from "@/components/dashboard/capacity-chart";
+import { exportBatteryData } from "@/lib/utils/export";
+import { getBatteryStatusColor } from "@/lib/utils/battery";
 
 export default function BatteryDetail() {
   const [, params] = useRoute<{ id: string }>("/battery/:id");

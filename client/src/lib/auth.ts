@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Database } from '../../shared/database.types';
+import { Database } from '../../../shared/database.types';
 
 // Initialize the Supabase client
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
@@ -23,13 +23,13 @@ export async function signUp(email: string, password: string, username: string) 
       emailRedirectTo: `${window.location.origin}/verify`
     }
   });
-  
+
   if (error) throw error;
-  
+
   // For now, we'll bypass the custom users table and just use Supabase Auth
   // This avoids the UUID conversion issues with our database schema
   console.log("User registered successfully with Supabase Auth:", data.user?.id);
-  
+
   return data;
 }
 
@@ -39,14 +39,14 @@ export async function signIn(email: string, password: string) {
     email,
     password
   });
-  
+
   if (error) throw error;
-  
+
   // For now, we'll bypass the custom users table and just use Supabase Auth directly
   if (data.user) {
     console.log("User logged in successfully with Supabase Auth:", data.user.id);
   }
-  
+
   return data;
 }
 
@@ -59,12 +59,12 @@ export async function signOut() {
 // Get the current user
 export async function getCurrentUser() {
   const { data: { user } } = await supabase.auth.getUser();
-  
+
   // If we have a user via social login (Google), just pass it through
   if (user && user.app_metadata.provider === 'google') {
     console.log("Google user authenticated:", user.id);
   }
-  
+
   return user;
 }
 

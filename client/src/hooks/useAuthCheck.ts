@@ -21,12 +21,12 @@ export function useAuthCheck(redirectTo: string = '/login', skipCheck: boolean =
     const checkAuth = async () => {
       try {
         const authenticated = await isAuthenticated();
-        
+
         if (!authenticated) {
           // Not authenticated, redirect to login
           setLocation(redirectTo);
         }
-        
+
         setIsLoading(false);
       } catch (error) {
         console.error('Error checking authentication:', error);

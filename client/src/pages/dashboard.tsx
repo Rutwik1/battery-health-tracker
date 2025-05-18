@@ -13,12 +13,12 @@ import RecommendationsCard from "@/components/dashboard/recommendations-card";
 import { exportBatteryData } from "@/lib/utils/export";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
 import { Download, LineChart, BarChartBig, Calendar, Zap, BatteryIcon, Sparkles } from "lucide-react";
 import { type Battery } from "@shared/schema";
@@ -27,7 +27,7 @@ export default function Dashboard() {
   const [timeRange, setTimeRange] = useState("30");
   const queryClient = useQueryClient();
   const { lastMessage, status: wsStatus } = useWebSocket();
-  
+
   // Handle realtime updates via WebSocket
   useEffect(() => {
     if (lastMessage) {
@@ -37,19 +37,19 @@ export default function Dashboard() {
       } else if (lastMessage.type === 'battery_update') {
         // Update a single battery
         const updatedBattery = lastMessage.data.battery;
-        
+
         queryClient.setQueryData(['/api/batteries'], (oldData: Battery[] | undefined) => {
           if (!oldData) return [updatedBattery];
-          
-          return oldData.map(battery => 
+
+          return oldData.map(battery =>
             battery.id === updatedBattery.id ? updatedBattery : battery
           );
         });
-        
+
         // Update history data if we have it loaded
         if (lastMessage.data.history) {
           queryClient.setQueryData(
-            ['/api/batteries', updatedBattery.id, 'history'], 
+            ['/api/batteries', updatedBattery.id, 'history'],
             (oldData: any[] | undefined) => {
               if (!oldData) return [lastMessage.data.history];
               return [...oldData, lastMessage.data.history];
@@ -73,17 +73,17 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar />
-      
+
       <div className="flex flex-col flex-1 overflow-hidden">
         <Topbar />
-        
+
         <main className="flex-1 relative overflow-y-auto focus:outline-none">
           {/* Background effects */}
           <div className="absolute top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-primary/5 via-accent/3 to-transparent -z-10"></div>
           <div className="absolute top-40 left-20 w-[800px] h-[800px] rounded-full bg-primary/5 blur-[120px] -z-10"></div>
           <div className="absolute top-80 right-20 w-[600px] h-[600px] rounded-full bg-accent/5 blur-[100px] -z-10"></div>
           <div className="absolute bottom-40 left-1/2 w-[400px] h-[400px] rounded-full bg-success/5 blur-[80px] -z-10"></div>
-          
+
           <div className="py-10 px-6 md:px-8 lg:px-12">
             {/* Page Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-12">
@@ -99,7 +99,7 @@ export default function Dashboard() {
                 </h1>
                 <p className="text-muted-foreground text-lg">Real-time monitoring and insights for your battery fleet</p>
               </div>
-              
+
               <div className="mt-8 md:mt-0 flex flex-wrap items-center gap-4">
                 {/* Time Range Filter */}
                 <div className="flex items-center space-x-2 bg-muted/30 p-1.5 pl-3 rounded-lg border border-border/50 backdrop-blur-md">
@@ -117,10 +117,10 @@ export default function Dashboard() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 {/* Export Button */}
-                <Button 
-                  onClick={handleExport} 
+                <Button
+                  onClick={handleExport}
                   disabled={isLoading || !batteries}
                   className="relative overflow-hidden bg-gradient-to-r from-primary to-accent hover:opacity-90 text-background shadow-md shadow-primary/20 group"
                 >
@@ -130,16 +130,16 @@ export default function Dashboard() {
                 </Button>
               </div>
             </div>
-            
+
             {/* Animated divider */}
             <div className="w-full h-px bg-gradient-to-r from-border/0 via-border/50 to-border/0 mb-12"></div>
-            
+
             {/* Battery Status Overview */}
             <div className="mb-3 flex items-center">
               <BatteryIcon className="h-5 w-5 mr-2 text-primary" />
               <h2 className="text-xl font-heading font-medium">Battery Status Overview</h2>
             </div>
-            
+
             {isLoading ? (
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-12">
                 {[...Array(4)].map((_, i) => (
@@ -157,13 +157,13 @@ export default function Dashboard() {
                 ))}
               </div>
             )}
-            
+
             {/* Charts */}
             <div className="mb-3 flex items-center">
               <Sparkles className="h-5 w-5 mr-2 text-accent" />
               <h2 className="text-xl font-heading font-medium">Performance Metrics</h2>
             </div>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
               <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-primary/5 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-60"></div>
@@ -179,7 +179,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               </Card>
-              
+
               <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-accent/5 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-transparent opacity-60"></div>
                 <div className="relative z-10">
@@ -195,27 +195,27 @@ export default function Dashboard() {
                 </div>
               </Card>
             </div>
-            
+
             {/* Battery Health Table */}
             <div className="grid grid-cols-1 gap-8 mb-12">
               <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-primary/5 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-40"></div>
                 <div className="relative z-10">
-                  <BatteryHealthTable 
-                    batteries={batteries || []} 
-                    isLoading={isLoading} 
+                  <BatteryHealthTable
+                    batteries={batteries || []}
+                    isLoading={isLoading}
                     refetch={refetch}
                   />
                 </div>
               </Card>
             </div>
-            
+
             {/* Additional Cards */}
             <div className="mb-3 flex items-center">
               <Sparkles className="h-5 w-5 mr-2 text-success" />
               <h2 className="text-xl font-heading font-medium">Insights & Recommendations</h2>
             </div>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
               <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-danger/5 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-danger/10 via-transparent to-transparent opacity-40"></div>
@@ -223,14 +223,14 @@ export default function Dashboard() {
                   <DegradationCard batteries={batteries || []} isLoading={isLoading} />
                 </div>
               </Card>
-              
+
               <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-success/5 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-success/10 via-transparent to-transparent opacity-40"></div>
                 <div className="relative z-10">
                   <UsagePatternCard batteries={batteries || []} isLoading={isLoading} />
                 </div>
               </Card>
-              
+
               <Card className="backdrop-blur-md bg-card/30 border border-border/30 rounded-xl overflow-hidden shadow-xl shadow-accent/5 relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-transparent opacity-40"></div>
                 <div className="relative z-10">

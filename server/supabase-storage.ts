@@ -12,7 +12,7 @@ import {
   Recommendation,
   InsertRecommendation,
   User,
-  InsertUser
+  UpsertUser
 } from '../shared/schema';
 import { IStorage } from './storage';
 
@@ -24,7 +24,7 @@ export class SupabaseStorage implements IStorage {
   /**
    * Get a user by ID
    */
-  async getUser(id: number): Promise<User | undefined> {
+  async getUser(id: string): Promise<User | undefined> {
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -60,7 +60,7 @@ export class SupabaseStorage implements IStorage {
   /**
    * Create a new user
    */
-  async createUser(user: InsertUser): Promise<User> {
+  async createUser(user: UpsertUser): Promise<User> {
     const { data, error } = await supabase
       .from('users')
       .insert(user)
