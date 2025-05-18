@@ -1,10 +1,10 @@
 import { useEffect, useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useQuery, useQueries } from "@tanstack/react-query";
-import { Battery, BatteryHistory } from "@shared/schema";
-import { getBatteryStatusColor } from "@/lib/utils/battery";
+import { Battery, BatteryHistory } from "../../../../shared/schema";
+import { getBatteryStatusColor } from "../../lib/utils/battery";
 import { format, subDays } from "date-fns";
-import { apiFetch } from '../lib/api'; // Import apiFetch
+import { apiFetch } from '../../lib/api'; // Import apiFetch
 
 interface CapacityChartProps {
   batteries: Battery[];
@@ -38,7 +38,7 @@ export default function CapacityChart({ batteries, timeRange, isLoading, detaile
     }
 
     // Generate dates for x-axis
-    const dates = [];
+    const dates: string[] = [];
     const today = new Date();
 
     // For monthly data (12 months)

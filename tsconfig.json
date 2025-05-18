@@ -52,7 +52,7 @@
     "resolveJsonModule": true,
     "strict": true,
     "skipLibCheck": true,
-    "module": "esnext"
+    // "module": "esnext"
   },
   "include": [
     "server"
