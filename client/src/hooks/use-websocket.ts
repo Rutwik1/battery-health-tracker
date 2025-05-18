@@ -94,6 +94,7 @@
 
 
 import { useState, useEffect, useCallback } from 'react';
+import { isLocalDevelopment } from '../lib/queryClient';
 
 // WebSocket connection status
 export type ConnectionStatus = 'connecting' | 'open' | 'closed' | 'error';
@@ -103,6 +104,20 @@ export type WebSocketMessage =
   | { type: 'batteries', data: any[] }
   | { type: 'battery_update', data: { battery: any, history: any } }
   | { type: 'recommendation', data: any };
+
+/**
+ * Get the appropriate WebSocket URL based on environment
+ */
+function getWebSocketUrl(): string {
+  if (!isLocalDevelopment()) {
+    // For production on Render
+    return 'wss://battery-health-tracker-backend.onrender.com/ws';
+  } else {
+    // For local development
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${protocol}//${window.location.host}/ws`;
+  }
+}
 
 /**
  * Custom hook for WebSocket connections
@@ -115,19 +130,9 @@ export function useWebSocket() {
 
   // Connect to the WebSocket server
   useEffect(() => {
-    // Get backend URL from environment
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || '';
-
-    // Determine WebSocket protocol
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-
-    // Create the WebSocket URL
-    // If backendUrl is provided, use it, otherwise use current host
-    const wsUrl = backendUrl
-      ? `${backendUrl.replace(/^https?:/, wsProtocol)}/ws`
-      : `${wsProtocol}//${window.location.host}/ws`;
-
+    const wsUrl = getWebSocketUrl();
     console.log(`Connecting to WebSocket at ${wsUrl}`);
+
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {

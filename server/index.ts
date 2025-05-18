@@ -114,27 +114,47 @@
 // new code for deply 
 
 
-import 'dotenv/config';
-
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { setupSupabase } from "./setup-supabase";
 import { startDataGeneration } from "./data-generator";
-// Add CORS import
-import cors from 'cors';
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Add CORS middleware to enable cross-origin requests from your frontend
-app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// CORS middleware to allow requests from both development and production environments
+app.use((req, res, next) => {
+  // List of allowed origins
+  const allowedOrigins = [
+    'http://localhost:5000',                             // Local development
+    'https://battery-health-tracker-frontend.onrender.com', // Production frontend
+  ];
+
+  const origin = req.headers.origin;
+
+  // Check if the request origin is in our list of allowed origins
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    // For requests without origin header or unknown origins, allow all
+    // This helps during local development and testing
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+
+  // Other CORS headers
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -203,10 +223,15 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // Set up to listen on the proper port
-  // Use 0.0.0.0 to bind to all network interfaces, important for cloud hosting
-  const PORT = Number(process.env.PORT) || 5000;
-  server.listen(PORT, '0.0.0.0', () => {
-    console.log(`✅ Server running on port ${PORT}`);
+  // ALWAYS serve the app on port 5000
+  // this serves both the API and the client.
+  // It is the only port that is not firewalled.
+  const port = 5000;
+  server.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true,
+  }, () => {
+    log(`serving on port ${port}`);
   });
 })();

@@ -526,98 +526,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all batteries
   app.get("/api/batteries", async (req: Request, res: Response) => {
     try {
+      // Get actual batteries from storage
+      const batteries = await storage.getBatteries();
+      console.log(`Found ${batteries.length} batteries in database`);
 
-      // HARDCODED RESPONSE - Force all 4 batteries to appear on dashboard
-      const batteries = [
-        {
-          id: 1,
-          name: "Battery #1",
-          serialNumber: "BAT-001",
-          initialCapacity: 4000,
-          currentCapacity: 3800,
-          healthPercentage: 95,
-          cycleCount: 112,
-          expectedCycles: 1000,
-          status: "Excellent",
-          initialDate: "2023-05-12T00:00:00.000Z",
-          lastUpdated: new Date().toISOString(),
-          degradationRate: 0.5,
-          userId: null
-        },
-        {
-          id: 2,
-          name: "Battery #2",
-          serialNumber: "BAT-002",
-          initialCapacity: 4000,
-          currentCapacity: 3500,
-          healthPercentage: 87,
-          cycleCount: 320,
-          expectedCycles: 1000,
-          status: "Good",
-          initialDate: "2023-03-24T00:00:00.000Z",
-          lastUpdated: new Date().toISOString(),
-          degradationRate: 0.7,
-          userId: null
-        },
-        {
-          id: 3,
-          name: "Battery #3",
-          serialNumber: "BAT-003",
-          initialCapacity: 4000,
-          currentCapacity: 2900,
-          healthPercentage: 72,
-          cycleCount: 520,
-          expectedCycles: 1000,
-          status: "Fair",
-          initialDate: "2022-10-18T00:00:00.000Z",
-          lastUpdated: new Date().toISOString(),
-          degradationRate: 1.3,
-          userId: null
-        },
-        {
-          id: 4,
-          name: "Battery #4",
-          serialNumber: "BAT-004",
-          initialCapacity: 4000,
-          currentCapacity: 2300,
-          healthPercentage: 57,
-          cycleCount: 880,
-          expectedCycles: 1000,
-          status: "Poor",
-          initialDate: "2021-11-05T00:00:00.000Z",
-          lastUpdated: new Date().toISOString(),
-          degradationRate: 2.1,
-          userId: null
-        }
-      ];
-
-      // Still update the database for consistency
-      try {
-        const { data, error } = await supabase
-          .from('batteries')
-          .select('*')
-          .order('id', { ascending: true });
-
-        if (!error && data && data.length > 0) {
-          console.log(`Found ${data.length} batteries in database`);
-
-          // Merge any realtime data with our fixed response
-          data.forEach((dbBattery: any) => {
-            const matchingBattery = batteries.find(b => b.id === dbBattery.id);
-            if (matchingBattery) {
-              // Update with latest data from DB
-              matchingBattery.currentCapacity = dbBattery.current_capacity;
-              matchingBattery.healthPercentage = dbBattery.health_percentage;
-              matchingBattery.cycleCount = dbBattery.cycle_count;
-              matchingBattery.lastUpdated = dbBattery.last_updated;
-
-              // Update status based on health percentage using our helper function
-              matchingBattery.status = getHealthStatus(matchingBattery.healthPercentage);
-            }
-          });
-        }
-      } catch (dbError) {
-        console.log('Error getting DB data, using hardcoded values only');
+      // Make sure each battery has the correct status based on health percentage
+      for (const battery of batteries) {
+        battery.status = getHealthStatus(battery.healthPercentage);
       }
 
       res.json(batteries);
@@ -934,13 +849,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
   // Set up WebSocket server for realtime updates
-  // Modified to work with cross-origin requests
-  const wss = new WebSocketServer({
-    server: httpServer,
-    path: '/ws',
-    // This ensures WebSocket connections from any origin are allowed
-    verifyClient: () => true
-  });
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
 
   // Keep track of connected clients
   const clients = new Set<WebSocket>();
@@ -976,20 +885,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Handle subscription requests
         if (data.type === 'subscribe' && data.entity) {
           console.log(`Client subscribed to ${data.entity} updates`);
-          // Additional subscription logic can be added here
         }
       } catch (error) {
-        console.error('Error processing WebSocket message:', error);
+        console.error('Error processing message:', error);
       }
     });
   });
 
-  // Setup broadcast function to update all connected clients
-  // This will be called from the data generator
-  (global as any).broadcastBatteryUpdate = (data: any) => {
+  // Export the broadcast function for use by other modules
+  // This allows real-time updates to be pushed to all connected clients
+  (global as any).broadcastBatteryUpdate = function (battery: any, history: any) {
     const message = JSON.stringify({
       type: 'battery_update',
-      data
+      data: { battery, history }
     });
 
     clients.forEach(client => {
@@ -998,6 +906,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
   };
+
+  // Set up a ping interval to keep connections alive
+  setInterval(() => {
+    clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({ type: 'pong' }));
+      }
+    });
+  }, 30000); // Send ping every 30 seconds
 
   return httpServer;
 }
