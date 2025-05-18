@@ -96,7 +96,8 @@ export const getApiBaseUrl = (): string => {
     // Use the local development server
     return '';
   } else {
-    // Use the production Render backend
+    // Use the production Render backend - ensure this is always the backend URL
+    // not the frontend URL to avoid 404 errors
     return 'https://battery-health-tracker-backend.onrender.com';
   }
 }
@@ -174,3 +175,4 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
