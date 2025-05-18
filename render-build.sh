@@ -1,27 +1,29 @@
 #!/bin/bash
-set -o errexit
-
-echo "📁 Current directory: $(pwd)"
+# Show current directory and files
+echo "Current directory: $(pwd)"
 ls -la
 
-# Build client
-echo "🔧 Installing client dependencies..."
-cd client
+# Install dependencies
 npm install
 
-echo "🏗️ Building frontend..."
+# Run the build
 npm run build
 
-cd ..
+# Debug: Show where files were output
+echo "After build - checking for dist directory:"
+ls -la
+find . -name "dist" -type d
 
-# Move build to expected location (root/dist)
-if [ -d "./client/dist" ]; then
-  echo "✅ Build successful, moving dist/ to root"
+# If dist directory exists but is in the wrong place, copy it
+if [ -d "./client/dist" ] && [ ! -d "./dist" ]; then
+  echo "Found dist in client folder, copying to root"
   cp -r ./client/dist ./dist
-else
-  echo "❌ Build failed — client/dist not found"
-  exit 1
 fi
 
-echo "📦 Final dist folder contents:"
-ls -la ./dist
+if [ -d "./dist" ]; then
+  echo "dist directory contents:"
+  ls -la ./dist
+else
+  echo "dist directory not found!"
+  exit 1
+fi
