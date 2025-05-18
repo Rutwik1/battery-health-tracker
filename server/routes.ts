@@ -649,9 +649,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new battery
   app.post("/api/batteries", async (req: Request, res: Response) => {
     try {
-      // Log raw request for debugging
-      console.log('Raw battery data:', req.body);
-
       // Force date fields to be strings in ISO format
       const now = new Date().toISOString();
 
@@ -659,17 +656,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let initialDateStr;
       try {
         if (req.body.initialDate) {
-          // Handle different date formats
-          if (req.body.initialDate.includes('T')) {
-            // Already in ISO format
-            initialDateStr = req.body.initialDate;
-          } else {
-            // Convert YYYY-MM-DD to ISO
-            const initialDate = new Date(req.body.initialDate);
-            initialDateStr = !isNaN(initialDate.getTime())
-              ? initialDate.toISOString()
-              : now;
-          }
+          const initialDate = new Date(req.body.initialDate);
+          initialDateStr = !isNaN(initialDate.getTime())
+            ? initialDate.toISOString()
+            : now;
         } else {
           initialDateStr = now;
         }
@@ -680,40 +670,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Create a sanitized request body
       const sanitizedRequest = {
-        name: req.body.name,
-        serialNumber: req.body.serialNumber,
-        initialCapacity: Number(req.body.initialCapacity),
-        currentCapacity: Number(req.body.currentCapacity),
-        healthPercentage: Number(req.body.healthPercentage),
-        cycleCount: Number(req.body.cycleCount || 0),
-        expectedCycles: Number(req.body.expectedCycles),
-        status: req.body.status,
+        ...req.body,
         initialDate: initialDateStr,
-        lastUpdated: now,
-        degradationRate: Number(req.body.degradationRate || 0.5)
+        lastUpdated: now
       };
 
       console.log('Processing battery data:', sanitizedRequest);
 
-      try {
-        // Validate the processed data
-        const validatedData = insertBatterySchema.parse(sanitizedRequest);
-        const battery = await storage.createBattery(validatedData);
+      // Validate the processed data
+      const validatedData = insertBatterySchema.parse(sanitizedRequest);
+      const battery = await storage.createBattery(validatedData);
 
-        // Make sure to return a valid JSON response
-        return res.status(201).json(battery || { success: true });
-      } catch (validationError) {
-        if (validationError instanceof z.ZodError) {
-          console.error("Validation errors:", validationError.errors);
-          return res.status(400).json({
-            message: "Invalid battery data",
-            errors: validationError.errors
-          });
-        }
-        throw validationError;
-      }
+      // Make sure to return a valid JSON response
+      return res.status(201).json(battery || { success: true });
     } catch (error) {
       console.error('Error creating battery:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid battery data", errors: error.errors });
+      }
       return res.status(500).json({ message: "Failed to create battery" });
     }
   });
@@ -762,7 +736,191 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Rest of your routes remain unchanged...
+  // Get battery history
+  app.get("/api/batteries/:id/history", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid battery ID" });
+      }
+
+      const { startDate, endDate } = req.query;
+
+      let batteryHistory;
+      if (startDate && endDate) {
+        const start = new Date(startDate as string);
+        const end = new Date(endDate as string);
+
+        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+          return res.status(400).json({ message: "Invalid date format" });
+        }
+
+        batteryHistory = await storage.getBatteryHistoryFiltered(id, start, end);
+      } else {
+        batteryHistory = await storage.getBatteryHistory(id);
+      }
+
+      res.json(batteryHistory);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch battery history" });
+    }
+  });
+
+  // Add battery history
+  app.post("/api/batteries/:id/history", async (req: Request, res: Response) => {
+    try {
+      const batteryId = parseInt(req.params.id);
+      if (isNaN(batteryId)) {
+        return res.status(400).json({ message: "Invalid battery ID" });
+      }
+
+      // Check if battery exists
+      const battery = await storage.getBattery(batteryId);
+      if (!battery) {
+        return res.status(404).json({ message: "Battery not found" });
+      }
+
+      // Ensure the batteryId in the body matches the URL parameter
+      const data = { ...req.body, batteryId };
+
+      const validatedData = insertBatteryHistorySchema.parse(data);
+      const history = await storage.createBatteryHistory(validatedData);
+
+      res.status(201).json(history);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid history data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create battery history" });
+    }
+  });
+
+  // Get usage pattern for a battery
+  app.get("/api/batteries/:id/usage", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid battery ID" });
+      }
+
+      const usagePattern = await storage.getUsagePattern(id);
+      if (!usagePattern) {
+        return res.status(404).json({ message: "Usage pattern not found" });
+      }
+
+      res.json(usagePattern);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch usage pattern" });
+    }
+  });
+
+  // Create or update usage pattern
+  app.post("/api/batteries/:id/usage", async (req: Request, res: Response) => {
+    try {
+      const batteryId = parseInt(req.params.id);
+      if (isNaN(batteryId)) {
+        return res.status(400).json({ message: "Invalid battery ID" });
+      }
+
+      // Check if battery exists
+      const battery = await storage.getBattery(batteryId);
+      if (!battery) {
+        return res.status(404).json({ message: "Battery not found" });
+      }
+
+      // Check if usage pattern already exists
+      const existingPattern = await storage.getUsagePattern(batteryId);
+
+      // Ensure the batteryId in the body matches the URL parameter
+      const data = { ...req.body, batteryId };
+
+      if (existingPattern) {
+        // Update existing pattern
+        const validatedData = insertUsagePatternSchema.partial().parse(data);
+        const updatedPattern = await storage.updateUsagePattern(existingPattern.id, validatedData);
+        return res.json(updatedPattern);
+      } else {
+        // Create new pattern
+        const validatedData = insertUsagePatternSchema.parse(data);
+        const pattern = await storage.createUsagePattern(validatedData);
+        return res.status(201).json(pattern);
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid usage pattern data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create/update usage pattern" });
+    }
+  });
+
+  // Get recommendations for a battery
+  app.get("/api/batteries/:id/recommendations", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid battery ID" });
+      }
+
+      // Get recommendations specific to this battery and general recommendations (batteryId = 0)
+      const batteryRecommendations = await storage.getRecommendations(id);
+      const generalRecommendations = await storage.getRecommendations(0);
+
+      // Combine battery-specific and general recommendations
+      let recommendations = [...batteryRecommendations, ...generalRecommendations];
+
+      // Sort recommendations with most recent first
+      recommendations = recommendations.sort((a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      // Limit to a maximum of 3 recommendations
+      if (recommendations.length > 3) {
+        recommendations = recommendations.slice(0, 3);
+      }
+
+      res.json(recommendations);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch recommendations" });
+    }
+  });
+
+  // Create a recommendation
+  app.post("/api/recommendations", async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertRecommendationSchema.parse(req.body);
+      const recommendation = await storage.createRecommendation(validatedData);
+      res.status(201).json(recommendation);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid recommendation data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create recommendation" });
+    }
+  });
+
+  // Update a recommendation (mark as resolved)
+  app.patch("/api/recommendations/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid recommendation ID" });
+      }
+
+      const { resolved } = req.body;
+      if (typeof resolved !== "boolean") {
+        return res.status(400).json({ message: "Invalid update data. Expected 'resolved' boolean field." });
+      }
+
+      const updatedRecommendation = await storage.updateRecommendation(id, resolved);
+      if (!updatedRecommendation) {
+        return res.status(404).json({ message: "Recommendation not found" });
+      }
+
+      res.json(updatedRecommendation);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update recommendation" });
+    }
+  });
 
   // Create HTTP server
   const httpServer = createServer(app);
