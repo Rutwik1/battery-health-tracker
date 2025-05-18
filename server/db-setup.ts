@@ -1,17 +1,15 @@
 import { db } from './db';
-// import * as schema from '../shared/schema';
-import * as schema from '../shared/schema';
-
+import * as schema from '@shared/schema';
 import { MemStorage } from './storage';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 
 async function setup() {
   console.log('Setting up database...');
-
+  
   try {
     // Run migrations (creates tables if they don't exist)
     console.log('Creating database tables...');
-
+    
     // Push the schema to the database (this creates the tables)
     await db.execute(`
       CREATE TABLE IF NOT EXISTS users (
@@ -64,22 +62,22 @@ async function setup() {
         "createdAt" TIMESTAMP NOT NULL
       );
     `);
-
+    
     console.log('Tables created successfully!');
-
+    
     // Optionally seed with demo data
     console.log('Checking for existing data...');
     const existingBatteries = await db.select().from(schema.batteries);
-
+    
     if (existingBatteries.length === 0) {
       console.log('No existing data found. Seeding demo data...');
-
+      
       // Use the MemStorage's demo data to seed the database
       const memStorage = new MemStorage();
-
+      
       // Get demo data from mem storage
       const batteries = await memStorage.getBatteries();
-
+      
       // Insert batteries
       for (const battery of batteries) {
         // Insert battery
@@ -96,12 +94,12 @@ async function setup() {
           lastUpdated: battery.lastUpdated,
           degradationRate: battery.degradationRate
         }).returning();
-
+        
         console.log(`Added battery: ${newBattery.name}`);
-
+        
         // Get battery history
         const historyItems = await memStorage.getBatteryHistory(battery.id);
-
+        
         // Insert history items
         for (const history of historyItems) {
           await db.insert(schema.batteryHistory).values({
@@ -112,9 +110,9 @@ async function setup() {
             cycleCount: history.cycleCount
           });
         }
-
+        
         console.log(`Added ${historyItems.length} history items for ${newBattery.name}`);
-
+        
         // Get and insert usage pattern
         const pattern = await memStorage.getUsagePattern(battery.id);
         if (pattern) {
@@ -126,10 +124,10 @@ async function setup() {
             deepDischargeFrequency: pattern.deepDischargeFrequency,
             fastChargingUsage: pattern.fastChargingUsage
           });
-
+          
           console.log(`Added usage pattern for ${newBattery.name}`);
         }
-
+        
         // Get and insert recommendations
         const recommendations = await memStorage.getRecommendations(battery.id);
         for (const recommendation of recommendations) {
@@ -142,15 +140,15 @@ async function setup() {
             createdAt: recommendation.createdAt
           });
         }
-
+        
         console.log(`Added ${recommendations.length} recommendations for ${newBattery.name}`);
       }
-
+      
       console.log('Database seeded successfully!');
     } else {
       console.log(`Found ${existingBatteries.length} existing batteries. Skipping seed.`);
     }
-
+    
     console.log('Database setup complete!');
   } catch (error) {
     console.error('Error setting up database:', error);

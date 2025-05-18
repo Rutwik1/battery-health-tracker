@@ -1,16 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
 import { Progress } from "@/components/ui/progress";
 import { Battery } from "@shared/schema";
 import { getBatteryStatusColor } from "@/lib/utils/battery";
 import { TrendingDown } from "lucide-react";
-import { apiFetch } from "@/lib/api";
 
-export default function DegradationCard() {
-  const { data: batteries = [], isLoading } = useQuery<Battery[]>({
-    queryKey: ['/api/batteries'],
-    queryFn: () => apiFetch('/api/batteries'),
-  });
+interface DegradationCardProps {
+  batteries: Battery[];
+  isLoading: boolean;
+}
 
+export default function DegradationCard({ batteries, isLoading }: DegradationCardProps) {
   // Calculate average degradation rate
   const averageDegradation = batteries.length > 0
     ? batteries.reduce((sum, battery) => sum + battery.degradationRate, 0) / batteries.length
@@ -46,7 +44,10 @@ export default function DegradationCard() {
         <div className="space-y-5">
           {batteries.map((battery) => {
             const statusColor = getBatteryStatusColor(battery.status);
+            // Calculate width percentage for progress bar (relative to worst degradation)
             const progressWidth = (battery.degradationRate / 2.5) * 100;
+
+            // Convert color classes to CSS variables for gradients
             const gradientColor = statusColor === 'text-success' ? 'from-success to-success/70' :
               statusColor === 'text-warning' ? 'from-warning to-warning/70' :
                 statusColor === 'text-danger' ? 'from-danger to-danger/70' :
@@ -62,7 +63,7 @@ export default function DegradationCard() {
                   <div
                     className={`h-full bg-gradient-to-r ${gradientColor}`}
                     style={{ width: `${progressWidth}%` }}
-                  />
+                  ></div>
                 </div>
               </div>
             );
@@ -77,11 +78,10 @@ export default function DegradationCard() {
             <div className="mt-2 h-3 bg-muted/30 rounded-full overflow-hidden backdrop-blur-sm">
               <div
                 className={`h-full bg-gradient-to-r ${averageStatusColor === 'text-success' ? 'from-success to-success/70' :
-                    averageStatusColor === 'text-warning' ? 'from-warning to-warning/70' :
-                      'from-danger to-danger/70'
-                  }`}
+                  averageStatusColor === 'text-warning' ? 'from-warning to-warning/70' :
+                    'from-danger to-danger/70'}`}
                 style={{ width: `${averageDegradationWidth}%` }}
-              />
+              ></div>
             </div>
 
             <div className="mt-4 text-xs text-muted-foreground">

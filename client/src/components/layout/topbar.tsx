@@ -18,9 +18,9 @@ export default function Topbar() {
     <div className="relative z-10 flex-shrink-0 flex h-16 bg-gradient-dark border-b border-border/50 backdrop-blur-sm">
       <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
         <SheetTrigger asChild>
-          <Button 
-            variant="ghost" 
-            className="md:hidden flex items-center justify-center my-auto px-5 py-2 text-primary" 
+          <Button
+            variant="ghost"
+            className="md:hidden flex items-center justify-center my-auto px-5 py-2 text-primary"
             style={{ position: 'relative', top: '1px' }}
           >
             <div className="flex flex-col justify-center items-center w-9 h-9">
@@ -52,23 +52,23 @@ export default function Topbar() {
           </div>
         </div>
         <div className="flex items-center space-x-1">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="rounded-lg text-muted-foreground hover:text-primary hover:bg-muted/50"
           >
             <i className="ri-notification-3-line text-xl"></i>
           </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="rounded-lg text-muted-foreground hover:text-primary hover:bg-muted/50"
           >
             <i className="ri-question-line text-xl"></i>
           </Button>
-          
+
           <div className="h-8 w-px mx-2 bg-border/50 hidden sm:block"></div>
-          
+
           <AddBatteryDialog />
         </div>
       </div>

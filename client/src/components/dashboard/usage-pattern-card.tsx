@@ -1,32 +1,32 @@
 import { Button } from "@/components/ui/button";
-import { Battery, UsagePattern } from "@shared/schema";
+import { Battery } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
+import { UsagePattern } from "@shared/schema";
 import { Activity, BatteryLow, Timer, Thermometer, BarChart2 } from "lucide-react";
-import { apiFetch } from "@/lib/api";
 
-export default function UsagePatternCard() {
-  // Fetch batteries first
-  const { data: batteries = [], isLoading: batteriesLoading } = useQuery<Battery[]>({
-    queryKey: ['/api/batteries'],
-    queryFn: () => apiFetch('/api/batteries'),
-  });
+interface UsagePatternCardProps {
+  batteries: Battery[];
+  isLoading: boolean;
+}
 
+export default function UsagePatternCard({ batteries, isLoading }: UsagePatternCardProps) {
+  // Get usage pattern for the first battery
   const batteryId = batteries.length > 0 ? batteries[0].id : 0;
 
-  // Fetch usage pattern for first battery
   const { data: usagePattern, isLoading: patternLoading } = useQuery<UsagePattern>({
     queryKey: [`/api/batteries/${batteryId}/usage`],
-    queryFn: () => apiFetch(`/api/batteries/${batteryId}/usage`),
-    enabled: batteryId > 0,
+    enabled: batteryId > 0
   });
 
-  const loading = batteriesLoading || patternLoading || !usagePattern;
+  const loading = isLoading || patternLoading || !usagePattern;
 
   return (
     <div className="p-6">
       <div className="mb-6 flex items-center">
         <Activity className="h-5 w-5 mr-2 text-success" />
-        <h2 className="text-lg font-heading font-semibold">Usage Analytics</h2>
+        <h2 className="text-lg font-heading font-semibold">
+          Usage Analytics
+        </h2>
       </div>
 
       {loading ? (

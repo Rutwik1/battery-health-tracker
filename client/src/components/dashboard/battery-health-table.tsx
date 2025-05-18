@@ -1,11 +1,11 @@
 import { useState, useRef } from "react";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import {
@@ -61,31 +61,31 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
   const itemsPerPage = 4;
-  
+
   // Get unique battery names and statuses for filters
   const batteryNames = Array.from(new Set(batteries.map(b => b.name)));
   const statusTypes = Array.from(new Set(batteries.map(b => b.status)));
-  
+
   // Apply filters
   const filteredBatteries = batteries.filter(battery => {
     // Filter by battery name
     if (filterBattery && battery.name !== filterBattery) {
       return false;
     }
-    
+
     // Filter by status
     if (filterStatus && battery.status !== filterStatus) {
       return false;
     }
-    
+
     // Filter by health threshold
     if (showHealthBelow && battery.healthPercentage > parseInt(healthThreshold)) {
       return false;
     }
-    
+
     return true;
   });
-  
+
   // Reset to first page when filters change
   const resetFilters = () => {
     setFilterBattery(null);
@@ -94,30 +94,30 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
     setHealthThreshold("80");
     setCurrentPage(1);
   };
-  
+
   // Function to handle opening the delete confirmation dialog
   const handleDeleteBattery = (batteryId: number) => {
     setBatteryToDelete(batteryId);
     setIsDeleteDialogOpen(true);
   };
-  
+
   // Function to confirm and execute battery deletion
   const confirmDeleteBattery = async () => {
     if (!batteryToDelete) return;
-    
+
     setIsDeleting(true);
-    
+
     try {
       const response = await fetch(`/api/batteries/${batteryToDelete}`, {
         method: 'DELETE',
       });
-      
+
       if (response.ok) {
         toast({
           title: "Battery deleted",
           description: "Battery has been successfully removed from your inventory.",
         });
-        
+
         // Refresh the data after deletion
         if (refetch) {
           await refetch();
@@ -139,18 +139,18 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
       setBatteryToDelete(null);
     }
   };
-  
+
   const totalPages = Math.ceil(filteredBatteries.length / itemsPerPage);
   const displayedBatteries = filteredBatteries.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-  
+
   // Close popover when clicking outside
   const handlePopoverOpenChange = (open: boolean) => {
     setIsFilterOpen(open);
   };
-  
+
   return (
     <div>
       <div className="px-6 py-5 flex items-center justify-between">
@@ -161,8 +161,8 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
         <div className="flex items-center space-x-3">
           <Popover open={isFilterOpen} onOpenChange={handlePopoverOpenChange}>
             <PopoverTrigger asChild>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 className={`bg-muted/50 border-border/50 rounded-lg hover:bg-muted hover:text-primary ${isFilterOpen || (filterBattery || filterStatus || showHealthBelow) ? 'bg-primary/20 text-primary border-primary/30' : 'text-foreground'}`}
               >
@@ -175,7 +175,7 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent 
+            <PopoverContent
               className="w-80 p-0 bg-gradient-dark border border-border/50 shadow-lg shadow-primary/10 backdrop-blur-md"
               align="end"
             >
@@ -188,7 +188,7 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
                   </Button>
                 )}
               </div>
-              
+
               <div className="p-4 space-y-4">
                 {/* Battery filter */}
                 <div className="space-y-2">
@@ -205,7 +205,7 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 {/* Status filter */}
                 <div className="space-y-2">
                   <Label className="text-xs font-medium text-muted-foreground uppercase">Status</Label>
@@ -221,12 +221,12 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 {/* Health threshold */}
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
-                    <Checkbox id="health-threshold" 
-                      checked={showHealthBelow} 
+                    <Checkbox id="health-threshold"
+                      checked={showHealthBelow}
                       onCheckedChange={checked => setShowHealthBelow(!!checked)}
                       className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                     />
@@ -234,9 +234,9 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
                       Show batteries with health below
                     </Label>
                   </div>
-                  
-                  <Select 
-                    value={healthThreshold} 
+
+                  <Select
+                    value={healthThreshold}
                     onValueChange={setHealthThreshold}
                     disabled={!showHealthBelow}
                   >
@@ -252,9 +252,9 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 {/* Apply filters button */}
-                <Button 
+                <Button
                   className="w-full mt-6 bg-gradient-primary hover:opacity-90 text-background"
                   onClick={() => setIsFilterOpen(false)}
                 >
@@ -263,9 +263,9 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
               </div>
             </PopoverContent>
           </Popover>
-          
-          <Button 
-            variant="outline" 
+
+          <Button
+            variant="outline"
             size="sm"
             className="bg-muted/50 border-border/50 text-foreground rounded-lg hover:bg-muted hover:text-primary relative overflow-hidden"
             onClick={async () => {
@@ -274,13 +274,13 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
               if (button) {
                 button.classList.add('animate-spin');
               }
-              
+
               try {
                 // If refetch is available, call it to get fresh data
                 if (refetch) {
                   await refetch();
                 }
-                
+
                 // Reset filters and page
                 resetFilters();
               } catch (error) {
@@ -300,7 +300,7 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
           </Button>
         </div>
       </div>
-      
+
       <div className="p-0">
         <div className="overflow-x-auto">
           <Table>
@@ -337,13 +337,13 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
                 ))
               ) : displayedBatteries.map((battery) => {
                 const statusColor = getBatteryStatusColor(battery.status);
-                
+
                 // Convert color classes to CSS variables for gradients
                 const gradientColor = statusColor === 'text-success' ? 'from-success to-success/70' :
-                                    statusColor === 'text-warning' ? 'from-warning to-warning/70' :
-                                    statusColor === 'text-danger' ? 'from-danger to-danger/70' :
-                                    'from-primary to-primary/70';
-                
+                  statusColor === 'text-warning' ? 'from-warning to-warning/70' :
+                    statusColor === 'text-danger' ? 'from-danger to-danger/70' :
+                      'from-primary to-primary/70';
+
                 return (
                   <TableRow key={battery.id} className="border-0 hover:bg-muted/20">
                     <TableCell>
@@ -400,7 +400,7 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
             </TableBody>
           </Table>
         </div>
-        
+
         <div className="bg-muted/30 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border-t border-border/50">
           <div className="flex flex-col md:flex-row md:items-center gap-2">
             <p className="text-sm text-muted-foreground">
@@ -410,16 +410,16 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
               </span>{" "}
               of <span className="font-medium text-foreground">{filteredBatteries.length}</span> batteries
             </p>
-            
+
             {/* Active filters indicators */}
             {(filterBattery || filterStatus || showHealthBelow) && (
               <div className="flex flex-wrap gap-2 mt-2 md:mt-0 md:ml-3">
                 {filterBattery && (
                   <div className="flex items-center text-xs px-2 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
                     <span>Battery: {filterBattery}</span>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="h-4 w-4 ml-1 hover:bg-transparent hover:text-primary/80"
                       onClick={() => setFilterBattery(null)}
                     >
@@ -427,13 +427,13 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
                     </Button>
                   </div>
                 )}
-                
+
                 {filterStatus && (
                   <div className="flex items-center text-xs px-2 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
                     <span>Status: {filterStatus}</span>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="h-4 w-4 ml-1 hover:bg-transparent hover:text-primary/80"
                       onClick={() => setFilterStatus(null)}
                     >
@@ -441,13 +441,13 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
                     </Button>
                   </div>
                 )}
-                
+
                 {showHealthBelow && (
                   <div className="flex items-center text-xs px-2 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
                     <span>Health below {healthThreshold}%</span>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="h-4 w-4 ml-1 hover:bg-transparent hover:text-primary/80"
                       onClick={() => setShowHealthBelow(false)}
                     >
@@ -458,7 +458,7 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
               </div>
             )}
           </div>
-          
+
           <div>
             <div className="flex rounded-lg overflow-hidden border border-border/50 divide-x divide-border/50">
               <Button
@@ -486,7 +486,7 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
           </div>
         </div>
       </div>
-      
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent className="bg-gradient-dark border border-border/50 backdrop-blur-md shadow-xl shadow-primary/10">
@@ -497,7 +497,7 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel 
+            <AlertDialogCancel
               className="bg-muted/50 border-border/50 hover:bg-muted"
               disabled={isDeleting}
             >

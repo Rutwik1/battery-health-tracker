@@ -1,16 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
 import { Battery } from "@shared/schema";
 import { getBatteryStatusColor } from "@/lib/utils/battery";
-import { apiFetch } from "@/lib/api"; // Import apiFetch
 
-export default function CycleChart() {
-  // Fetch batteries from the API
-  const { data: batteries, isLoading } = useQuery<Battery[]>({
-    queryKey: ['/api/batteries'],
-    queryFn: () => apiFetch('/api/batteries')
-  });
+interface CycleChartProps {
+  batteries: Battery[];
+  isLoading: boolean;
+}
 
+export default function CycleChart({ batteries, isLoading }: CycleChartProps) {
   // Convert status colors to CSS variables
   const getBarColors = (battery: Battery) => {
     const statusColor = getBatteryStatusColor(battery.status);
@@ -23,12 +20,12 @@ export default function CycleChart() {
   };
 
   // Prepare chart data
-  const chartData = batteries?.map(battery => ({
+  const chartData = batteries.map(battery => ({
     name: battery.name,
     cycles: battery.cycleCount,
     expectedCycles: battery.expectedCycles,
     color: getBarColors(battery),
-  })) ?? [];
+  }));
 
   // Custom Tooltip component
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -40,7 +37,10 @@ export default function CycleChart() {
         <div className="bg-muted/90 p-3 rounded-lg border border-border/50 backdrop-blur-md shadow-lg">
           <p className="text-xs font-medium text-foreground mb-2">{label}</p>
           <div className="flex items-center gap-2 mb-1">
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: data.color }} />
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: data.color }}
+            />
             <p className="text-xs">
               <span className="font-medium">Cycles:</span>{' '}
               <span className="text-foreground">{data.cycles}</span>
@@ -75,7 +75,12 @@ export default function CycleChart() {
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={chartData}
-            margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
+            margin={{
+              top: 5,
+              right: 30,
+              left: 0,
+              bottom: 5,
+            }}
             barSize={40}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} vertical={false} />
@@ -93,7 +98,9 @@ export default function CycleChart() {
               axisLine={false}
               tickFormatter={(value) => `${value}`}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip
+              content={<CustomTooltip />}
+            />
             <Bar
               dataKey="cycles"
               name="Charge Cycles"

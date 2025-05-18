@@ -14,8 +14,8 @@ interface NavItemProps {
 
 const NavItem = ({ href, icon, children, active, onClick }: NavItemProps) => {
   return (
-    <a 
-      href={href} 
+    <a
+      href={href}
       onClick={(e) => {
         if (onClick) {
           e.preventDefault();
@@ -50,13 +50,13 @@ export default function Sidebar({ isMobile, onNavItemClick }: { isMobile?: boole
   // Prevent hydration mismatch
   useEffect(() => {
     setIsClient(true);
-    
+
     // Get the current user data
     const fetchUserData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
     };
-    
+
     fetchUserData();
   }, []);
 
@@ -72,41 +72,41 @@ export default function Sidebar({ isMobile, onNavItemClick }: { isMobile?: boole
       </div>
       <div className="flex-grow flex flex-col mt-8">
         <nav className="flex-1 px-3 space-y-2">
-          <NavItem 
-            href="/" 
-            icon="ri-dashboard-line" 
+          <NavItem
+            href="/"
+            icon="ri-dashboard-line"
             active={isClient && location === "/"}
             onClick={onNavItemClick}
           >
             Dashboard
           </NavItem>
-          <NavItem 
-            href="/batteries" 
-            icon="ri-battery-line" 
+          <NavItem
+            href="/batteries"
+            icon="ri-battery-line"
             active={isClient && location === "/batteries"}
             onClick={onNavItemClick}
           >
             Batteries
           </NavItem>
-          <NavItem 
-            href="/history" 
-            icon="ri-history-line" 
+          <NavItem
+            href="/history"
+            icon="ri-history-line"
             active={isClient && location === "/history"}
             onClick={onNavItemClick}
           >
             History
           </NavItem>
-          <NavItem 
-            href="/settings" 
-            icon="ri-settings-3-line" 
+          <NavItem
+            href="/settings"
+            icon="ri-settings-3-line"
             active={isClient && location === "/settings"}
             onClick={onNavItemClick}
           >
             Settings
           </NavItem>
-          <NavItem 
-            href="/notifications" 
-            icon="ri-notification-line" 
+          <NavItem
+            href="/notifications"
+            icon="ri-notification-line"
             active={isClient && location === "/notifications"}
             onClick={onNavItemClick}
           >

@@ -1,9 +1,7 @@
-import {
-  User, InsertUser, Battery, InsertBattery, BatteryHistory, InsertBatteryHistory,
-  UsagePattern, InsertUsagePattern, Recommendation, InsertRecommendation
-} from '../shared/schema';
+import { User, InsertUser, Battery, InsertBattery, BatteryHistory, InsertBatteryHistory, 
+  UsagePattern, InsertUsagePattern, Recommendation, InsertRecommendation } from "@shared/schema";
 import { db } from "./db";
-import { users, batteries, batteryHistory, usagePatterns, recommendations } from '../shared/schema';
+import { users, batteries, batteryHistory, usagePatterns, recommendations } from "@shared/schema";
 import { eq, and, between, desc } from "drizzle-orm";
 import { IStorage } from "./storage";
 import { sql } from "drizzle-orm";
@@ -53,7 +51,7 @@ export class PostgresStorage implements IStorage {
     await db.delete(batteryHistory).where(eq(batteryHistory.batteryId, id));
     await db.delete(usagePatterns).where(eq(usagePatterns.batteryId, id));
     await db.delete(recommendations).where(eq(recommendations.batteryId, id));
-
+    
     // Then delete the battery
     const result = await db.delete(batteries).where(eq(batteries.id, id)).returning();
     return result.length > 0;

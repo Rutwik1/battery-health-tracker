@@ -1,7 +1,7 @@
-import { Card, CardContent } from "../../components/ui/card";
-import { Battery } from "../../shared/schema";
-import BatteryIcon from "../../components/ui/battery-icon";
-import { getBatteryStatusColor } from "../..//lib/utils/battery";
+import { Card, CardContent } from "@/components/ui/card";
+import { Battery } from "@shared/schema";
+import BatteryIcon from "@/components/ui/battery-icon";
+import { getBatteryStatusColor } from "@/lib/utils/battery";
 import { Link } from "wouter";
 import { ArrowUpRightIcon, Zap } from "lucide-react";
 

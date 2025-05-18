@@ -1,10 +1,9 @@
 import { useEffect, useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useQuery, useQueries } from "@tanstack/react-query";
-import { Battery, BatteryHistory } from "../../../../shared/schema";
-import { getBatteryStatusColor } from "../../lib/utils/battery";
+import { Battery, BatteryHistory } from "@shared/schema";
+import { getBatteryStatusColor } from "@/lib/utils/battery";
 import { format, subDays } from "date-fns";
-import { apiFetch } from '../../lib/api'; // Import apiFetch
 
 interface CapacityChartProps {
   batteries: Battery[];
@@ -19,9 +18,9 @@ export default function CapacityChart({ batteries, timeRange, isLoading, detaile
     queries: batteries.map(battery => ({
       queryKey: [`/api/batteries/${battery.id}/history`],
       queryFn: async () => {
-        // Replace fetch with apiFetch
-        const response = await apiFetch(`/api/batteries/${battery.id}/history`);
-        return response as BatteryHistory[]; // Ensure proper typing
+        const response = await fetch(`/api/batteries/${battery.id}/history`);
+        if (!response.ok) throw new Error('Failed to fetch battery history');
+        return response.json() as Promise<BatteryHistory[]>;
       },
       enabled: batteries.length > 0
     }))
@@ -38,7 +37,7 @@ export default function CapacityChart({ batteries, timeRange, isLoading, detaile
     }
 
     // Generate dates for x-axis
-    const dates: string[] = [];
+    const dates = [];
     const today = new Date();
 
     // For monthly data (12 months)

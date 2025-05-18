@@ -1,27 +1,24 @@
 import { Battery, Recommendation } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
 import { LightbulbIcon, ArrowRightIcon, CheckCircle2, AlertCircle, AlertTriangle, Info } from "lucide-react";
-import { apiFetch } from "@/lib/api";
 
-export default function RecommendationsCard() {
-  // Fetch batteries first
-  const { data: batteries = [], isLoading: batteriesLoading } = useQuery<Battery[]>({
-    queryKey: ['/api/batteries'],
-    queryFn: () => apiFetch('/api/batteries'),
-  });
+interface RecommendationsCardProps {
+  batteries: Battery[];
+  isLoading: boolean;
+}
 
+export default function RecommendationsCard({ batteries, isLoading }: RecommendationsCardProps) {
+  // Get recommendations for the first battery
   const batteryId = batteries.length > 0 ? batteries[0].id : 0;
 
-  // Fetch recommendations for first battery, enabled only if batteryId is valid
-  const { data: recommendations = [], isLoading: recommendationsLoading } = useQuery<Recommendation[]>({
+  const { data: recommendations, isLoading: recommendationsLoading } = useQuery<Recommendation[]>({
     queryKey: [`/api/batteries/${batteryId}/recommendations`],
-    queryFn: () => apiFetch(`/api/batteries/${batteryId}/recommendations`),
-    enabled: batteryId > 0,
+    enabled: batteryId > 0
   });
 
-  const loading = batteriesLoading || recommendationsLoading;
+  const loading = isLoading || recommendationsLoading || !recommendations;
 
-  // Helper for styling based on recommendation type
+  // Helper function to get icon and color based on recommendation type
   const getRecommendationStyle = (type: string) => {
     switch (type) {
       case 'success':
@@ -73,8 +70,12 @@ export default function RecommendationsCard() {
         </ul>
       ) : (
         <ul className="space-y-3">
+          {/* Dynamic recommendations from API only - removed hardcoded recommendations */}
+
+          {/* Dynamic recommendations from API */}
           {recommendations.map((recommendation) => {
             const { icon, bgColor, textColor, borderColor } = getRecommendationStyle(recommendation.type);
+
             return (
               <li
                 key={recommendation.id}
