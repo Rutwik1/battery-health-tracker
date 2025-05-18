@@ -79,7 +79,6 @@
 
 // here down all full deploy code 
 
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 /**
  * Determine if we're in a local development environment
@@ -91,28 +90,7 @@ export const isLocalDevelopment = (): boolean => {
 /**
  * Get the appropriate API base URL depending on environment
  */
-export const getApiBaseUrl = (): string => {
-  if (isLocalDevelopment()) {
-    // Use the local development server
-    return '';
-  } else {
-    // Use the production Render backend - ensure this is always the backend URL
-    // not the frontend URL to avoid 404 errors
-    return 'https://battery-health-tracker-backend.onrender.com';
-  }
-}
-
-/**
- * Format a URL with the appropriate base
- */
-export const formatApiUrl = (path: string): string => {
-  const baseUrl = getApiBaseUrl();
-  // If path already starts with http, it's an absolute URL
-  if (path.startsWith('http')) return path;
-  // Make sure path starts with /
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  return `${baseUrl}${normalizedPath}`;
-}
+import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -126,10 +104,7 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  // Format the URL with the appropriate base URL for the environment
-  const formattedUrl = formatApiUrl(url);
-
-  const res = await fetch(formattedUrl, {
+  const res = await fetch(url, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
@@ -146,10 +121,7 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
     async ({ queryKey }) => {
-      // Use the formatted URL with the appropriate base URL
-      const formattedUrl = formatApiUrl(queryKey[0] as string);
-
-      const res = await fetch(formattedUrl, {
+      const res = await fetch(queryKey[0] as string, {
         credentials: "include",
       });
 
