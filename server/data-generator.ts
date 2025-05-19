@@ -1,5 +1,5 @@
 /**
- * Battery data generator for realtime updates
+ * Battery data generator for realtime updates with DRAMATIC cycle count changes
  * This file contains functions to generate simulated battery data
  */
 
@@ -14,7 +14,7 @@ const demoBatteries = [
     initialCapacity: 4000,
     currentCapacity: 3800,
     healthPercentage: 95,
-    cycleCount: 112,
+    cycleCount: 8000,  // Start with high cycle counts
     expectedCycles: 1000,
     status: "Excellent",
     initialDate: "2023-05-12T00:00:00.000Z",
@@ -27,7 +27,7 @@ const demoBatteries = [
     initialCapacity: 4000,
     currentCapacity: 3500,
     healthPercentage: 87,
-    cycleCount: 320,
+    cycleCount: 8500, // Start with high cycle counts
     expectedCycles: 1000,
     status: "Good",
     initialDate: "2023-03-24T00:00:00.000Z",
@@ -40,7 +40,7 @@ const demoBatteries = [
     initialCapacity: 4000,
     currentCapacity: 2900,
     healthPercentage: 72,
-    cycleCount: 520,
+    cycleCount: 12000, // Start with high cycle counts
     expectedCycles: 1000,
     status: "Fair",
     initialDate: "2022-10-18T00:00:00.000Z",
@@ -53,7 +53,7 @@ const demoBatteries = [
     initialCapacity: 4000,
     currentCapacity: 2300,
     healthPercentage: 57,
-    cycleCount: 880,
+    cycleCount: 13000, // Start with high cycle counts
     expectedCycles: 1000,
     status: "Poor",
     initialDate: "2021-11-05T00:00:00.000Z",
@@ -136,6 +136,18 @@ export async function ensureDemoBatteries() {
       console.log('Demo data created successfully!');
     } else {
       console.log(`Found ${batteries.length} existing batteries, skipping demo data creation.`);
+
+      // Force cycle updates for existing batteries
+      for (const battery of batteries) {
+        // Only force update if cycle count is below a threshold
+        if (battery.cycleCount < 5000) {
+          // Set high cycle counts for existing batteries
+          await storage.updateBattery(battery.id, {
+            cycleCount: Math.floor(Math.random() * 5000) + 8000, // 8000-13000 cycles
+            lastUpdated: new Date().toISOString()
+          });
+        }
+      }
     }
   } catch (error) {
     console.error('Error creating demo data:', error);
@@ -143,125 +155,143 @@ export async function ensureDemoBatteries() {
 }
 
 /**
- * Generate a simulated battery update
- * This is run periodically to update battery data
+ * Make dramatic cycle count jumps (EXACTLY 2000-4000 range)
+ */
+async function makeDramaticCycleCountJump(battery) {
+  // Force direction to alternate for more visible changes
+  const randomValue = Math.random();
+  const direction = randomValue > 0.5 ? 1 : -1;
+
+  // Exact jump value between 2000-4000
+  const jumpValue = Math.floor(Math.random() * 2001) + 2000; // 2000-4000 range exactly
+
+  // Prevent negative cycle counts
+  let newCycleCount;
+  if (direction === -1 && battery.cycleCount < jumpValue) {
+    // If we can't subtract, add instead to ensure dramatic change
+    newCycleCount = battery.cycleCount + jumpValue;
+  } else {
+    newCycleCount = battery.cycleCount + (direction * jumpValue);
+  }
+
+  // Also make dramatic health change
+  const healthDirection = Math.random() > 0.5 ? 1 : -1;
+  const healthJump = Math.floor(Math.random() * 16) + 10; // 10-25% jump
+  let newHealth = battery.healthPercentage + (healthDirection * healthJump);
+
+  // Keep health within valid range
+  if (newHealth > 100) newHealth = 100;
+  if (newHealth < 0) newHealth = 0;
+
+  // Set status based on health
+  let newStatus = "Excellent";
+  if (newHealth < 90) newStatus = "Good";
+  if (newHealth < 80) newStatus = "Fair";
+  if (newHealth < 70) newStatus = "Poor";
+
+  // Calculate capacity based on health
+  const newCapacity = Math.round((battery.initialCapacity * newHealth) / 100);
+
+  // Log the dramatic jump (for verification)
+  console.log(`DRAMATIC CYCLE JUMP for ${battery.name}: ${battery.cycleCount} → ${newCycleCount} (${direction > 0 ? '+' : '-'}${jumpValue} cycles)`);
+  console.log(`DRAMATIC HEALTH JUMP for ${battery.name}: ${battery.healthPercentage}% → ${newHealth}% (${healthDirection > 0 ? '+' : '-'}${healthJump}%)`);
+
+  // Apply the dramatic update
+  return await storage.updateBattery(battery.id, {
+    cycleCount: newCycleCount,
+    healthPercentage: parseFloat(newHealth.toFixed(2)),
+    currentCapacity: newCapacity,
+    status: newStatus,
+    lastUpdated: new Date().toISOString()
+  });
+}
+
+/**
+ * Generate a simulated battery update with dramatic changes
  */
 export async function generateBatteryUpdate() {
   try {
+    // Get all batteries
     const batteries = await storage.getBatteries();
-    if (batteries.length === 0) return;
+    if (!batteries.length) return;
 
-    // Pick a random battery to update
+    // Pick a random battery
     const batteryIndex = Math.floor(Math.random() * batteries.length);
     const battery = batteries[batteryIndex];
 
-    // Generate a random change in health (small degradation)
-    const healthChange = Math.random() * 0.5;
-    let newHealth = battery.healthPercentage - healthChange;
-    if (newHealth < 0) newHealth = 0;
+    // Make dramatic cycle count jump with extreme changes
+    const updatedBattery = await makeDramaticCycleCountJump(battery);
 
-    // Generate a random change in capacity (aligned with health change)
-    const capacityChange = (battery.initialCapacity * healthChange) / 100;
-    let newCapacity = battery.currentCapacity - capacityChange;
-    if (newCapacity < 0) newCapacity = 0;
+    // Log the update
+    console.log(`Updated battery ${battery.id}: Health=${updatedBattery.healthPercentage}%, Cycles=${updatedBattery.cycleCount}`);
 
-    // Increment cycle count
-    const cycleIncrement = Math.floor(Math.random() * 3) + 1; // 1-3 cycles
-    const newCycleCount = battery.cycleCount + cycleIncrement;
+    // Create history record
+    const historyEntry = await storage.createBatteryHistory({
+      batteryId: battery.id,
+      date: new Date().toISOString(),
+      capacity: updatedBattery.currentCapacity,
+      healthPercentage: updatedBattery.healthPercentage,
+      cycleCount: updatedBattery.cycleCount
+    } as InsertBatteryHistory);
 
-    // Update battery status based on health
-    let newStatus = "Excellent";
-    if (newHealth < 90) newStatus = "Good";
-    if (newHealth < 80) newStatus = "Fair";
-    if (newHealth < 70) newStatus = "Poor";
+    // Broadcast update if websocket is available
+    if ((global as any).broadcastBatteryUpdate) {
+      (global as any).broadcastBatteryUpdate({
+        battery: updatedBattery,
+        history: historyEntry
+      });
+    }
 
-    // Update the battery
-    const updatedBattery = await storage.updateBattery(battery.id, {
-      currentCapacity: Math.round(newCapacity),
-      healthPercentage: parseFloat(newHealth.toFixed(2)),
-      cycleCount: newCycleCount,
-      status: newStatus,
-      lastUpdated: new Date().toISOString()
-    });
-
-    // Add new history entry
-    if (updatedBattery) {
-      const historyEntry = await storage.createBatteryHistory({
+    // Occasionally generate recommendations (low probability)
+    if (Math.random() < 0.05) {
+      const randomRec = recommendationTemplates[Math.floor(Math.random() * recommendationTemplates.length)];
+      await storage.createRecommendation({
         batteryId: battery.id,
-        date: new Date().toISOString(),
-        capacity: updatedBattery.currentCapacity,
-        healthPercentage: updatedBattery.healthPercentage,
-        cycleCount: updatedBattery.cycleCount
-      } as InsertBatteryHistory);
+        type: randomRec.type,
+        message: randomRec.message.replace('{ID}', battery.name).replace('{HEALTH}', updatedBattery.healthPercentage.toString()),
+        createdAt: new Date().toISOString(),
+        resolved: false
+      } as InsertRecommendation);
+      console.log(`Generated recommendation for ${battery.name}`);
+    }
 
-      console.log(`Generated update for ${battery.name}: Health=${updatedBattery.healthPercentage}%, Cycles=${updatedBattery.cycleCount}`);
+    return updatedBattery;
+  } catch (error) {
+    console.error('Error generating dramatic battery update:', error);
+    return null;
+  }
+}
 
-      // Broadcast the update to all connected WebSocket clients
-      if ((global as any).broadcastBatteryUpdate) {
-        (global as any).broadcastBatteryUpdate({
-          battery: updatedBattery,
-          history: historyEntry
-        });
-      }
+/**
+ * Force significant updates to all batteries simultaneously
+ */
+async function forceSignificantUpdates() {
+  console.log("Forcing significant battery updates");
 
-      // Randomly generate a recommendation (10% chance)
-      if (Math.random() < 0.1) {
-        // First, get existing recommendations for this battery
-        const existingRecommendations = await storage.getRecommendations(battery.id);
+  try {
+    const batteries = await storage.getBatteries();
 
-        // Choose a recommendation template that hasn't been used yet for this battery
-        let availableTemplates = [...recommendationTemplates];
-
-        // Filter out templates that already have active (unresolved) recommendations
-        if (existingRecommendations.length > 0) {
-          const existingMessages = existingRecommendations
-            .filter(rec => !rec.resolved)
-            .map(rec => {
-              // Remove battery name and health values for comparison
-              return rec.message
-                .replace(battery.name, '{ID}')
-                .replace(/\d+(\.\d+)?%/g, '{HEALTH}%');
-            });
-
-          // Only keep templates that aren't already active
-          availableTemplates = availableTemplates.filter(template => {
-            return !existingMessages.some(msg => {
-              return msg.includes(template.message.replace('{ID}', '').replace('{HEALTH}%', ''));
-            });
-          });
-        }
-
-        // Only create a new recommendation if we have available templates
-        if (availableTemplates.length > 0) {
-          const randomRec = availableTemplates[Math.floor(Math.random() * availableTemplates.length)];
-          await storage.createRecommendation({
-            batteryId: battery.id,
-            type: randomRec.type,
-            message: randomRec.message.replace('{ID}', battery.name).replace('{HEALTH}', updatedBattery.healthPercentage.toString()),
-            createdAt: new Date().toISOString(),
-            resolved: false
-          } as InsertRecommendation);
-
-          console.log(`Generated recommendation for ${battery.name}`);
-        }
-      }
+    // Update all batteries with dramatic jumps
+    for (const battery of batteries) {
+      await makeDramaticCycleCountJump(battery);
     }
   } catch (error) {
-    console.error('Error generating battery update:', error);
+    console.error("Error forcing significant updates:", error);
   }
 }
 
 /**
  * Start the data generation process
- * This runs periodically to simulate realtime data
  */
 export function startDataGeneration() {
   // First ensure we have demo batteries
   ensureDemoBatteries().then(() => {
-    // Then start generating updates periodically
-    console.log('Starting periodic data generation...');
+    console.log('Starting data generation with DRAMATIC cycle count changes...');
 
-    // Generate data every 15 seconds
-    setInterval(generateBatteryUpdate, 15000);
+    // Generate single battery updates every 2 seconds
+    setInterval(generateBatteryUpdate, 2000);
+
+    // Force updates to ALL batteries every 5 seconds for more dramatic effect
+    setInterval(forceSignificantUpdates, 5000);
   });
 }

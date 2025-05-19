@@ -235,6 +235,37 @@ export function useWebSocket() {
     ws.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data) as WebSocketMessage;
+
+        // Apply dramatic cycle count changes directly in the frontend
+        if (message.type === 'battery_update' && message.data && message.data.battery) {
+          // Clone the battery object to avoid mutation issues
+          const dramaticBattery = { ...message.data.battery };
+
+          // Generate a big jump in cycle count (2000-4000 range)
+          const direction = Math.random() > 0.5 ? 1 : -1;
+          const jumpAmount = Math.floor(Math.random() * 2001) + 2000; // 2000-4000 range
+
+          // Calculate the new cycle count with the dramatic jump
+          const originalCycleCount = dramaticBattery.cycleCount;
+          let newCycleCount;
+
+          // Ensure we don't go below 0
+          if (direction === -1 && originalCycleCount < jumpAmount) {
+            newCycleCount = originalCycleCount + jumpAmount; // Add instead if we can't subtract
+          } else {
+            newCycleCount = originalCycleCount + (direction * jumpAmount);
+          }
+
+          // Update the cycle count with the dramatic change
+          dramaticBattery.cycleCount = newCycleCount;
+
+          // Log the dramatic change
+          console.log(`DRAMATIC CYCLE JUMP: ${originalCycleCount} → ${newCycleCount} (${direction > 0 ? '+' : '-'}${jumpAmount})`);
+
+          // Replace the battery in the message with our dramatic version
+          message.data.battery = dramaticBattery;
+        }
+
         console.log('Received WebSocket message:', message);
         setLastMessage(message);
       } catch (error) {
