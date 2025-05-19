@@ -81,34 +81,46 @@ export default function Sidebar({ isMobile, onNavItemClick }: { isMobile?: boole
             Dashboard
           </NavItem>
           <NavItem
-            href="/batteries"
+            href="/"
             icon="ri-battery-line"
-            active={isClient && location === "/"}
-            onClick={onNavItemClick}
+            active={isClient && location === "/batteries"}
+            onClick={() => {
+              if (onNavItemClick) onNavItemClick();
+              setLocation("/");
+            }}
           >
             Batteries
           </NavItem>
           <NavItem
-            href="/history"
+            href="/"
             icon="ri-history-line"
-            active={isClient && location === "/"}
-            onClick={onNavItemClick}
+            active={isClient && location === "/history"}
+            onClick={() => {
+              if (onNavItemClick) onNavItemClick();
+              setLocation("/");
+            }}
           >
             History
           </NavItem>
           <NavItem
-            href="/settings"
+            href="/"
             icon="ri-settings-3-line"
-            active={isClient && location === "/"}
-            onClick={onNavItemClick}
+            active={isClient && location === "/settings"}
+            onClick={() => {
+              if (onNavItemClick) onNavItemClick();
+              setLocation("/");
+            }}
           >
             Settings
           </NavItem>
           <NavItem
-            href="/notifications"
+            href="/"
             icon="ri-notification-line"
-            active={isClient && location === "/"}
-            onClick={onNavItemClick}
+            active={isClient && location === "/notifications"}
+            onClick={() => {
+              if (onNavItemClick) onNavItemClick();
+              setLocation("/");
+            }}
           >
             Notifications
           </NavItem>
