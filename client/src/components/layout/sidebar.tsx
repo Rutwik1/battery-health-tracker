@@ -83,7 +83,7 @@ export default function Sidebar({ isMobile, onNavItemClick }: { isMobile?: boole
           <NavItem
             href="/batteries"
             icon="ri-battery-line"
-            active={isClient && location === "/batteries"}
+            active={isClient && location === "/"}
             onClick={onNavItemClick}
           >
             Batteries
@@ -91,7 +91,7 @@ export default function Sidebar({ isMobile, onNavItemClick }: { isMobile?: boole
           <NavItem
             href="/history"
             icon="ri-history-line"
-            active={isClient && location === "/history"}
+            active={isClient && location === "/"}
             onClick={onNavItemClick}
           >
             History
@@ -99,7 +99,7 @@ export default function Sidebar({ isMobile, onNavItemClick }: { isMobile?: boole
           <NavItem
             href="/settings"
             icon="ri-settings-3-line"
-            active={isClient && location === "/settings"}
+            active={isClient && location === "/"}
             onClick={onNavItemClick}
           >
             Settings
@@ -107,7 +107,7 @@ export default function Sidebar({ isMobile, onNavItemClick }: { isMobile?: boole
           <NavItem
             href="/notifications"
             icon="ri-notification-line"
-            active={isClient && location === "/notifications"}
+            active={isClient && location === "/"}
             onClick={onNavItemClick}
           >
             Notifications
