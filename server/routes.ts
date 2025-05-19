@@ -391,6 +391,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('Successfully created new battery:', newBattery);
 
+      // Create history points for the new battery so charts will work
+      try {
+        // Create 12 history points (one per month for the past year)
+        const today = new Date();
+        const batteryStartDate = new Date(data.initial_date);
+        const batteryId = data.id;
+        let createdCount = 0;
+
+        for (let i = 11; i >= 0; i--) {
+          const historyDate = new Date(today);
+          historyDate.setMonth(today.getMonth() - i);
+
+          // Skip history points that would be before the battery's initial date
+          if (historyDate < batteryStartDate) continue;
+
+          // Calculate decreasing health as we get closer to today
+          // Start from initial health (100%) and decrease more as we approach present
+          const historyHealthPct = Math.max(
+            data.health_percentage + (i * 0.5), // Higher health in the past
+            data.health_percentage  // But never go below current health
+          );
+
+          // Calculate cycle count (fewer cycles in the past)
+          const historyCycles = Math.max(
+            0,
+            Math.round(data.cycle_count * (1 - (i * 0.08)))
+          );
+
+          // Create the history point
+          const { error: historyError } = await supabase
+            .from('battery_history')
+            .insert({
+              battery_id: batteryId,
+              date: historyDate.toISOString(),
+              capacity: Math.round(data.initial_capacity * (historyHealthPct / 100)),
+              health_percentage: historyHealthPct,
+              cycle_count: historyCycles
+            });
+
+          if (!historyError) {
+            createdCount++;
+          }
+        }
+
+        console.log(`Created ${createdCount} history points for new battery ${batteryId}`);
+      } catch (historyError) {
+        console.error('Error creating battery history:', historyError);
+        // Continue despite history error - we still created the battery
+      }
+
       // Broadcast to WebSocket clients
       clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {

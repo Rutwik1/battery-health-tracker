@@ -366,3 +366,4 @@ export default function CapacityChart({ batteries, timeRange, isLoading, detaile
     </div>
   );
 }
+
