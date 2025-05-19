@@ -199,8 +199,11 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
                     </SelectTrigger>
                     <SelectContent className="bg-gradient-card border border-border/50 backdrop-blur-md">
                       <SelectItem value="all">All batteries</SelectItem>
-                      {batteryNames.map(name => (
+                      {/* {batteryNames.map(name => (
                         <SelectItem key={name} value={name}>{name}</SelectItem>
+                      ))} */}
+                      {batteryNames.map((name, index) => (
+                        <SelectItem key={`battery-${name || index}`} value={name}>{name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -215,8 +218,8 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
                     </SelectTrigger>
                     <SelectContent className="bg-gradient-card border border-border/50 backdrop-blur-md">
                       <SelectItem value="all">All statuses</SelectItem>
-                      {statusTypes.map(status => (
-                        <SelectItem key={status} value={status}>{status}</SelectItem>
+                      {statusTypes.map((status, index) => (
+                        <SelectItem key={`status-${status || index}`} value={status}>{status}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -326,18 +329,19 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
                 </TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody className="divide-y divide-border/30">// In the TableBody section where the status color is determined (around line 339)
+            <TableBody className="divide-y divide-border/30">
               {isLoading ? (
                 [...Array(4)].map((_, i) => (
-                  <TableRow key={i} className="border-0">
+                  <TableRow key={`loading-row-${i}`} className="border-0">
                     <TableCell colSpan={6}>
                       <div className="h-16 bg-muted/20 animate-pulse rounded-lg"></div>
                     </TableCell>
                   </TableRow>
                 ))
               ) : displayedBatteries.map((battery) => {
-                // Add a safety check for undefined status
-                const statusColor = getBatteryStatusColor(battery?.status || '');
+                // Add a safe default empty string to prevent crashes
+                const batteryStatus = battery?.status || '';
+                const statusColor = getBatteryStatusColor(batteryStatus);
 
                 // Convert color classes to CSS variables for gradients
                 const gradientColor = statusColor === 'text-success' ? 'from-success to-success/70' :
@@ -372,8 +376,15 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
                       <div className="text-sm">{battery.cycleCount}</div>
                       <div className="text-xs text-muted-foreground">of {battery.expectedCycles}</div>
                     </TableCell>
+                    {/* <TableCell className="text-sm text-muted-foreground">
+                      {battery.initialDate ?
+                        format(new Date(battery.initialDate), 'MMM dd, yyyy') :
+                        'N/A'}
+                    </TableCell> */}
                     <TableCell className="text-sm text-muted-foreground">
-                      {format(new Date(battery.initialDate), 'MMM dd, yyyy')}
+                      {battery.initialDate && !isNaN(new Date(battery.initialDate).getTime())
+                        ? format(new Date(battery.initialDate), 'MMM dd, yyyy')
+                        : 'N/A'}
                     </TableCell>
                     <TableCell className="text-sm font-medium">
                       <div className="flex items-center space-x-3">
