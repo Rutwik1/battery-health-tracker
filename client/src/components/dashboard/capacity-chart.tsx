@@ -205,10 +205,14 @@ export default function CapacityChart({ batteries, timeRange, isLoading, detaile
     queries: batteries.map(battery => ({
       queryKey: [`/api/batteries/${battery.id}/history`],
       queryFn: async () => {
-        // Use relative path for API requests to ensure it works in all environments
-        const apiUrl = `/api/batteries/${battery.id}/history`;
+        // Import the getApiUrl helper for consistent API URL handling
+        const { getApiUrl } = await import('@/lib/apiConfig');
+
+        // Get the correct API URL based on the current environment
+        const apiUrl = getApiUrl(`/batteries/${battery.id}/history`);
 
         try {
+          console.log(`Fetching battery history from: ${apiUrl}`);
           const response = await fetch(apiUrl);
 
           // Check if response is ok
@@ -218,7 +222,9 @@ export default function CapacityChart({ batteries, timeRange, isLoading, detaile
             return [] as BatteryHistory[];
           }
 
-          return response.json() as Promise<BatteryHistory[]>;
+          const data = await response.json() as BatteryHistory[];
+          console.log(`Successfully fetched ${data.length} history records for battery ${battery.id}`);
+          return data;
         } catch (error) {
           console.error(`Error fetching battery history for ID ${battery.id}:`, error);
           // Return empty array to prevent component errors

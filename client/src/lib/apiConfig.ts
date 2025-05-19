@@ -44,9 +44,12 @@ const isRenderDeployment = typeof window !== 'undefined' &&
 // Set the appropriate URLs based on environment
 export const isProduction = import.meta.env.PROD;
 
+// Backend URL for deployed environment
+export const BACKEND_URL = 'https://battery-health-tracker-backend.onrender.com';
+
 // API URL configuration
 export const API_BASE_URL = isRenderDeployment
-    ? 'https://battery-health-tracker-backend.onrender.com/api'  // For deployed frontend on Render
+    ? `${BACKEND_URL}/api`  // For deployed frontend on Render
     : ''; // Use relative URLs for API calls in local development
 
 // Frontend URL configuration
@@ -56,10 +59,18 @@ export const FRONTEND_URL = isLocalDevelopment
 
 // WebSocket URL configuration
 export const WS_BASE_URL = isRenderDeployment
-    ? 'wss://battery-health-tracker-backend.onrender.com/ws'  // For deployed frontend
+    ? `wss://battery-health-tracker-backend.onrender.com/ws`  // For deployed frontend
     : isLocalDevelopment
         ? `ws://${window.location.hostname}:5000/ws`  // Local development
         : `wss://${window.location.hostname}/ws`;  // Default secure WebSocket
+
+// Function to get correct API URL based on environment
+export function getApiUrl(endpoint: string): string {
+    if (isRenderDeployment) {
+        return `${BACKEND_URL}/api${endpoint}`;
+    }
+    return `/api${endpoint}`;
+}
 
 // Log configuration in development
 console.log('API Configuration:', {

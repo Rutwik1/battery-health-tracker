@@ -207,10 +207,13 @@ export function useWebSocket() {
     // Use the appropriate WebSocket URL
     let wsUrl;
     if (isLocalhost) {
-      // In development, connect to deployed backend
+      // In development, use local WebSocket
+      wsUrl = 'ws://localhost:5000/ws';
+    } else if (window.location.hostname.includes('render.com')) {
+      // On Render's deployment platform
       wsUrl = 'wss://battery-health-tracker-backend.onrender.com/ws';
     } else {
-      // In production, use relative path
+      // In other production environments, use relative path
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       wsUrl = `${protocol}//${window.location.host}/ws`;
     }

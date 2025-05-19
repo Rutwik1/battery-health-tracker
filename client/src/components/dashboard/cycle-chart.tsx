@@ -117,4 +117,3 @@ export default function CycleChart({ batteries, isLoading }: CycleChartProps) {
     </div>
   );
 }
-
