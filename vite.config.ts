@@ -105,7 +105,7 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': clientSrcPath,
-            '@shared': path.resolve(__dirname, 'shared'), // Optional: shared alias
+            '@shared': path.resolve(__dirname, 'shared'),
         },
     },
 });

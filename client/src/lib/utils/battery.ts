@@ -1,8 +1,6 @@
 // Utility functions for battery-related operations
 
-/**
- * Get the appropriate color class for a battery status
- */
+
 export function getBatteryStatusColor(status: string | undefined | null): string {
   if (!status) return 'text-neutral'; // Default color for undefined/null status
 
