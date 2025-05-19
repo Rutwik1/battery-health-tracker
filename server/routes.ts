@@ -34,6 +34,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw new Error('Failed to fetch batteries from database');
       }
 
+      // Generate updated data for these batteries to ensure values change
+      // Determine if this is a forced update (should happen every 15 seconds)
+      const now = Date.now();
+      // Define lastForcedUpdate if it doesn't exist on global
+      if (typeof global.lastForcedUpdate === 'undefined') {
+        global.lastForcedUpdate = 0;
+      }
+      const shouldForceUpdate = (now - global.lastForcedUpdate) > 15000;
+
+      if (shouldForceUpdate) {
+        global.lastForcedUpdate = now;
+        console.log('Forcing significant battery updates');
+      }
+
+      for (const battery of dbBatteries) {
+        // More significant changes when forcing updates
+        const healthChange = shouldForceUpdate
+          ? Math.random() * 0.5 + 0.2  // 0.2 to 0.7 change when forcing
+          : Math.random() * 0.04 + 0.01; // 0.01 to 0.05 for regular updates
+
+        // More significant cycle count changes when forcing
+        const cycleChange = shouldForceUpdate
+          ? Math.floor(Math.random() * 5) + 3 // 3 to 7 cycles when forcing
+          : Math.floor(Math.random() * 2) + 1; // 1 to 2 cycles for regular updates
+
+        // Update the values
+        battery.health_percentage = Math.max(50, battery.health_percentage - healthChange);
+        battery.cycle_count += cycleChange;
+        battery.current_capacity = Math.round(battery.initial_capacity * (battery.health_percentage / 100));
+        battery.last_updated = new Date().toISOString();
+
+        // Calculate status based on health percentage
+        battery.status = getHealthStatus(battery.health_percentage);
+
+        // Update the battery in Supabase
+        supabase.from('batteries').update({
+          health_percentage: battery.health_percentage,
+          cycle_count: battery.cycle_count,
+          current_capacity: battery.current_capacity,
+          status: battery.status,
+          last_updated: battery.last_updated
+        }).eq('id', battery.id).then(() => {
+          console.log(`Updated battery ${battery.id} with health: ${battery.health_percentage.toFixed(2)}%, cycles: ${battery.cycle_count}`);
+
+          // Send WebSocket updates to clients for real-time updates
+          clients.forEach(client => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(JSON.stringify({
+                type: 'battery_update',
+                data: {
+                  battery: {
+                    id: battery.id,
+                    name: battery.name,
+                    serialNumber: battery.serial_number,
+                    initialCapacity: battery.initial_capacity,
+                    currentCapacity: battery.current_capacity,
+                    healthPercentage: battery.health_percentage,
+                    cycleCount: battery.cycle_count,
+                    expectedCycles: battery.expected_cycles,
+                    status: battery.status,
+                    initialDate: battery.initial_date,
+                    lastUpdated: battery.last_updated,
+                    degradationRate: battery.degradation_rate,
+                    userId: battery.user_id
+                  }
+                }
+              }));
+            }
+          });
+        });
+      }
+
       // Log all batteries in database for debugging
       console.log('All batteries in database:', dbBatteries.map(b => b.id));
 
@@ -330,13 +402,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid battery ID" });
       }
 
-      const success = await storage.deleteBattery(id);
-      if (!success) {
-        return res.status(404).json({ message: "Battery not found" });
+      console.log(`Attempting to delete battery with ID: ${id}`);
+
+      // First delete related records that have foreign key constraints
+      try {
+        // Delete battery history
+        const { error: historyError } = await supabase
+          .from('battery_history')
+          .delete()
+          .eq('battery_id', id);
+
+        if (historyError) {
+          console.warn(`Warning: Could not delete history for battery ${id}:`, historyError);
+        }
+
+        // Delete usage patterns
+        const { error: usageError } = await supabase
+          .from('usage_patterns')
+          .delete()
+          .eq('battery_id', id);
+
+        if (usageError) {
+          console.warn(`Warning: Could not delete usage patterns for battery ${id}:`, usageError);
+        }
+
+        // Delete recommendations
+        const { error: recsError } = await supabase
+          .from('recommendations')
+          .delete()
+          .eq('battery_id', id);
+
+        if (recsError) {
+          console.warn(`Warning: Could not delete recommendations for battery ${id}:`, recsError);
+        }
+      } catch (relationError) {
+        console.warn("Error deleting related records:", relationError);
+        // Continue anyway to try deleting the battery
       }
 
-      res.status(204).end();
+      // Delete the battery record
+      const { error, data } = await supabase
+        .from('batteries')
+        .delete()
+        .eq('id', id)
+        .select();
+
+      if (error) {
+        console.error(`Error deleting battery with ID ${id}:`, error);
+        return res.status(500).json({ message: `Failed to delete battery: ${error.message}` });
+      }
+
+      console.log(`Successfully deleted battery with ID: ${id}`, data);
+
+      // Broadcast deletion to WebSocket clients
+      clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({
+            type: 'battery_deleted',
+            data: { id }
+          }));
+        }
+      });
+
+      res.status(200).json({ success: true, message: "Battery deleted successfully" });
     } catch (error) {
+      console.error(`Error in delete battery endpoint:`, error);
       res.status(500).json({ message: "Failed to delete battery" });
     }
   });
@@ -548,7 +678,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
   // Set up WebSocket server for realtime updates
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  const wss = new WebSocketServer({
+    server: httpServer,
+    path: '/ws',
+    verifyClient: (info, callback) => {
+      // Allow all connections with simple CORS handling
+      const origin = info.req.headers.origin;
+      console.log(`WebSocket connection attempt from origin: ${origin}`);
+      callback(true); // Accept all connections regardless of origin
+    }
+  });
 
   // Keep track of connected clients
   const clients: WebSocket[] = [];
