@@ -205,11 +205,30 @@ export default function CapacityChart({ batteries, timeRange, isLoading, detaile
     queries: batteries.map(battery => ({
       queryKey: [`/api/batteries/${battery.id}/history`],
       queryFn: async () => {
-        const response = await fetch(`/api/batteries/${battery.id}/history`);
-        if (!response.ok) throw new Error('Failed to fetch battery history');
-        return response.json() as Promise<BatteryHistory[]>;
+        // Use relative path for API requests to ensure it works in all environments
+        const apiUrl = `/api/batteries/${battery.id}/history`;
+
+        try {
+          const response = await fetch(apiUrl);
+
+          // Check if response is ok
+          if (!response.ok) {
+            console.log(`Failed to fetch history for battery ${battery.id}: ${response.status}`);
+            // Return empty array instead of throwing to prevent errors
+            return [] as BatteryHistory[];
+          }
+
+          return response.json() as Promise<BatteryHistory[]>;
+        } catch (error) {
+          console.error(`Error fetching battery history for ID ${battery.id}:`, error);
+          // Return empty array to prevent component errors
+          return [] as BatteryHistory[];
+        }
       },
-      enabled: batteries.length > 0
+      // Make query less aggressive with retries when it fails
+      retry: false,
+      // Only run query if there are batteries
+      enabled: batteries.length > 0 && !!battery.id
     }))
   });
 
@@ -366,4 +385,5 @@ export default function CapacityChart({ batteries, timeRange, isLoading, detaile
     </div>
   );
 }
+
 
