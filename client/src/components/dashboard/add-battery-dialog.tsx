@@ -602,17 +602,15 @@ export function AddBatteryDialog() {
 
         console.log("Submitting battery:", formattedData);
 
-        // Use the correct absolute URL when in development mode
-        const url = window.location.hostname === 'localhost'
-          ? `https://battery-health-tracker-backend.onrender.com/api/batteries`
-          : `/api/batteries`;
+        // Use the centralized API_BASE_URL for consistent behavior
+        const url = `${API_BASE_URL}/batteries`;
         console.log("Sending request to:", url);
 
         const response = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formattedData),
-          credentials: window.location.hostname === 'localhost' ? 'omit' : 'same-origin'
+          credentials: 'include'
         });
 
         console.log("Response status:", response.status);
@@ -653,8 +651,21 @@ export function AddBatteryDialog() {
       }
     },
     onSuccess: () => {
-      // Invalidate and refetch the batteries list
+      // Invalidate and refetch the batteries list - use multiple formats to handle all environments
       queryClient.invalidateQueries({ queryKey: ["/api/batteries"] });
+      queryClient.invalidateQueries({ queryKey: ["batteries"] });
+
+      // Force a direct refresh of data
+      setTimeout(() => {
+        fetch(`${API_BASE_URL}/batteries`)
+          .then(response => {
+            console.log("Manually refreshing battery data");
+            if (response.ok) {
+              // No need to process the response, just trigger a refresh
+            }
+          })
+          .catch(error => console.error("Error manually refreshing data:", error));
+      }, 500);
 
       // Show success toast and close dialog
       toast({
