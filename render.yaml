@@ -13,3 +13,18 @@ services:
         sync: false
       - key: SESSION_SECRET
         sync: false
+
+
+staticSites:
+  - name: battery-health-tracker-frontend
+    buildCommand: npm run build
+    publishDir: dist
+    route: /
+    headers:
+      - path: /**
+        name: Cache-Control
+        value: no-cache
+    routes:
+      - type: rewrite
+        source: /**
+        destination: /index.html
