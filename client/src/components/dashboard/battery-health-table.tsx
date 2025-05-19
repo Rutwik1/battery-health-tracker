@@ -1107,7 +1107,7 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              className="bg-danger hover:bg-danger/90 text-white"
+              className="bg-danger hover:bg-danger/90 !text-white"
               onClick={(e) => {
                 e.preventDefault(); // Prevent dialog from closing automatically
                 confirmDeleteBattery();
