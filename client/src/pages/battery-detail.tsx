@@ -111,7 +111,7 @@ export default function BatteryDetail() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                       <div>
                         <h3 className="text-sm font-medium text-neutral-lighter mb-1">Health</h3>
-                        <div className="text-3xl font-semibold">{battery.healthPercentage}%</div>
+                        <div className="text-3xl font-semibold">{parseFloat(battery.healthPercentage.toFixed(2))}%</div>
                         <Progress
                           value={battery.healthPercentage}
                           className={`h-2 mt-2 ${statusColor.replace('text-', 'bg-')}`}

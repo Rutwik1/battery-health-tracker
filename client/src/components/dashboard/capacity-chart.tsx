@@ -190,7 +190,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { useQuery, useQueries } from "@tanstack/react-query";
 import { Battery, BatteryHistory } from "@shared/schema";
 import { getBatteryStatusColor } from "@/lib/utils/battery";
-import { formatApiUrl } from "@/lib/queryClient";
 import { format, subDays } from "date-fns";
 
 interface CapacityChartProps {
@@ -206,28 +205,11 @@ export default function CapacityChart({ batteries, timeRange, isLoading, detaile
     queries: batteries.map(battery => ({
       queryKey: [`/api/batteries/${battery.id}/history`],
       queryFn: async () => {
-        try {
-          // Explicitly handle environments to avoid URL confusion in production
-          const baseUrl = window.location.hostname.includes('render.com')
-            ? 'https://battery-health-tracker-backend.onrender.com'
-            : '';
-
-          const url = `${baseUrl}/api/batteries/${battery.id}/history`;
-          console.log(`Fetching battery history from: ${url}`);
-
-          const response = await fetch(url, {
-            credentials: 'include'
-          });
-
-          if (!response.ok) throw new Error(`Failed to fetch battery history: ${response.status}`);
-          return response.json() as Promise<BatteryHistory[]>;
-        } catch (error) {
-          console.error(`Error fetching battery ${battery.id} history:`, error);
-          throw error;
-        }
+        const response = await fetch(`/api/batteries/${battery.id}/history`);
+        if (!response.ok) throw new Error('Failed to fetch battery history');
+        return response.json() as Promise<BatteryHistory[]>;
       },
-      enabled: batteries.length > 0,
-      retry: 1
+      enabled: batteries.length > 0
     }))
   });
 
@@ -276,10 +258,10 @@ export default function CapacityChart({ batteries, timeRange, isLoading, detaile
         const historyPoint = historyData[normalizedIndex];
 
         if (historyPoint) {
-          dataPoint[battery.name] = historyPoint.healthPercentage;
+          dataPoint[battery.name] = parseFloat(historyPoint.healthPercentage.toFixed(2));
         } else {
           // Fallback if no data
-          dataPoint[battery.name] = battery.healthPercentage;
+          dataPoint[battery.name] = parseFloat(battery.healthPercentage.toFixed(2));
         }
       });
 

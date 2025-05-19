@@ -49,18 +49,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       for (const battery of dbBatteries) {
-        // More significant changes when forcing updates
-        const healthChange = shouldForceUpdate
-          ? Math.random() * 0.5 + 0.2  // 0.2 to 0.7 change when forcing
-          : Math.random() * 0.04 + 0.01; // 0.01 to 0.05 for regular updates
+        // Determine appropriate health range based on battery ID
+        let minHealth, maxHealth;
+
+        // Battery #1: 90-100%, Battery #2: 80-90%, Battery #3: 70-80%, Battery #4: 50-70%
+        if (battery.id === 1) {
+          minHealth = 90;
+          maxHealth = 99;
+        } else if (battery.id === 2) {
+          minHealth = 80;
+          maxHealth = 89;
+        } else if (battery.id === 3) {
+          minHealth = 70;
+          maxHealth = 79;
+        } else if (battery.id === 4) {
+          minHealth = 50;
+          maxHealth = 69;
+        } else {
+          // For new batteries or others, use a random range
+          const ranges = [
+            [90, 99], // Excellent
+            [80, 89], // Good
+            [70, 79], // Fair
+            [50, 69]  // Poor
+          ];
+          const randomRange = ranges[Math.floor(Math.random() * ranges.length)];
+          minHealth = randomRange[0];
+          maxHealth = randomRange[1];
+        }
+
+        // Determine if we should increase or decrease health to stay in range
+        let healthChange;
+        if (battery.health_percentage > maxHealth) {
+          // If above range, decrease health
+          healthChange = shouldForceUpdate ? 0.5 : 0.2;
+        } else if (battery.health_percentage < minHealth) {
+          // If below range, increase health (negative change)
+          healthChange = shouldForceUpdate ? -0.5 : -0.2;
+        } else {
+          // Within range, small random change
+          healthChange = (Math.random() * 0.3 - 0.15); // -0.15 to 0.15
+        }
 
         // More significant cycle count changes when forcing
         const cycleChange = shouldForceUpdate
-          ? Math.floor(Math.random() * 5) + 3 // 3 to 7 cycles when forcing
-          : Math.floor(Math.random() * 2) + 1; // 1 to 2 cycles for regular updates
+          ? Math.floor(Math.random() * 3) + 1 // 1 to 3 cycles when forcing
+          : (battery.health_percentage > 80 ? 1 : 2); // More cycles for older batteries
 
-        // Update the values
-        battery.health_percentage = Math.max(50, battery.health_percentage - healthChange);
+        // Update the values with two decimal places
+        battery.health_percentage = parseFloat((battery.health_percentage - healthChange).toFixed(2));
+
+        // Ensure health stays within range and never below 50%
+        battery.health_percentage = Math.max(minHealth, Math.min(maxHealth, battery.health_percentage));
+        battery.health_percentage = Math.max(50, battery.health_percentage);
+
         battery.cycle_count += cycleChange;
         battery.current_capacity = Math.round(battery.initial_capacity * (battery.health_percentage / 100));
         battery.last_updated = new Date().toISOString();

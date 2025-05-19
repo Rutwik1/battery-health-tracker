@@ -956,7 +956,7 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm">{battery.healthPercentage}%</div>
+                      <div className="text-sm">{parseFloat(battery.healthPercentage.toFixed(2))}%</div>
                       <div className="text-xs text-muted-foreground">{battery.currentCapacity} mAh</div>
                     </TableCell>
                     <TableCell>
@@ -1119,3 +1119,4 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
     </div>
   );
 }
+

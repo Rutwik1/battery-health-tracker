@@ -84,7 +84,12 @@ export default function Dashboard() {
     refetchIntervalInBackground: true,
     // Always refetch to ensure we have the latest data
     staleTime: 0,
-    gcTime: 0
+    gcTime: 3000,
+    // Add retry logic to handle occasional network failures
+    retry: 3,
+    retryDelay: 1000,
+    // If we encounter errors, fall back to the last successful data
+    keepPreviousData: true
   });
 
   // Force refetch on mount and every 5 seconds as a backup

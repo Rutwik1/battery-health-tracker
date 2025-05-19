@@ -85,7 +85,7 @@ export default function BatteryStatusCard({ battery, isLoading = false }: Batter
                   <div className="ml-4">
                     <div className="flex items-baseline">
                       <div className={`text-2xl font-bold ${statusColor}`}>
-                        {battery.healthPercentage}%
+                        {parseFloat(battery.healthPercentage.toFixed(2))}%
                       </div>
                       {healthChange !== 0 && (
                         <div className={`ml-2 flex items-baseline text-sm font-medium ${healthChange > 0 ? 'text-success' : 'text-danger'}`}>
