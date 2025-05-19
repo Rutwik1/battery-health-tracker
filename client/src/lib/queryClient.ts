@@ -117,8 +117,20 @@ export const getQueryFn: <T>(options: {
     async ({ queryKey }) => {
       // Get the URL from the query key
       const path = queryKey[0] as string;
+
+      // Handle paths that may or may not already have /api prefix
+      const cleanPath = path.startsWith('/api/')
+        ? path.substring(5) // Remove /api/ to prevent duplication
+        : path.startsWith('/api')
+          ? path.substring(4) // Remove /api to prevent duplication
+          : path.startsWith('/')
+            ? path.substring(1) // Remove leading slash
+            : path;
+
       // Add API_BASE_URL to the path if it's a relative path
-      const fullUrl = path.startsWith('http') ? path : `${API_BASE_URL}${path}`;
+      const fullUrl = path.startsWith('http')
+        ? path
+        : `${API_BASE_URL}/${cleanPath}`;
 
       const res = await fetch(fullUrl, {
         credentials: "include",

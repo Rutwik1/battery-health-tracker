@@ -48,9 +48,9 @@ export const isProduction = import.meta.env.PROD;
 export const BACKEND_URL = 'https://battery-health-tracker-backend.onrender.com';
 
 // API URL configuration
-export const API_BASE_URL = isRenderDeployment
+export const API_BASE_URL = isRenderDeployment || isProduction
     ? `${BACKEND_URL}/api`  // For deployed frontend on Render
-    : ''; // Use relative URLs for API calls in local development
+    : '/api'; // Use relative URLs for API calls in local development
 
 // Frontend URL configuration
 export const FRONTEND_URL = isLocalDevelopment
@@ -66,10 +66,22 @@ export const WS_BASE_URL = isRenderDeployment
 
 // Function to get correct API URL based on environment
 export function getApiUrl(endpoint: string): string {
-    if (isRenderDeployment) {
-        return `${BACKEND_URL}/api${endpoint}`;
+    // Handle paths with or without /api prefix
+    const cleanEndpoint = endpoint.startsWith('/api/')
+        ? endpoint.substring(5)  // Remove /api/ prefix
+        : endpoint.startsWith('/api')
+            ? endpoint.substring(4)  // Remove /api prefix
+            : endpoint.startsWith('/')
+                ? endpoint.substring(1)  // Remove just the leading slash
+                : endpoint;  // No changes needed
+
+    if (isRenderDeployment || isProduction) {
+        // Use absolute URL with the backend hostname
+        return `${BACKEND_URL}/api/${cleanEndpoint}`;
     }
-    return `/api${endpoint}`;
+
+    // For local development, use relative URL with leading slash
+    return `/api/${cleanEndpoint}`;
 }
 
 // Log configuration in development
