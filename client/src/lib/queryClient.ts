@@ -80,17 +80,8 @@
 // here down all full deploy code 
 
 
-/**
- * Determine if we're in a local development environment
- */
-export const isLocalDevelopment = (): boolean => {
-  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-}
-
-/**
- * Get the appropriate API base URL depending on environment
- */
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { API_BASE_URL } from "./apiConfig";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -104,7 +95,10 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
+  // Add API_BASE_URL to the URL if it's a relative path
+  const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
+
+  const res = await fetch(fullUrl, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
@@ -121,7 +115,12 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
     async ({ queryKey }) => {
-      const res = await fetch(queryKey[0] as string, {
+      // Get the URL from the query key
+      const path = queryKey[0] as string;
+      // Add API_BASE_URL to the path if it's a relative path
+      const fullUrl = path.startsWith('http') ? path : `${API_BASE_URL}${path}`;
+
+      const res = await fetch(fullUrl, {
         credentials: "include",
       });
 
@@ -147,4 +146,3 @@ export const queryClient = new QueryClient({
     },
   },
 });
-

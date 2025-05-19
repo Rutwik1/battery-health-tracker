@@ -111,7 +111,7 @@
 
 
 
-// new code for deply 
+// new code for deply
 
 
 import express, { type Request, Response, NextFunction } from "express";
@@ -124,12 +124,16 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Get allowed origins from environment variables or use defaults
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://battery-health-tracker-frontend.onrender.com';
+const LOCAL_URL = 'http://localhost:5000';
+
 // CORS middleware to allow requests from both development and production environments
 app.use((req, res, next) => {
   // List of allowed origins
   const allowedOrigins = [
-    'http://localhost:5000',                             // Local development
-    'https://battery-health-tracker-frontend.onrender.com', // Production frontend
+    LOCAL_URL,                 // Local development
+    FRONTEND_URL,              // Production frontend
   ];
 
   const origin = req.headers.origin;
@@ -227,11 +231,15 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = 5000;
+
+  // Remove the reusePort option which may not be supported on Windows
   server.listen({
     port,
-    host: "0.0.0.0",
-    reusePort: true,
+    host: "0.0.0.0"
+    // Removed reusePort: true
   }, () => {
     log(`serving on port ${port}`);
+    log(`Frontend URL: ${FRONTEND_URL}`);
+    log(`Backend URL: ${process.env.VITE_BACKEND_URL || 'http://localhost:5000'}`);
   });
 })();

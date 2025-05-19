@@ -3,7 +3,9 @@
 /**
  * Get the appropriate color class for a battery status
  */
-export function getBatteryStatusColor(status: string): string {
+export function getBatteryStatusColor(status: string | undefined | null): string {
+  if (!status) return 'text-neutral'; // Default color for undefined/null status
+
   switch (status.toLowerCase()) {
     case 'excellent':
       return 'text-success';
@@ -37,13 +39,13 @@ export function getBatteryStatus(healthPercentage: number): string {
  * Calculate estimated months remaining before battery reaches end-of-life
  */
 export function calculateRemainingMonths(
-  healthPercentage: number, 
-  degradationRate: number, 
+  healthPercentage: number,
+  degradationRate: number,
   minimumHealth: number = 60
 ): number {
   if (degradationRate <= 0) return 999; // Avoid division by zero
   if (healthPercentage <= minimumHealth) return 0;
-  
+
   return Math.ceil((healthPercentage - minimumHealth) / degradationRate);
 }
 
@@ -53,7 +55,7 @@ export function calculateRemainingMonths(
 export function formatChargeDuration(minutes: number): string {
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
-  
+
   if (hours === 0) {
     return `${mins} minutes`;
   } else if (mins === 0) {

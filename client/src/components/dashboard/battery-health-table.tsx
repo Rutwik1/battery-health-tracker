@@ -326,7 +326,7 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
                 </TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody className="divide-y divide-border/30">
+            <TableBody className="divide-y divide-border/30">// In the TableBody section where the status color is determined (around line 339)
               {isLoading ? (
                 [...Array(4)].map((_, i) => (
                   <TableRow key={i} className="border-0">
@@ -336,7 +336,8 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
                   </TableRow>
                 ))
               ) : displayedBatteries.map((battery) => {
-                const statusColor = getBatteryStatusColor(battery.status);
+                // Add a safety check for undefined status
+                const statusColor = getBatteryStatusColor(battery?.status || '');
 
                 // Convert color classes to CSS variables for gradients
                 const gradientColor = statusColor === 'text-success' ? 'from-success to-success/70' :
@@ -346,6 +347,7 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
 
                 return (
                   <TableRow key={battery.id} className="border-0 hover:bg-muted/20">
+                    {/* Rest of your component remains the same */}
                     <TableCell>
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-9 w-9 flex items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-accent/10">
