@@ -674,10 +674,15 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
         return oldData.filter(battery => battery.id !== batteryToDelete);
       });
 
+      // Also invalidate battery history query to prevent 404 errors
+      queryClient.removeQueries({
+        queryKey: [`/api/batteries/${batteryToDelete}/history`]
+      });
+
       // Then delete via API
       console.log(`Deleting battery with ID: ${batteryToDelete}`);
 
-      // Use the correct absolute URL when in development mode
+      // Use the correct API URL based on environment
       const apiUrl = window.location.hostname === 'localhost'
         ? `https://battery-health-tracker-backend.onrender.com/api/batteries/${batteryToDelete}`
         : `/api/batteries/${batteryToDelete}`;
@@ -703,10 +708,16 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
       }
 
       if (response.ok || response.status === 200) {
+        // Successfully deleted - update the UI
         toast({
           title: "Battery deleted",
           description: "Battery has been successfully removed from your inventory.",
         });
+
+        // Force a refetch to update the battery list
+        if (refetch) {
+          await refetch();
+        }
       } else {
         // If deletion failed, refresh to restore data
         if (refetch) {
@@ -1119,4 +1130,5 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
     </div>
   );
 }
+
 
