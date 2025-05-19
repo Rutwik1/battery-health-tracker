@@ -558,6 +558,7 @@
 
 import { useState, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { getApiUrl } from "@/lib/apiConfig";
 import {
   Table,
   TableBody,
@@ -682,10 +683,8 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
       // Then delete via API
       console.log(`Deleting battery with ID: ${batteryToDelete}`);
 
-      // Use the correct API URL based on environment
-      const apiUrl = window.location.hostname === 'localhost'
-        ? `https://battery-health-tracker-backend.onrender.com/api/batteries/${batteryToDelete}`
-        : `/api/batteries/${batteryToDelete}`;
+      // Use the centralized API URL configuration for consistent behavior
+      const apiUrl = getApiUrl(`batteries/${batteryToDelete}`);
 
       console.log(`Using API URL for deletion: ${apiUrl}`);
 
@@ -1130,5 +1129,6 @@ export default function BatteryHealthTable({ batteries, isLoading, refetch }: Ba
     </div>
   );
 }
+
 
 
