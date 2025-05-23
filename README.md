@@ -18,6 +18,7 @@
 
 Build a real-time <strong></b>Battery Health Visualization Dashboard</strong> that shows battery performance with interactive charts and dramatic cycle count simulation changes (2000-4000 cycles). The app provides health status indicators, timely alerts, and optimization recommendations through a responsive interface.
 
+<strong>Note -</strong> Sign up to access your Battery Health Visualization Dashboard.
 
 ![4142a6c8-3638-41a6-865c-7e47dfb4cc38-00-35obz0wffpzew janeway replit dev_login](https://github.com/user-attachments/assets/f97e9a3e-28a2-48fb-a0ca-dba3d230880c)
 
