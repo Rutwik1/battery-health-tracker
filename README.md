@@ -41,27 +41,37 @@ Build a real-time <strong></b>Battery Health Visualization Dashboard</strong> th
 - **Smart Recommendations**: Receive optimization suggestions based on battery performance
 - **Responsive Design**: Seamless experience across desktop and mobile devices
 
+</br>
+
 ## 🖥️ Screenshots
 
 
 
-<p><em>Dashboard Overview with Health Status Cards and Performance Charts</em></p>
+<p><strong><em>Dashboard Overview with Health Status Cards and Performance Charts</em></strong></p>
+</br>
 
 ![z1](https://github.com/user-attachments/assets/18b89860-c2d2-4dd1-9607-6a281ccbb7d9)
+
 ![z2](https://github.com/user-attachments/assets/3152e7bc-75b0-4c0d-9255-af2d6c43b46b)
+
 ![z3](https://github.com/user-attachments/assets/a624c570-964a-4832-b3a8-0f68cb31fc83)
+
 ![z4](https://github.com/user-attachments/assets/e3b221fa-2ae8-4d2d-a37f-cceac5b7925f)
 
 
-
+</br>
   
-<p><em>Detailed Battery Analysis with Historical Data</em></p>
+<p><strong><em>Detailed Battery Analysis with Historical Data</em></strong></p>
+</br>
+
 
 ![z5](https://github.com/user-attachments/assets/0b7f1f3e-f123-49e5-9e49-a0067d17655c)
 
 
   
 </div>
+
+</br>
 
 ## 🛠️ Technology Stack
 
