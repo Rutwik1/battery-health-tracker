@@ -3,6 +3,8 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { supabase, signOut } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
+import { Zap } from "lucide-react";
+
 
 interface NavItemProps {
   href: string;
@@ -64,9 +66,14 @@ export default function Sidebar({ isMobile, onNavItemClick }: { isMobile?: boole
     <div className={`flex flex-col flex-grow overflow-y-auto bg-gradient-dark border-r border-border/50 ${isMobile ? "h-full" : ""}`}>
       <div className="px-5 py-6 border-b border-border/50">
         <h1 className="text-xl font-heading font-bold flex items-center">
-          <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center mr-3 shadow-lg shadow-primary/20">
+{/*           <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center mr-3 shadow-lg shadow-primary/20">
             <i className="ri-battery-2-charge-line text-lg text-background"></i>
+          </div> */}
+          {/* Zap icon logo */}
+          <div className=" bg-gradient-primary bg-primary/10 p-1.5 rounded-md backdrop-blur-md bg-gradient-to-r from-primary/20 to-accent/10 text-foreground mr-3 shadow-lg shadow-primary/20">
+            <Zap className="h-5 w-5 text-primary text-muted-foreground group-hover:text-primary text-background !text-black fill-black " />
           </div>
+          {/* Zap icon logo */}
           <span className="text-gradient">Coulomb</span>
         </h1>
       </div>
