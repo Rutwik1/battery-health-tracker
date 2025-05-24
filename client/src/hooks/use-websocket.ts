@@ -3,11 +3,15 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 // WebSocket connection status
 export type ConnectionStatus = 'connecting' | 'open' | 'closed' | 'error';
+import type { Battery } from "@shared/schema";
 
 // Define the different message types we'll receive from the server
 export type WebSocketMessage =
-  | { type: 'batteries', data: any[] }
-  | { type: 'battery_update', data: { battery: any, history: any } }
+  // | { type: 'batteries', data: any[] }
+  // | { type: 'battery_update', data: { battery: any, history: any } }
+  | { type: 'batteries', data: Battery[] }
+  | { type: 'battery_update', data: { battery: Battery, history: any } }
+  | { type: 'battery_added', data: Battery }
   | { type: 'recommendation', data: any };
 
 /**
