@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 // WebSocket connection status
 export type ConnectionStatus = 'connecting' | 'open' | 'closed' | 'error';
+// newly added
 import type { Battery } from "@shared/schema";
 
 // Define the different message types we'll receive from the server
