@@ -47,17 +47,19 @@ Build a real-time <strong></b>Battery Health Visualization Dashboard</strong> th
 
 <p><em>Dashboard Overview with Health Status Cards and Performance Charts</em></p>
 
-![r6](https://github.com/user-attachments/assets/b704827a-de69-4017-9b8f-042dbd95329f)
+![z1](https://github.com/user-attachments/assets/18b89860-c2d2-4dd1-9607-6a281ccbb7d9)
+![z2](https://github.com/user-attachments/assets/3152e7bc-75b0-4c0d-9255-af2d6c43b46b)
+![z3](https://github.com/user-attachments/assets/a624c570-964a-4832-b3a8-0f68cb31fc83)
+![z4](https://github.com/user-attachments/assets/e3b221fa-2ae8-4d2d-a37f-cceac5b7925f)
 
-![r2](https://github.com/user-attachments/assets/d8b6a95f-c183-46bf-bcd9-0eaef7246dc4)
+
 
   
-  
-  <p><em>Detailed Battery Analysis with Historical Data</em></p>
-  
-![r3](https://github.com/user-attachments/assets/d35ef82f-4620-45f5-9bf5-44f9d259e7fa)
+<p><em>Detailed Battery Analysis with Historical Data</em></p>
 
-![r4](https://github.com/user-attachments/assets/cee3d909-e760-483d-b372-dcff3486f512)
+![z5](https://github.com/user-attachments/assets/0b7f1f3e-f123-49e5-9e49-a0067d17655c)
+
+
   
 </div>
 
