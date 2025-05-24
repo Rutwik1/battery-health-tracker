@@ -313,7 +313,7 @@ import DegradationCard from "@/components/dashboard/degradation-card";
 import UsagePatternCard from "@/components/dashboard/usage-pattern-card";
 import RecommendationsCard from "@/components/dashboard/recommendations-card";
 import { exportBatteryData } from "@/lib/utils/export";
-import { getBatteryData, saveBatteryData } from "@/lib/cache";
+import { getBatteryData, saveBatteryData, markFetchSuccess } from "@/lib/cache";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -393,9 +393,13 @@ export default function Dashboard() {
   // Get cached data first to show immediately
  const [initialData] = useState<Battery[] | undefined>(() => {
     const cachedData = getBatteryData<Battery[]>();
-   console.log("Using cached battery data:", cachedData ? "Found cached data" : "No cached data");
-    return cachedData || undefined;
+ const cacheStatus = cachedData ? 
+      `Found ${cachedData.length} batteries in cache` : 
+      "No cached data available";
+    console.log(`Cache initialization: ${cacheStatus}`);    return cachedData || undefined;
   });
+  // Track offline mode for UI feedback
+  const [isOfflineMode, setIsOfflineMode] = useState<boolean>(false);
 
   // Setup polling to regularly refresh battery data with proper types
   const {  data: batteries = [], isLoading, error, refetch } = useQuery<Battery[]>({
@@ -420,8 +424,36 @@ export default function Dashboard() {
     if (batteries && batteries.length > 0) {
       // Cache the data for faster loading next time
       saveBatteryData(batteries);
+      // If we get battery data, we must be online
+      setIsOfflineMode(false);
+    
     }
   }, [batteries]);
+   // Handle network status changes
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log("Network connection restored");
+      setIsOfflineMode(false);
+      refetch();
+    };
+    
+    const handleOffline = () => {
+      console.log("Network connection lost - using cached data");
+      setIsOfflineMode(true);
+    };
+    
+    // Listen for network status changes
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    // Set initial offline status
+    setIsOfflineMode(!navigator.onLine);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [refetch]);
 
   // Force refetch on mount and every 5 seconds as a backup
   useEffect(() => {
